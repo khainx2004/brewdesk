@@ -1,0 +1,32 @@
+# Biến môi trường — chứa mật khẩu DB và JWT secret, KHÔNG commit
+.env
+*.env
+!.env.example
+
+# Backend — Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+!backend/.mvn/wrapper/*.properties
+
+# Frontend — Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code — tài liệu đặc tả nội bộ và cấu hình cục bộ, không đưa lên repo
+CLAUDE.md
+.claude/

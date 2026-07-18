@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ink-deep: #1c1510;
+    --cocoa: #442d1c;
+    --rogue: #3a3d2e;
+    --rogue-dk: #272a1f;
+    --caramel: #84592b;
+    --olive: #9d9167;
+    --olive-mute: #c4baa0;
+    --batter: #ede3ce;
+    --batter-lt: #f5edd8;
+    --batter-warm: #e2d4b7;
+    --wine: #743014;
+    --cream: #faf6ee;
+  }
+
+  body {
+    @apply bg-batter font-sans text-ink-deep antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+}
