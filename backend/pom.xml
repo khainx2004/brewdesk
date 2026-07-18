@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.brewdesk</groupId>
-	<artifactId>app</artifactId>
+	<artifactId>brewdesk</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>BrewDesk</name>
 	<description>Quản lý vận hành quán cafe</description>

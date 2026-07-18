@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         ink: { deep: 'var(--ink-deep)' },
-        cocoa: 'var(--cocoa)',
+        cocoa: { DEFAULT: 'var(--cocoa)', lt: 'var(--cocoa-lt)' },
         rogue: { DEFAULT: 'var(--rogue)', dk: 'var(--rogue-dk)' },
         caramel: 'var(--caramel)',
         olive: { DEFAULT: 'var(--olive)', mute: 'var(--olive-mute)' },
@@ -20,6 +20,11 @@ export default {
       fontFamily: {
         display: ['"DM Serif Display"', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        DEFAULT: 'var(--r)',
+        lg: 'var(--r-lg)',
+        xl: 'var(--r-xl)',
       },
       boxShadow: {
         // Card 2.5D: 2 lớp shadow

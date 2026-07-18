@@ -6,6 +6,7 @@
   :root {
     --ink-deep: #1c1510;
     --cocoa: #442d1c;
+    --cocoa-lt: #5c3d22;
     --rogue: #3a3d2e;
     --rogue-dk: #272a1f;
     --caramel: #84592b;
@@ -16,6 +17,11 @@
     --batter-warm: #e2d4b7;
     --wine: #743014;
     --cream: #faf6ee;
+
+    /* Bo góc — theo mockup POS đã duyệt */
+    --r: 10px;
+    --r-lg: 16px;
+    --r-xl: 22px;
   }
 
   body {

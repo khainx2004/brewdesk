@@ -27,6 +27,7 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Claude Code — tài liệu đặc tả nội bộ và cấu hình cục bộ, không đưa lên repo
+# Tài liệu đặc tả và thiết kế nội bộ, không đưa lên repo public
 CLAUDE.md
 .claude/
+design/
