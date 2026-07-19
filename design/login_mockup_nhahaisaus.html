@@ -6,7 +6,7 @@
 <title>nhahaisaus — đăng nhập</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg: #F2E9D6;
@@ -54,13 +54,19 @@
       radial-gradient(ellipse at 90% 90%, rgba(98,107,71,0.07), transparent 50%),
       var(--bg);
   }
+  /* Tên quán dùng DM Serif Display theo design system ở CLAUDE.md,
+     nhưng giữ viết thường cho hợp giọng của màn này. */
   .brand .handle{
-    display:flex; align-items:center; gap:10px;
-    font-size: 13px; color: var(--accent);
-    letter-spacing: 0.05em;
-    margin-bottom: 1.6rem;
+    display:flex; align-items:center; gap:11px;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 27px; color: var(--accent);
+    letter-spacing: 0.005em; text-transform: lowercase;
+    margin-bottom: 1.5rem; line-height: 1;
   }
-  .brand .handle .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  .brand .handle .dot{
+    width:6px; height:6px; border-radius:50%; background:var(--accent);
+    flex-shrink: 0;
+  }
   .brand p{
     margin-top: 0.2rem;
     max-width: 34ch;
@@ -92,10 +98,14 @@
   @keyframes slide{ 0%{left:-6px;} 50%{left:22px;} 100%{left:-6px;} }
 
   /* ---------------- LOGIN CARD ---------------- */
+  /* Chừa sẵn chiều cao cho trạng thái cao nhất (đổi mật khẩu lần đầu).
+     Nhờ vậy đổi qua lại giữa 4 trạng thái không làm xê dịch cột bên trái,
+     thẻ không bao giờ tràn xuống đè dòng "kéo xuống xem nhật ký quán". */
   .stage{
     perspective: 1500px;
-    display:flex; justify-content:center;
+    display:flex; justify-content:center; align-items:center;
     position: relative;
+    min-height: 548px;
   }
   .glow{
     position:absolute; top:50%; left:50%;
@@ -397,12 +407,19 @@
     font-size: 11px; color: var(--ink-dim);
     border-top: 1px solid var(--ink-line);
   }
-  footer .voice{ font-style: italic; font-size: 1.1rem; color: var(--ink); }
+  footer .voice{
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-style: normal; font-size: 1.35rem; color: var(--ink);
+    text-transform: lowercase; letter-spacing: 0.005em;
+  }
 
   @media (max-width: 880px){
     .hero{ grid-template-columns: 1fr; text-align:center; padding-top: 8vh; gap: 3.5rem; }
     .brand p{ margin-left:auto; margin-right:auto; }
     .meta-line, .scroll-note{ justify-content:center; }
+    /* Xếp dọc thì cái phin nhô lên 72px sẽ đụng chữ phía trên — chừa chỗ cho nó */
+    .stage{ padding-top: 78px; min-height: 600px; }
+    .brand .handle{ justify-content: center; }
     .mosaic{ grid-template-columns: repeat(3,1fr); }
     .t-a, .t-f, .t-k{ grid-column: span 2; }
     .stats{ grid-template-columns: repeat(2,1fr); }
@@ -434,9 +451,9 @@
     <div class="handle"><div class="dot"></div>nhahaisaus</div>
     <p>Hệ thống quản lý vận hành nội bộ của quán — đăng nhập để bắt đầu ca làm việc hôm nay.</p>
     <div class="meta-line">
-      <div>ca sáng <b>7:30</b>—13:00</div>
-      <div>ca chiều <b>13:00</b>—18:00</div>
-      <div>ca tối <b>18:00</b>—21:00</div>
+      <div>ca sáng <b>7:30</b> – <b>13:00</b></div>
+      <div>ca chiều <b>13:00</b> – <b>18:00</b></div>
+      <div>ca tối <b>18:00</b> – <b>21:00</b></div>
     </div>
     <div class="scroll-note"><div class="ln"></div>kéo xuống xem nhật ký quán</div>
   </div>
