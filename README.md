@@ -57,7 +57,7 @@ Spring Boot không tự đọc file `.env`, phải export biến vào shell trư
 
 ```bash
 set -a && . ./.env && set +a
-cd backend && ./mvnw spring-boot:run
+cd source/backend && ./mvnw spring-boot:run
 ```
 
 Backend chạy ở `http://localhost:8080`, Swagger tại `/swagger-ui.html`.
@@ -76,7 +76,7 @@ quản trị đầu tiên.
 ### 4. Chạy frontend
 
 ```bash
-cd frontend && npm install && npm run dev
+cd source/frontend && npm install && npm run dev
 ```
 
 Frontend chạy ở `http://localhost:5173` và proxy `/api` sang cổng 8080, nên lúc
@@ -95,8 +95,10 @@ bắt buộc đổi mật khẩu ngay lần đăng nhập đầu tiên.
 
 ```
 brewDeskProject/
-├── backend/            # Spring Boot (Maven), package-by-feature
-├── frontend/           # React + Vite
+├── source/
+│   ├── backend/        # Spring Boot (Maven), package-by-feature
+│   └── frontend/       # React + Vite
+├── doc/                # Tài liệu dự án, tiến độ theo phase
 ├── docker-compose.yml  # PostgreSQL 16
 └── .env.example        # Mẫu biến môi trường
 ```
