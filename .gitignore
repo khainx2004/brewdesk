@@ -27,5 +27,6 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Thiết kế nội bộ — bỏ dòng này nếu muốn đưa mockup lên repo
-design/
+# Claude Code — settings.json dùng chung thì commit, .local là của riêng từng
+# máy (chứa đường dẫn cá nhân và có thể lẫn credential) nên giữ ngoài repo
+.claude/settings.local.json

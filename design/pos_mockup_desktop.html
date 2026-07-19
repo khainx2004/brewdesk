@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>POS · Nhà Hai Saus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* === Palette — Nhà Hai Saus === */
+    --ink-deep:    #1C1510;   /* chữ chính — đen ấm */
+    --cocoa:       #442D1C;   /* topbar nền */
+    --cocoa-lt:    #5C3D22;   /* topbar gradient */
+    --rogue:       #3A3D2E;   /* accent chính — xanh rêu tối */
+    --rogue-dk:    #272A1F;   /* hover accent */
+    --caramel:     #84592B;   /* accent phụ — giá, highlight */
+    --olive:       #9D9167;   /* border active, tag, secondary */
+    --olive-mute:  #C4BAA0;   /* border thường, divider */
+    --batter:      #EDE3CE;   /* nền toàn trang */
+    --batter-lt:   #F5EDD8;   /* nền card */
+    --batter-warm: #E2D4B7;   /* sunken, footer cart */
+    --wine:        #743014;   /* danger */
+    --cream:       #FAF6EE;   /* surface trắng kem */
+
+    --font-serif: 'DM Serif Display', Georgia, serif;
+    --font-ui:    'Plus Jakarta Sans', -apple-system, sans-serif;
+    --r:    10px;
+    --r-lg: 16px;
+    --r-xl: 22px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-ui);
+    background: var(--batter);
+    color: var(--ink-deep);
+    min-width: 1180px;
+    min-height: 100vh;
+  }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 60px;
+    background: linear-gradient(120deg, var(--ink-deep) 0%, #2E1E12 60%, var(--cocoa-lt) 100%);
+    box-shadow: 0 1px 0 rgba(157,145,103,0.2), 0 4px 20px rgba(28,21,16,0.45);
+    position: relative; z-index: 10;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand-name {
+    font-family: var(--font-serif); font-style: italic;
+    font-size: 21px; color: var(--batter-lt);
+    letter-spacing: 0.015em; line-height: 1;
+  }
+  .brand-tag {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em;
+    color: var(--olive); text-transform: uppercase;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .shift-pill {
+    font-size: 12px; font-weight: 600; padding: 5px 14px;
+    background: rgba(157,145,103,0.15);
+    border: 1px solid rgba(157,145,103,0.3);
+    border-radius: 999px; color: var(--olive-mute); letter-spacing: 0.03em;
+    transition: all 0.2s;
+  }
+  .shift-pill.closed { background: rgba(116,48,20,0.25); border-color: rgba(116,48,20,0.4); color: #E8AFA0; }
+  .staff-pill { display: flex; align-items: center; gap: 9px; }
+  .avatar {
+    width: 29px; height: 29px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--caramel), #9A6B38);
+    color: var(--cream); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+  }
+  .staff-name { font-size: 13px; font-weight: 500; color: var(--olive-mute); }
+  .clock { font-size: 12.5px; color: rgba(157,145,103,0.7); font-variant-numeric: tabular-nums; letter-spacing: 0.05em; }
+
+  /* ─── LAYOUT ─── */
+  .body-wrap { display: flex; height: calc(100vh - 60px); padding: 14px; gap: 13px; }
+  .menu-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; gap: 11px; }
+
+  /* ─── SEARCH ─── */
+  .search-wrap { position: relative; }
+  .search-icon {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    font-size: 15px; color: var(--olive); pointer-events: none;
+  }
+  .search-wrap input {
+    width: 100%; height: 42px; border-radius: var(--r);
+    border: 1px solid var(--olive-mute);
+    background: var(--cream);
+    padding: 0 14px 0 40px;
+    font-family: var(--font-ui); font-size: 13.5px; color: var(--ink-deep);
+    box-shadow: 0 1px 4px rgba(28,21,16,0.05);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-wrap input:focus {
+    outline: none; border-color: var(--rogue);
+    box-shadow: 0 0 0 3px rgba(58,61,46,0.1);
+  }
+  .search-wrap input::placeholder { color: var(--olive); opacity: 0.7; }
+
+  /* ─── TABS ─── */
+  .category-tabs { display: flex; gap: 7px; flex-wrap: wrap; }
+  .cat-tab {
+    padding: 6px 16px; border-radius: 999px;
+    border: 1px solid var(--olive-mute);
+    background: transparent;
+    color: var(--olive); font-family: var(--font-ui);
+    font-size: 12.5px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .cat-tab:hover { border-color: var(--rogue); color: var(--rogue); }
+  .cat-tab.active {
+    background: var(--rogue); border-color: var(--rogue);
+    color: var(--batter-lt);
+    box-shadow: 0 2px 8px rgba(58,61,46,0.3);
+  }
+
+  /* ─── PRODUCT GRID ─── */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+    gap: 11px; overflow-y: auto; align-content: start;
+    padding-bottom: 4px;
+  }
+  .product-card {
+    background: var(--cream);
+    border: 1px solid rgba(196,186,160,0.6);
+    border-radius: var(--r-lg); padding: 14px 13px;
+    cursor: pointer; transition: all 0.2s ease;
+    display: flex; flex-direction: column; gap: 7px;
+    min-height: 110px;
+    box-shadow: 0 1px 3px rgba(28,21,16,0.05), 0 3px 8px rgba(28,21,16,0.04);
+    position: relative; overflow: hidden;
+  }
+  /* Glassmorphism highlight phía trên */
+  .product-card::after {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 45%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.45) 0%, transparent 100%);
+    border-radius: inherit; pointer-events: none;
+  }
+  .product-card:hover {
+    border-color: var(--rogue);
+    transform: translateY(-3px);
+    box-shadow: 0 2px 6px rgba(28,21,16,0.07), 0 10px 22px rgba(58,61,46,0.13);
+  }
+  .product-card:active { transform: translateY(-1px); }
+  .product-card.out { opacity: 0.42; cursor: not-allowed; filter: grayscale(20%); }
+  .product-card.out:hover { transform: none; box-shadow: 0 1px 3px rgba(28,21,16,0.05), 0 3px 8px rgba(28,21,16,0.04); border-color: rgba(196,186,160,0.6); }
+
+  .product-thumb {
+    width: 100%; height: 44px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--batter) 0%, var(--batter-warm) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px;
+  }
+  .product-thumb svg { width: 22px; height: 22px; stroke: var(--rogue); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .product-name { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--ink-deep); }
+  .product-price { font-size: 12.5px; color: var(--caramel); margin-top: auto; font-weight: 600; }
+  .out-badge { font-size: 10px; font-weight: 700; color: var(--wine); text-transform: uppercase; letter-spacing: 0.06em; margin-top: auto; }
+
+  /* ─── CART ─── */
+  .cart-panel {
+    width: 368px; flex-shrink: 0;
+    background: var(--cream);
+    border: 1px solid var(--olive-mute);
+    border-radius: var(--r-xl);
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 2px 10px rgba(28,21,16,0.06), 0 16px 40px rgba(28,21,16,0.07);
+  }
+  .cart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(196,186,160,0.5);
+    background: linear-gradient(to bottom, var(--batter-lt), var(--cream));
+  }
+  .cart-title { font-family: var(--font-serif); font-size: 17px; color: var(--ink-deep); font-style: italic; }
+  .link-btn { background: none; border: none; color: var(--wine); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-ui); opacity: 0.75; transition: opacity 0.15s; }
+  .link-btn:hover { opacity: 1; }
+
+  .cart-items { flex: 1; overflow-y: auto; padding: 4px 16px; min-height: 80px; }
+  .cart-empty { color: var(--olive); font-size: 13px; text-align: center; padding: 48px 20px; opacity: 0.65; font-style: italic; }
+
+  .cart-item { padding: 10px 0; border-bottom: 1px solid rgba(196,186,160,0.35); }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .cart-item-name { font-size: 13.5px; font-weight: 600; color: var(--ink-deep); }
+  .cart-item-tags { font-size: 11px; color: var(--olive); margin-top: 2px; letter-spacing: 0.01em; }
+  .cart-item-price { font-size: 13px; font-weight: 700; color: var(--caramel); white-space: nowrap; }
+  .cart-item-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .qty-mini { display: flex; align-items: center; gap: 9px; }
+  .qty-mini button {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 1px solid var(--olive-mute);
+    background: var(--batter-lt); font-size: 13px; cursor: pointer;
+    color: var(--ink-deep); font-weight: 600; line-height: 1;
+    transition: all 0.12s; display: flex; align-items: center; justify-content: center;
+  }
+  .qty-mini button:hover { background: var(--rogue); border-color: var(--rogue); color: white; }
+  .qty-mini span { font-size: 13px; font-weight: 700; min-width: 16px; text-align: center; color: var(--ink-deep); }
+  .remove-item { background: none; border: none; color: var(--olive); font-size: 11.5px; cursor: pointer; font-family: var(--font-ui); transition: color 0.12s; }
+  .remove-item:hover { color: var(--wine); }
+
+  /* ─── CART FOOTER ─── */
+  .cart-footer {
+    padding: 14px 20px 18px;
+    border-top: 1px solid rgba(196,186,160,0.5);
+    background: linear-gradient(to bottom, var(--batter-lt) 0%, var(--batter-warm) 100%);
+  }
+  .row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; padding: 5px 0; color: var(--olive); }
+  .discount-wrap { display: flex; gap: 6px; }
+  .discount-wrap input, .discount-wrap select {
+    height: 30px; border-radius: 7px;
+    border: 1px solid var(--olive-mute);
+    background: var(--cream); font-family: var(--font-ui); font-size: 12px; color: var(--ink-deep);
+  }
+  .discount-wrap input { width: 72px; padding: 0 8px; text-align: right; }
+  .discount-wrap select { padding: 0 5px; }
+  .discount-wrap input:focus, .discount-wrap select:focus { outline: none; border-color: var(--rogue); }
+
+  .total-row {
+    font-size: 15.5px; font-weight: 700; color: var(--ink-deep);
+    border-top: 1px dashed rgba(157,145,103,0.4);
+    margin-top: 5px; padding-top: 11px !important; padding-bottom: 2px !important;
+  }
+  .total-row span:last-child { font-family: var(--font-serif); font-size: 18px; color: var(--rogue); font-style: italic; }
+
+  .payment-methods { display: flex; gap: 8px; margin: 10px 0 6px; }
+  .pay-btn {
+    flex: 1; padding: 8px 0; border-radius: var(--r);
+    border: 1px solid var(--olive-mute);
+    background: transparent; font-family: var(--font-ui);
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    color: var(--olive); transition: all 0.15s;
+  }
+  .pay-btn:hover { border-color: var(--rogue); color: var(--rogue); }
+  .pay-btn.active { background: rgba(58,61,46,0.08); border-color: var(--rogue); color: var(--rogue); box-shadow: inset 0 0 0 1px var(--rogue); }
+
+  .cash-block {
+    background: rgba(157,145,103,0.08); border: 1px solid rgba(157,145,103,0.2);
+    border-radius: var(--r); padding: 8px 12px; margin: 2px 0;
+  }
+  .cash-input {
+    width: 126px; height: 30px; border-radius: 7px;
+    border: 1px solid var(--olive-mute);
+    padding: 0 10px; font-size: 12.5px; text-align: right;
+    background: var(--cream); font-family: var(--font-ui);
+    transition: border-color 0.15s;
+  }
+  .cash-input:focus { outline: none; border-color: var(--rogue); }
+  .cash-input.insufficient { border-color: var(--wine); }
+  .change-row { font-weight: 700; color: var(--ink-deep); }
+  .change-row.negative span:last-child { color: var(--wine); }
+
+  .checkout-btn {
+    width: 100%; padding: 13px; border-radius: var(--r);
+    border: none; margin-top: 8px;
+    background: linear-gradient(135deg, var(--rogue) 0%, var(--rogue-dk) 100%);
+    color: var(--batter-lt); font-family: var(--font-ui);
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(58,61,46,0.3);
+    transition: all 0.18s; letter-spacing: 0.02em;
+  }
+  .checkout-btn:hover { box-shadow: 0 6px 20px rgba(58,61,46,0.4); transform: translateY(-1px); }
+  .checkout-btn:active { transform: translateY(0); }
+  .checkout-btn:disabled { background: var(--olive-mute); color: var(--cream); box-shadow: none; cursor: not-allowed; transform: none; }
+
+  .toast { margin-top: 8px; text-align: center; font-size: 12px; color: var(--rogue); font-weight: 600; opacity: 0; transition: opacity 0.25s; min-height: 16px; }
+  .toast.show { opacity: 1; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(28,21,16,0.6);
+    backdrop-filter: blur(4px) saturate(0.8);
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    width: 350px;
+    background: var(--cream);
+    border-radius: var(--r-xl); padding: 26px;
+    box-shadow: 0 24px 64px rgba(28,21,16,0.35);
+    border: 1px solid rgba(196,186,160,0.5);
+    position: relative; overflow: hidden;
+  }
+  .modal::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(to bottom, rgba(245,237,216,0.6) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .modal h3 { font-family: var(--font-serif); font-style: italic; font-size: 19px; color: var(--ink-deep); margin-bottom: 22px; }
+  .variant-group { margin-bottom: 18px; }
+  .variant-label { font-size: 10.5px; font-weight: 700; color: var(--olive); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .variant-options { display: flex; gap: 7px; }
+  .variant-options button {
+    flex: 1; padding: 8px 0; border-radius: var(--r);
+    border: 1px solid var(--olive-mute);
+    background: var(--batter-lt); font-family: var(--font-ui);
+    font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--olive);
+    transition: all 0.15s;
+  }
+  .variant-options button:hover { border-color: var(--rogue); color: var(--rogue); }
+  .variant-options button.selected { background: rgba(58,61,46,0.09); border-color: var(--rogue); color: var(--rogue); font-weight: 700; box-shadow: inset 0 0 0 1px var(--rogue); }
+
+  .qty-row { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 22px; font-size: 13.5px; font-weight: 500; color: var(--ink-deep); }
+  .qty-stepper { display: flex; align-items: center; gap: 16px; }
+  .qty-stepper button {
+    width: 32px; height: 32px; border-radius: 9px;
+    border: 1px solid var(--olive-mute); background: var(--batter-lt);
+    font-size: 16px; cursor: pointer; color: var(--ink-deep); font-weight: 600;
+    transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+  }
+  .qty-stepper button:hover { background: var(--rogue); border-color: var(--rogue); color: white; }
+  .qty-val { font-size: 16px; font-weight: 700; min-width: 20px; text-align: center; }
+
+  .modal-actions { display: flex; gap: 9px; }
+  .modal-cancel {
+    flex: 1; padding: 11px; border-radius: var(--r);
+    border: 1px solid var(--olive-mute); background: var(--batter-lt);
+    font-family: var(--font-ui); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--olive);
+    transition: all 0.15s;
+  }
+  .modal-cancel:hover { border-color: var(--wine); color: var(--wine); }
+  .modal-add {
+    flex: 2; padding: 11px; border-radius: var(--r); border: none;
+    background: linear-gradient(135deg, var(--rogue) 0%, var(--rogue-dk) 100%);
+    font-family: var(--font-ui); font-size: 13px; font-weight: 700;
+    cursor: pointer; color: var(--batter-lt);
+    box-shadow: 0 4px 12px rgba(58,61,46,0.25); transition: all 0.15s;
+  }
+  .modal-add:hover { box-shadow: 0 6px 18px rgba(58,61,46,0.35); transform: translateY(-1px); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--olive-mute); border-radius: 99px; }
+
+  /* SVG icons inline */
+  .ico-coffee { display: inline-block; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">Nhà Hai Saus</span>
+    <span class="brand-tag">POS</span>
+  </div>
+  <div class="topbar-right">
+    <div class="shift-pill" id="shiftPill">Ca Sáng · P1</div>
+    <div class="staff-pill">
+      <div class="avatar">NL</div>
+      <span class="staff-name">Nguyễn Lam</span>
+    </div>
+    <div class="clock" id="clock">08:42</div>
+  </div>
+</header>
+
+<div class="body-wrap">
+  <div class="menu-panel">
+    <div class="search-wrap">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" placeholder="Tìm tên món..." />
+    </div>
+    <div class="category-tabs" id="categoryTabs"></div>
+    <div class="product-grid" id="productGrid"></div>
+  </div>
+
+  <aside class="cart-panel">
+    <div class="cart-header">
+      <span class="cart-title">Đơn hiện tại</span>
+      <button class="link-btn" id="clearCart">Xoá đơn</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">Chưa có món nào trong đơn</div>
+    </div>
+    <div class="cart-footer">
+      <div class="row"><span>Tạm tính</span><span id="subtotal">0đ</span></div>
+      <div class="row">
+        <span>Giảm giá</span>
+        <div class="discount-wrap">
+          <input type="number" id="discountValue" placeholder="0" min="0"/>
+          <select id="discountType"><option value="fixed">đ</option><option value="percent">%</option></select>
+        </div>
+      </div>
+      <div class="row total-row"><span>Tổng cộng</span><span id="total">0đ</span></div>
+      <div class="payment-methods">
+        <button class="pay-btn active" data-method="cash">Tiền mặt</button>
+        <button class="pay-btn" data-method="transfer">Chuyển khoản</button>
+      </div>
+      <div class="cash-block" id="cashReceivedBlock">
+        <div class="row">
+          <span>Tiền khách đưa</span>
+          <input type="number" id="cashReceived" class="cash-input" placeholder="0" min="0"/>
+        </div>
+        <div class="row change-row">
+          <span>Tiền thối lại</span>
+          <span id="changeAmount">0đ</span>
+        </div>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" disabled>Thanh toán</button>
+      <div class="toast" id="toast"></div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-overlay" id="variantModal">
+  <div class="modal">
+    <h3 id="modalItemName"></h3>
+    <div class="variant-group">
+      <div class="variant-label">Mức ngọt</div>
+      <div class="variant-options" id="sweetOptions"></div>
+    </div>
+    <div class="variant-group">
+      <div class="variant-label">Mức đá</div>
+      <div class="variant-options" id="iceOptions"></div>
+    </div>
+    <div class="qty-row">
+      <span>Số lượng</span>
+      <div class="qty-stepper">
+        <button id="qtyMinus">−</button>
+        <span class="qty-val" id="qtyValue">1</span>
+        <button id="qtyPlus">+</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modalCancel">Huỷ</button>
+      <button class="modal-add" id="modalAdd">Thêm vào đơn</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* SVG icons — không dùng emoji, dùng inline SVG line art */
+const ICONS = {
+  coffee: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>`,
+  tea:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M12 3c0 1-1.5 2-1.5 3S12 7 12 8"/></svg>`,
+  ice:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="M2 12h20"/><path d="m19.07 4.93-4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>`,
+  bread:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>`,
+};
+
+const categories = [
+  { id:'all',   name:'Tất cả' },
+  { id:'cafe',  name:'Cà phê' },
+  { id:'tra',   name:'Trà' },
+  { id:'daxay', name:'Đá xay' },
+  { id:'banh',  name:'Bánh' },
+];
+const products = [
+  { id:1,  name:'Cà phê sữa đá',  price:29000, cat:'cafe',  icon:'coffee', variant:true,  out:false },
+  { id:2,  name:'Cà phê đen đá',  price:25000, cat:'cafe',  icon:'coffee', variant:true,  out:false },
+  { id:3,  name:'Bạc xỉu',        price:32000, cat:'cafe',  icon:'coffee', variant:true,  out:false },
+  { id:4,  name:'Cold brew',       price:39000, cat:'cafe',  icon:'coffee', variant:false, out:false },
+  { id:5,  name:'Americano',       price:35000, cat:'cafe',  icon:'coffee', variant:true,  out:true  },
+  { id:6,  name:'Trà đào cam sả', price:39000, cat:'tra',   icon:'tea',    variant:true,  out:false },
+  { id:7,  name:'Trà vải',         price:35000, cat:'tra',   icon:'tea',    variant:true,  out:false },
+  { id:8,  name:'Hồng trà sữa',   price:32000, cat:'tra',   icon:'tea',    variant:true,  out:false },
+  { id:9,  name:'Matcha đá xay',  price:45000, cat:'daxay', icon:'ice',    variant:false, out:false },
+  { id:10, name:'Choco đá xay',   price:45000, cat:'daxay', icon:'ice',    variant:false, out:false },
+  { id:11, name:'Cookie bơ',       price:22000, cat:'banh',  icon:'bread',  variant:false, out:false },
+  { id:12, name:'Bánh mì que',     price:18000, cat:'banh',  icon:'bread',  variant:false, out:false },
+];
+
+let activeCat='all', searchTerm='', cart=[];
+let pendingItem=null, modalSweet='100%', modalIce='100%', modalQty=1;
+let paymentMethod='cash';
+const LEVELS = ['0%','50%','100%'];
+const fmt = n => Math.round(n).toLocaleString('vi-VN')+'đ';
+
+function renderTabs() {
+  const el = document.getElementById('categoryTabs');
+  el.innerHTML='';
+  categories.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(c.id===activeCat?' active':'');
+    b.textContent=c.name;
+    b.onclick=()=>{ activeCat=c.id; renderTabs(); renderGrid(); };
+    el.appendChild(b);
+  });
+}
+
+function renderGrid() {
+  const el=document.getElementById('productGrid');
+  el.innerHTML='';
+  products
+    .filter(p=>(activeCat==='all'||p.cat===activeCat)&&p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .forEach(p=>{
+      const card=document.createElement('div');
+      card.className='product-card'+(p.out?' out':'');
+      card.innerHTML=`
+        <div class="product-thumb">${ICONS[p.icon]||ICONS.coffee}</div>
+        <div class="product-name">${p.name}</div>
+        ${p.out?'<div class="out-badge">Tạm hết hàng</div>':`<div class="product-price">${fmt(p.price)}</div>`}`;
+      if(!p.out) card.onclick=()=>openModal(p);
+      el.appendChild(card);
+    });
+}
+
+function openModal(p) {
+  pendingItem=p; modalSweet='100%'; modalIce='100%'; modalQty=1;
+  document.getElementById('modalItemName').textContent=p.name;
+  buildGroup('sweetOptions',LEVELS,'sweet');
+  buildGroup('iceOptions',LEVELS,'ice');
+  document.getElementById('qtyValue').textContent=modalQty;
+  document.getElementById('variantModal').classList.add('open');
+}
+function buildGroup(elId,opts,type) {
+  const el=document.getElementById(elId); el.innerHTML='';
+  opts.forEach(v=>{
+    const cur=type==='sweet'?modalSweet:modalIce;
+    const b=document.createElement('button');
+    b.className=v===cur?'selected':'';
+    b.textContent=v==='0%'?(type==='sweet'?'Không ngọt':'Không đá'):v;
+    b.onclick=()=>{ if(type==='sweet') modalSweet=v; else modalIce=v; buildGroup(elId,opts,type); };
+    el.appendChild(b);
+  });
+}
+document.getElementById('qtyMinus').onclick=()=>{ if(modalQty>1) modalQty--; document.getElementById('qtyValue').textContent=modalQty; };
+document.getElementById('qtyPlus').onclick=()=>{ modalQty++; document.getElementById('qtyValue').textContent=modalQty; };
+document.getElementById('modalCancel').onclick=()=>document.getElementById('variantModal').classList.remove('open');
+document.getElementById('modalAdd').onclick=()=>{
+  cart.push({ id:Date.now(), productId:pendingItem.id, name:pendingItem.name, price:pendingItem.price,
+    sweet:pendingItem.variant?modalSweet:null, ice:pendingItem.variant?modalIce:null, qty:modalQty });
+  document.getElementById('variantModal').classList.remove('open');
+  renderCart();
+};
+
+function renderCart() {
+  const el=document.getElementById('cartItems');
+  const btn=document.getElementById('checkoutBtn');
+  if(!cart.length) {
+    el.innerHTML='<div class="cart-empty">Chưa có món nào trong đơn</div>';
+    btn.disabled=true;
+  } else {
+    el.innerHTML='';
+    cart.forEach((item,idx)=>{
+      const tags=item.sweet?`${item.sweet} ngọt · ${item.ice} đá`:'';
+      const row=document.createElement('div');
+      row.className='cart-item';
+      row.innerHTML=`
+        <div class="cart-item-top">
+          <div>
+            <div class="cart-item-name">${item.name}</div>
+            ${tags?`<div class="cart-item-tags">${tags}</div>`:''}
+          </div>
+          <div class="cart-item-price">${fmt(item.price*item.qty)}</div>
+        </div>
+        <div class="cart-item-bottom">
+          <div class="qty-mini"><button>−</button><span>${item.qty}</span><button>+</button></div>
+          <button class="remove-item">Xoá</button>
+        </div>`;
+      const [minus,plus]=row.querySelectorAll('.qty-mini button');
+      minus.onclick=()=>{ if(cart[idx].qty>1) cart[idx].qty--; else cart.splice(idx,1); renderCart(); };
+      plus.onclick=()=>{ cart[idx].qty++; renderCart(); };
+      row.querySelector('.remove-item').onclick=()=>{ cart.splice(idx,1); renderCart(); };
+      el.appendChild(row);
+    });
+    btn.disabled=false;
+  }
+  updateTotals();
+}
+
+function updateTotals() {
+  const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const dv=parseFloat(document.getElementById('discountValue').value)||0;
+  const dt=document.getElementById('discountType').value;
+  let disc=dt==='percent'?sub*dv/100:dv;
+  disc=Math.min(disc,sub);
+  const total=Math.max(0,Math.round(sub-disc));
+  document.getElementById('subtotal').textContent=fmt(sub);
+  document.getElementById('total').textContent=fmt(total);
+
+  const ci=document.getElementById('cashReceived');
+  const ce=document.getElementById('changeAmount');
+  const cr=ce.closest('.change-row');
+  const has=cart.length>0;
+  if(paymentMethod==='cash') {
+    const rec=parseFloat(ci.value)||0;
+    const change=rec-total;
+    const short=rec<total;
+    ce.textContent=fmt(Math.max(change,0));
+    cr.classList.toggle('negative',short&&rec>0);
+    ci.classList.toggle('insufficient',short&&ci.value!=='');
+    document.getElementById('checkoutBtn').disabled=!has||rec<total;
+  } else {
+    document.getElementById('checkoutBtn').disabled=!has;
+  }
+}
+
+document.getElementById('discountValue').oninput=updateTotals;
+document.getElementById('discountType').onchange=updateTotals;
+document.getElementById('cashReceived').oninput=updateTotals;
+document.getElementById('searchInput').oninput=e=>{ searchTerm=e.target.value; renderGrid(); };
+document.getElementById('clearCart').onclick=()=>{ cart=[]; renderCart(); };
+
+document.querySelectorAll('.pay-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.pay-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); paymentMethod=b.dataset.method;
+    document.getElementById('cashReceivedBlock').style.display=paymentMethod==='cash'?'block':'none';
+    updateTotals();
+  };
+});
+
+document.getElementById('checkoutBtn').onclick=()=>{
+  const t=document.getElementById('total').textContent;
+  const extra=paymentMethod==='cash'?` · Thối lại ${document.getElementById('changeAmount').textContent}`:'';
+  const toast=document.getElementById('toast');
+  toast.textContent=`Đã thanh toán ${t} · ${paymentMethod==='cash'?'Tiền mặt':'Chuyển khoản'}${extra}`;
+  toast.classList.add('show');
+  cart=[];
+  document.getElementById('discountValue').value='';
+  document.getElementById('cashReceived').value='';
+  renderCart();
+  setTimeout(()=>toast.classList.remove('show'),3200);
+};
+
+const SHIFTS=[
+  {code:'P1',name:'Ca Sáng', start:7*60+30,end:13*60},
+  {code:'P2',name:'Ca Chiều',start:13*60,  end:18*60},
+  {code:'P3',name:'Ca Tối',  start:18*60,  end:21*60},
+];
+function tick() {
+  const now=new Date();
+  document.getElementById('clock').textContent=
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const min=now.getHours()*60+now.getMinutes();
+  const s=SHIFTS.find(x=>min>=x.start&&min<x.end);
+  const pill=document.getElementById('shiftPill');
+  if(s){pill.textContent=`${s.name} · ${s.code}`;pill.classList.remove('closed');}
+  else{pill.textContent='Ngoài giờ hoạt động';pill.classList.add('closed');}
+}
+tick(); setInterval(tick,30000);
+renderTabs(); renderGrid(); renderCart();
+</script>
+</body>
+</html>

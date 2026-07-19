@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw *)",
+      "Bash(npm run *)",
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "Bash(docker compose *)",
+      "Bash(podman compose *)",
+      "Bash(java -version)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git check-ignore *)",
+      "Bash(git ls-tree *)"
+    ]
+  }
+}
