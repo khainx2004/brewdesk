@@ -2,19 +2,57 @@ import axios from 'axios';
 
 const ACCESS_TOKEN_KEY = 'brewdesk_access_token';
 const REFRESH_TOKEN_KEY = 'brewdesk_refresh_token';
+const PERSIST_KEY = 'brewdesk_persist';
+
+/**
+ * Ô "giữ đăng nhập" quyết định token nằm ở đâu:
+ * bật thì localStorage (đóng trình duyệt mở lại vẫn còn),
+ * tắt thì sessionStorage (đóng tab là mất).
+ */
+function activeStore() {
+  return localStorage.getItem(PERSIST_KEY) === '1' ? localStorage : sessionStorage;
+}
 
 export const tokenStorage = {
-  getAccess: () => localStorage.getItem(ACCESS_TOKEN_KEY),
-  getRefresh: () => localStorage.getItem(REFRESH_TOKEN_KEY),
-  set: (accessToken, refreshToken) => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  getAccess: () => activeStore().getItem(ACCESS_TOKEN_KEY),
+  getRefresh: () => activeStore().getItem(REFRESH_TOKEN_KEY),
+
+  set(accessToken, refreshToken, persist) {
+    if (persist !== undefined) {
+      localStorage.setItem(PERSIST_KEY, persist ? '1' : '0');
+    }
+    // Dọn kho còn lại để không sót token cũ ở nơi không còn dùng tới
+    const keep = activeStore();
+    const other = keep === localStorage ? sessionStorage : localStorage;
+    other.removeItem(ACCESS_TOKEN_KEY);
+    other.removeItem(REFRESH_TOKEN_KEY);
+
+    keep.setItem(ACCESS_TOKEN_KEY, accessToken);
+    if (refreshToken) keep.setItem(REFRESH_TOKEN_KEY, refreshToken);
   },
-  clear: () => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+
+  clear() {
+    [localStorage, sessionStorage].forEach((store) => {
+      store.removeItem(ACCESS_TOKEN_KEY);
+      store.removeItem(REFRESH_TOKEN_KEY);
+    });
+    localStorage.removeItem(PERSIST_KEY);
   },
 };
+
+/**
+ * Interceptor không tự đổi URL bằng window.location vì làm vậy sẽ tải lại
+ * toàn bộ trang. Thay vào đó app đăng ký hàm xử lý, router tự điều hướng.
+ */
+const handlers = {
+  onAuthExpired: null,
+  onMustChangePassword: null,
+};
+
+export function registerAuthHandlers({ onAuthExpired, onMustChangePassword }) {
+  handlers.onAuthExpired = onAuthExpired;
+  handlers.onMustChangePassword = onMustChangePassword;
+}
 
 export const api = axios.create({
   baseURL: '/api/v1',
@@ -28,22 +66,32 @@ api.interceptors.request.use((config) => {
 });
 
 // Khi access token hết hạn, refresh một lần rồi phát lại request.
-// Các request 401 xảy ra đồng thời cùng chờ chung một lần refresh.
+// Nhiều request 401 xảy ra cùng lúc dùng chung một lần refresh.
 let refreshPromise = null;
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
-    const isAuthCall = original?.url?.includes('/auth/');
+    const status = error.response?.status;
+    const code = error.response?.data?.errorCode;
 
-    if (error.response?.status !== 401 || original?._retried || isAuthCall) {
+    // Tài khoản chưa đổi mật khẩu lần đầu thì backend chặn mọi endpoint khác.
+    // Không xử lý ở đây thì mọi màn hình lỗi im lặng, người dùng không biết vì sao.
+    if (status === 403 && code === 'MUST_CHANGE_PASSWORD') {
+      handlers.onMustChangePassword?.();
+      return Promise.reject(error);
+    }
+
+    const isAuthCall = original?.url?.includes('/auth/');
+    if (status !== 401 || original?._retried || isAuthCall) {
       return Promise.reject(error);
     }
 
     const refreshToken = tokenStorage.getRefresh();
     if (!refreshToken) {
       tokenStorage.clear();
+      handlers.onAuthExpired?.();
       return Promise.reject(error);
     }
 
@@ -63,7 +111,7 @@ api.interceptors.response.use(
       return api(original);
     } catch (refreshError) {
       tokenStorage.clear();
-      window.location.href = '/dang-nhap';
+      handlers.onAuthExpired?.();
       return Promise.reject(refreshError);
     }
   },

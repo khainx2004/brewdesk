@@ -1,0 +1,567 @@
+/*
+ * Màn hình đăng nhập dùng ngôn ngữ thị giác riêng theo CLAUDE.md mục 9.
+ * Token khai báo trong .login-shell, KHÔNG đặt ở :root, để font mono và
+ * tông amber không rò sang các màn hình dùng design system chung.
+ */
+
+.login-shell {
+  --bg: #f2e9d6;
+  --bg-2: #ecdfc4;
+  --card: #221b14;
+  --amber: #c9955f;
+  --accent: #a8672e;
+  --moss: #626b47;
+  --cream: #e9e0cf;
+  --cream-dim: rgba(233, 224, 207, 0.55);
+  --line: rgba(233, 224, 207, 0.14);
+  --ink: #2e2013;
+  --ink-dim: rgba(46, 32, 19, 0.6);
+  --ink-line: rgba(46, 32, 19, 0.14);
+  /* Thiết kế gốc không có màu báo lỗi — thêm tông đất sáng đọc được trên nền tối */
+  --danger: #d08a6a;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+.login-shell *,
+.login-shell *::before,
+.login-shell *::after {
+  box-sizing: border-box;
+}
+
+.login-shell .grain {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background: #000;
+}
+
+/* ───────── HERO ───────── */
+.login-shell .hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 5vw 6vw;
+  position: relative;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(168, 103, 46, 0.08), transparent 55%),
+    radial-gradient(ellipse at 90% 90%, rgba(98, 107, 71, 0.07), transparent 50%),
+    var(--bg);
+}
+
+.login-shell .handle {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 27px;
+  color: var(--accent);
+  letter-spacing: 0.005em;
+  text-transform: lowercase;
+  margin-bottom: 1.5rem;
+  line-height: 1;
+}
+.login-shell .handle .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.login-shell .brand p {
+  margin-top: 0.2rem;
+  max-width: 34ch;
+  font-family: 'Newsreader', serif;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.5;
+  color: var(--ink);
+  font-style: italic;
+}
+
+.login-shell .meta-line {
+  display: flex;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+  margin-top: 2.4rem;
+  font-size: 11.5px;
+  color: var(--ink-dim);
+}
+.login-shell .meta-line b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.login-shell .scroll-note {
+  margin-top: 3rem;
+  font-size: 11px;
+  color: var(--ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.login-shell .scroll-note .ln {
+  width: 22px;
+  height: 1px;
+  background: var(--ink-dim);
+  position: relative;
+  overflow: hidden;
+}
+.login-shell .scroll-note .ln::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 6px;
+  height: 1px;
+  background: var(--accent);
+  animation: login-slide 2.2s ease-in-out infinite;
+}
+@keyframes login-slide {
+  0% { left: -6px; }
+  50% { left: 22px; }
+  100% { left: -6px; }
+}
+
+/* ───────── THẺ ĐĂNG NHẬP ───────── */
+/* Chừa sẵn chiều cao cho trạng thái cao nhất để đổi trạng thái không xê dịch bố cục */
+.login-shell .stage {
+  perspective: 1500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 548px;
+}
+
+.login-shell .glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 480px;
+  height: 480px;
+  margin: -240px 0 0 -240px;
+  background: radial-gradient(circle, rgba(201, 149, 95, 0.18), transparent 62%);
+  pointer-events: none;
+  transition: transform 0.2s ease-out;
+  z-index: 0;
+}
+
+.login-shell .rig {
+  position: relative;
+  z-index: 1;
+  width: 320px;
+  transform-style: preserve-3d;
+  transition: transform 0.12s ease-out;
+}
+
+.login-shell .phin {
+  position: absolute;
+  top: -72px;
+  left: 50%;
+  transform: translateX(-50%) translateZ(46px);
+  width: 100px;
+  z-index: 5;
+}
+.login-shell .phin svg {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+.login-shell .drop {
+  position: absolute;
+  left: 50%;
+  top: 58px;
+  width: 4px;
+  height: 7px;
+  margin-left: -2px;
+  background: var(--card);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: login-fall 2.4s cubic-bezier(0.55, 0, 0.85, 0.35) infinite;
+  opacity: 0;
+}
+.login-shell .drop.d2 { animation-delay: 1.2s; }
+@keyframes login-fall {
+  0% { top: 58px; opacity: 0; }
+  8% { opacity: 1; }
+  55% { top: 92px; opacity: 1; }
+  58% { top: 94px; opacity: 0; }
+  100% { top: 94px; opacity: 0; }
+}
+.login-shell .ripple {
+  position: absolute;
+  left: 50%;
+  top: 94px;
+  width: 7px;
+  height: 3px;
+  margin-left: -3.5px;
+  border: 1px solid var(--amber);
+  border-radius: 50%;
+  opacity: 0;
+  animation: login-ripple 2.4s ease-out infinite;
+}
+.login-shell .ripple.r2 { animation-delay: 1.2s; }
+@keyframes login-ripple {
+  0%, 55% { opacity: 0; width: 7px; margin-left: -3.5px; }
+  60% { opacity: 0.85; width: 7px; margin-left: -3.5px; }
+  100% { opacity: 0; width: 42px; margin-left: -21px; }
+}
+
+.login-shell .card {
+  position: relative;
+  background: linear-gradient(160deg, #2e2319 0%, #1a140e 70%);
+  color: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 2.3rem 1.7rem 1.7rem;
+  box-shadow:
+    0 46px 80px -28px rgba(46, 32, 19, 0.55),
+    0 1px 0 rgba(233, 224, 207, 0.1) inset;
+}
+.login-shell .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 149, 95, 0.55), transparent);
+}
+
+.login-shell .card h2 {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1.55rem;
+  font-weight: 500;
+  text-align: center;
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.01em;
+}
+.login-shell .card .sub {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--cream-dim);
+  margin-bottom: 1.9rem;
+  letter-spacing: 0.04em;
+}
+
+.login-shell .field {
+  margin-bottom: 1.05rem;
+  position: relative;
+}
+.login-shell .field label {
+  display: block;
+  font-size: 10.5px;
+  color: var(--cream-dim);
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+}
+.login-shell .field input {
+  width: 100%;
+  padding: 11px 12px;
+  background: rgba(233, 224, 207, 0.045);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--cream);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.login-shell .field input::placeholder { color: rgba(233, 224, 207, 0.25); }
+.login-shell .field input:focus {
+  border-color: var(--amber);
+  background: rgba(233, 224, 207, 0.08);
+  box-shadow: 0 0 0 3px rgba(201, 149, 95, 0.14);
+}
+.login-shell .field input:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-shell .field.invalid input {
+  border-color: rgba(208, 138, 106, 0.6);
+  box-shadow: 0 0 0 3px rgba(208, 138, 106, 0.12);
+}
+
+.login-shell .row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  margin: 0.2rem 0 1.5rem;
+  color: var(--cream-dim);
+}
+.login-shell .row-between label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.login-shell .row-between input {
+  accent-color: var(--amber);
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+}
+.login-shell .hint { font-size: 11px; color: var(--cream-dim); }
+
+.login-shell .btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(180deg, #d9a56c, var(--amber));
+  color: #1a140e;
+  border: none;
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 14px 26px -12px rgba(201, 149, 95, 0.55);
+}
+.login-shell .btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 30px -12px rgba(201, 149, 95, 0.7);
+}
+.login-shell .btn:active:not(:disabled) { transform: translateY(0); }
+.login-shell .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+  filter: grayscale(0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.login-shell .spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(26, 20, 14, 0.3);
+  border-top-color: #1a140e;
+  animation: login-spin 0.7s linear infinite;
+}
+@keyframes login-spin { to { transform: rotate(360deg); } }
+
+.login-shell .alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  margin-bottom: 1.3rem;
+  border-radius: 8px;
+  background: rgba(208, 138, 106, 0.1);
+  border: 1px solid rgba(208, 138, 106, 0.35);
+  color: var(--danger);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.login-shell .alert svg { flex-shrink: 0; margin-top: 1px; }
+
+.login-shell .notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  margin-bottom: 1.3rem;
+  border-radius: 8px;
+  background: rgba(201, 149, 95, 0.1);
+  border: 1px solid rgba(201, 149, 95, 0.3);
+  color: var(--amber);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.login-shell .notice svg { flex-shrink: 0; margin-top: 1px; }
+
+.login-shell .rules {
+  margin: -0.3rem 0 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.login-shell .rule {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  color: var(--cream-dim);
+}
+.login-shell .rule .dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  color: transparent;
+  transition: all 0.2s;
+}
+.login-shell .rule.met { color: var(--amber); }
+.login-shell .rule.met .dot {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #1a140e;
+}
+
+/* ───────── VÁCH XÉ + NHẬT KÝ ẢNH ───────── */
+.login-shell .tear {
+  position: relative;
+  height: 46px;
+  background: var(--bg);
+}
+.login-shell .tear svg {
+  position: absolute;
+  bottom: -1px;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.login-shell .diary {
+  background: var(--bg-2);
+  padding: 5vw 6vw;
+}
+.login-shell .diary-head {
+  max-width: 1180px;
+  margin: 0 auto 2.6rem;
+}
+.login-shell .diary-head .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 0.7rem;
+}
+.login-shell .diary-head h3 {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  color: var(--ink);
+  margin: 0;
+}
+
+.login-shell .mosaic {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: 92px;
+  gap: 6px;
+}
+.login-shell .tile {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.6s ease, transform 0.6s ease, box-shadow 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 14px 26px -18px rgba(46, 32, 19, 0.35);
+}
+.login-shell .tile.in { opacity: 1; transform: translateY(0); }
+.login-shell .tile:hover { box-shadow: 0 18px 30px -14px rgba(46, 32, 19, 0.45); }
+.login-shell .tile img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.login-shell .tile:hover img { transform: scale(1.05); }
+.login-shell .tile.has-photo::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55%;
+  background: linear-gradient(to top, rgba(10, 8, 5, 0.55), transparent);
+  pointer-events: none;
+}
+.login-shell .tile svg {
+  width: 26px;
+  height: 26px;
+  opacity: 0.8;
+  transition: opacity 0.25s ease;
+  position: relative;
+  z-index: 1;
+}
+.login-shell .tile .cap {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  right: 10px;
+  font-size: 10px;
+  color: rgba(233, 224, 207, 0.75);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 2;
+}
+.login-shell .tile.has-photo .cap { color: rgba(255, 250, 240, 0.9); }
+.login-shell .tile:hover .cap { opacity: 1; }
+.login-shell .tile:hover svg { opacity: 0.3; }
+
+.login-shell .t-a { background: #2e2113; grid-column: span 2; grid-row: span 2; }
+.login-shell .t-b { background: #26241c; }
+.login-shell .t-c { background: #33231a; }
+.login-shell .t-d { background: #20261c; grid-row: span 2; }
+.login-shell .t-e { background: #2a2016; }
+.login-shell .t-f { background: #1a1b24; grid-column: span 2; }
+.login-shell .t-g { background: #332721; }
+.login-shell .t-h { background: #22271d; }
+.login-shell .t-i { background: #2b2118; grid-row: span 2; }
+.login-shell .t-j { background: #241e1a; }
+.login-shell .t-k { background: #2a2519; grid-column: span 2; }
+.login-shell .t-l { background: #1f231c; }
+
+.login-shell footer {
+  background: var(--bg);
+  padding: 2.4rem 6vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 11px;
+  color: var(--ink-dim);
+  border-top: 1px solid var(--ink-line);
+}
+.login-shell footer .voice {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.35rem;
+  color: var(--ink);
+  text-transform: lowercase;
+  letter-spacing: 0.005em;
+}
+
+@media (max-width: 880px) {
+  .login-shell .hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding-top: 8vh;
+    gap: 3.5rem;
+  }
+  .login-shell .brand p { margin-left: auto; margin-right: auto; }
+  .login-shell .meta-line,
+  .login-shell .scroll-note { justify-content: center; }
+  .login-shell .handle { justify-content: center; }
+  /* Xếp dọc thì cái phin nhô lên 72px sẽ đụng chữ phía trên — chừa chỗ cho nó */
+  .login-shell .stage { padding-top: 78px; min-height: 600px; }
+  .login-shell .mosaic { grid-template-columns: repeat(3, 1fr); }
+  .login-shell .t-a,
+  .login-shell .t-f,
+  .login-shell .t-k { grid-column: span 2; }
+}
