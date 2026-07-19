@@ -162,7 +162,7 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 
 ---
 
-## 5. Database — 25 bảng chính
+## 5. Database — 24 bảng chính
 
 ### Quy tắc chung
 - Primary key: UUID (KHÔNG dùng auto-increment integer)
@@ -184,11 +184,11 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 - `categories` — danh mục món menu
 
 **Menu:**
-- `menu_items` — tên, giá, is_active (cột `is_combo` còn trong DB nhưng KHÔNG dùng)
+- `menu_items` — tên, giá, is_active
 - `variants` — SWEETNESS_LEVEL (0%/50%/100%), ICE_LEVEL (0%/50%/100%) — CHỈ 3 mức, KHÔNG thêm mức khác
-- ~~`combo_items`~~ — **KHÔNG dùng.** Quán không bán combo/set. Bảng vẫn còn
-  trong DB (đã tạo ở V1) nhưng không có code nào đụng tới. Đừng viết tính năng
-  combo trừ khi chủ quán yêu cầu lại.
+> **Không có combo/set.** Quán không bán combo. Bảng `combo_items` và cột
+> `menu_items.is_combo` đã bị xoá ở `V3__drop_combo.sql`. Đừng dựng lại tính
+> năng này trừ khi chủ quán yêu cầu.
 - `recipes` — cầu nối bắt buộc giữa menu_items và ingredients
 
 **Kho:**

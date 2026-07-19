@@ -62,7 +62,7 @@ cd source/backend && ./mvnw spring-boot:run
 
 Backend chạy ở `http://localhost:8080`, Swagger tại `/swagger-ui.html`.
 
-Flyway tự chạy migration lúc khởi động, tạo 25 bảng và nạp dữ liệu danh mục
+Flyway tự chạy migration lúc khởi động, tạo 24 bảng và nạp dữ liệu danh mục
 (3 ca làm việc, đơn vị tính, nhóm nguyên liệu, mức ngọt/đá) cùng tài khoản
 quản trị đầu tiên.
 
@@ -113,7 +113,8 @@ Service → Repository. Frontend cũng chia theo feature tương ứng trong
 Đang trong giai đoạn dựng nền:
 
 - [x] Cấu hình project, kết nối database
-- [x] Schema 25 bảng + dữ liệu khởi tạo (Flyway V1, V2)
+- [x] Schema 24 bảng + dữ liệu khởi tạo (Flyway V1–V3)
 - [x] Khung frontend, design token, HTTP client
-- [ ] Bảo mật và xác thực (JWT, phân quyền)
-- [ ] Menu, kho, POS, checklist, báo cáo
+- [x] Bảo mật và xác thực (JWT, phân quyền)
+- [x] Menu: danh mục, món, mức ngọt/đá
+- [ ] Kho, POS, checklist, báo cáo
