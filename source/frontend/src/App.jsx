@@ -5,6 +5,7 @@ import { registerAuthHandlers } from './services/api';
 import LoginPage from './features/auth/LoginPage';
 import ChangePasswordPage from './features/auth/ChangePasswordPage';
 import HomePage from './features/HomePage';
+import MenuPage from './features/menu/MenuPage';
 
 /**
  * Chặn hai lớp:
@@ -54,6 +55,14 @@ export default function App() {
         element={
           <RequireAuth>
             <HomePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/menu"
+        element={
+          <RequireAuth>
+            <MenuPage />
           </RequireAuth>
         }
       />
