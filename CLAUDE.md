@@ -84,7 +84,7 @@ source/backend/src/main/java/com/brewdesk/app/
 │   ├── dto/            # ApiResponse<T>, PageResponse<T>
 │   └── audit/          # AuditLog entity + AuditAspect (@Around AOP)
 ├── auth/               # Đăng nhập, đổi mật khẩu
-├── menu/               # MenuItem, Category, Variant, Combo, Recipe
+├── menu/               # MenuItem, Category, Variant, Recipe
 ├── inventory/          # Ingredient, Supplier, StockImport, StockTake
 ├── staff/              # User, Shift (chấm công KHÔNG dùng vì quán không cần)
 ├── pos/                # Order, OrderItem, Payment
@@ -184,9 +184,11 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 - `categories` — danh mục món menu
 
 **Menu:**
-- `menu_items` — tên, giá, is_combo, is_active
+- `menu_items` — tên, giá, is_active (cột `is_combo` còn trong DB nhưng KHÔNG dùng)
 - `variants` — SWEETNESS_LEVEL (0%/50%/100%), ICE_LEVEL (0%/50%/100%) — CHỈ 3 mức, KHÔNG thêm mức khác
-- `combo_items` — quan hệ N-N tự thân trên menu_items
+- ~~`combo_items`~~ — **KHÔNG dùng.** Quán không bán combo/set. Bảng vẫn còn
+  trong DB (đã tạo ở V1) nhưng không có code nào đụng tới. Đừng viết tính năng
+  combo trừ khi chủ quán yêu cầu lại.
 - `recipes` — cầu nối bắt buộc giữa menu_items và ingredients
 
 **Kho:**

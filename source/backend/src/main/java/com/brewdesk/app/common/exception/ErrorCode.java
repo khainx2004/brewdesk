@@ -24,6 +24,15 @@ public enum ErrorCode {
     // Tài khoản
     USERNAME_EXISTS(HttpStatus.CONFLICT, "Tên đăng nhập đã tồn tại"),
 
+    // Menu
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục"),
+    CATEGORY_NAME_EXISTS(HttpStatus.CONFLICT, "Tên danh mục đã tồn tại"),
+    CATEGORY_INACTIVE(HttpStatus.BAD_REQUEST, "Danh mục đang ngừng hoạt động"),
+    CATEGORY_HAS_ACTIVE_ITEMS(
+            HttpStatus.CONFLICT, "Danh mục còn món đang bán, cần ngừng bán các món đó trước"),
+    MENU_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy món"),
+    MENU_ITEM_NAME_EXISTS(HttpStatus.CONFLICT, "Danh mục này đã có món trùng tên"),
+
     // Chung
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không hợp lệ"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy dữ liệu"),
