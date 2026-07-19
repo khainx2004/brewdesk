@@ -62,9 +62,12 @@ export default function AppShell({ children }) {
   return (
     <div className="flex h-screen flex-col bg-batter">
       <header className="relative z-10 flex h-[60px] shrink-0 items-center justify-between bg-gradient-to-r from-ink-deep via-[#2E1E12] to-cocoa-lt px-7 shadow-[0_1px_0_rgba(157,145,103,0.2),0_4px_20px_rgba(28,21,16,0.45)]">
-        {/* Sidebar không có mục Trang chủ nên logo là đường quay về */}
+        {/* Sidebar không có mục Trang chủ nên logo là đường quay về.
+            Tên quán viết thường, không nghiêng — giống hệt màn đăng nhập. */}
         <NavLink to="/" className="flex items-baseline gap-3">
-          <span className="font-display text-xl italic tracking-wide text-batter-lt">BrewDesk</span>
+          <span className="font-display text-xl lowercase tracking-wide text-batter-lt">
+            nhahaisaus
+          </span>
           <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-olive">
             {isAdmin ? 'Admin' : 'Nhân viên'}
           </span>
