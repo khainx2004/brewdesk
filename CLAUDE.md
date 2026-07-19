@@ -368,6 +368,7 @@ Chi tiết:
 | # | Màn hình | Trạng thái |
 |---|---|---|
 | 1 | POS | ✅ Đã duyệt (file: `design/pos_mockup_desktop.html`) |
+| 9 | Đăng nhập | ✅ Đã duyệt (file: `design/login_mockup_nhahaisaus.html`) — xem ngoại lệ bên dưới |
 | 2 | Checklist theo ca | ⬜ Chưa làm |
 | 3 | Test cafe (QC) | ⬜ Chưa làm |
 | 4 | Bàn giao ca / Đối soát tiền | ⬜ Chưa làm |
@@ -385,6 +386,27 @@ Chi tiết:
 | 3 | Tra cứu tồn kho nhanh | ⬜ Chưa làm |
 
 **Không làm bản tablet.**
+
+### ⚠️ Ngoại lệ: màn hình Đăng nhập dùng ngôn ngữ thị giác riêng
+
+Màn hình Đăng nhập **cố ý KHÔNG theo** bảng màu và typography ở trên. Đây là
+quyết định của chủ quán, không phải lỗi — đừng "sửa" nó về design system chung.
+
+| | Toàn app | Riêng màn Đăng nhập |
+|---|---|---|
+| Font tiêu đề | DM Serif Display | **Newsreader** (italic) |
+| Font thân | Plus Jakarta Sans | **IBM Plex Mono** |
+| Nền trang | `--batter` #EDE3CE | #F2E9D6 |
+| Thẻ | sáng, `--batter-lt` | **tối**, #221B14 |
+| Accent | `--rogue` #3A3D2E | amber #C9955F |
+| Kiểu chữ | viết hoa bình thường | **viết thường toàn bộ** |
+
+Lý do: đăng nhập là ấn tượng đầu, chủ quán muốn nó mang không khí của quán —
+phin nhỏ giọt có animation, thẻ nghiêng theo chuột, nhiễu phim, mosaic ảnh thật.
+Từ sau khi đăng nhập, mọi màn hình quay lại design system chung ở trên.
+
+Ranh giới: token của màn Đăng nhập chỉ khai báo trong phạm vi màn đó, **không**
+đưa vào `src/index.css` toàn cục để tránh rò sang màn khác.
 
 ### POS — Business logic UI đã chốt
 - Ca tự động theo giờ SERVER (không tin giờ client):
