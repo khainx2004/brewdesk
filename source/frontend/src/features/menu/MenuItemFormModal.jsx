@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import Modal from '../../components/ui/Modal';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+import { Sparkles } from 'lucide-react';
+import Modal, { FieldLabel, Toggle } from '../../components/ui/Modal';
 import { errorMessage } from '../../services/api';
 
 const EMPTY = { categoryId: '', name: '', description: '', price: '', displayOrder: 0 };
 
-export default function MenuItemFormModal({ open, onClose, onSubmit, item, categories }) {
+// placeholder phải đặt màu rõ ràng, không thì Tailwind dùng xám lạnh mặc định
+// (#9ca3af) — trái quy định "không dùng màu lạnh" ở CLAUDE.md mục 9.
+const inputClass =
+  'h-[38px] rounded-lg border bg-batter-lt px-3 text-[13.5px] text-ink-deep outline-none transition placeholder:text-olive/70 focus:border-rogue focus:ring-[3px] focus:ring-rogue/8 disabled:opacity-60';
+
+export default function MenuItemFormModal({
+  open,
+  onClose,
+  onSubmit,
+  onToggleActive,
+  item,
+  categories,
+}) {
   const editing = Boolean(item);
   const [serverError, setServerError] = useState(null);
+  const [active, setActive] = useState(true);
 
   const {
     register,
@@ -21,6 +33,7 @@ export default function MenuItemFormModal({ open, onClose, onSubmit, item, categ
   useEffect(() => {
     if (!open) return;
     setServerError(null);
+    setActive(item ? item.active : true);
     reset(
       item
         ? {
@@ -44,9 +57,14 @@ export default function MenuItemFormModal({ open, onClose, onSubmit, item, categ
         price: Number(values.price),
         displayOrder: Number(values.displayOrder) || 0,
       });
+
+      // Cờ hiển thị dùng endpoint riêng, chỉ gọi khi người dùng thực sự đổi
+      if (editing && active !== item.active) {
+        await onToggleActive({ id: item.id, active: item.active });
+      }
       onClose();
     } catch (error) {
-      // Lỗi nghiệp vụ như trùng tên phải hiện ngay trong form, không đóng modal
+      // Lỗi nghiệp vụ như trùng tên phải hiện trong form, không đóng modal
       setServerError(errorMessage(error));
     }
   };
@@ -55,98 +73,141 @@ export default function MenuItemFormModal({ open, onClose, onSubmit, item, categ
     <Modal
       open={open}
       onClose={onClose}
-      title={editing ? 'Sửa món' : 'Thêm món mới'}
+      title={editing ? `Sửa món — ${item.name}` : 'Thêm món mới'}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1 rounded-lg border border-olive-mute bg-cream py-2.5 text-[13px] font-semibold text-olive transition hover:border-wine hover:text-wine disabled:opacity-50"
+          >
             Huỷ
-          </Button>
-          <Button onClick={handleSubmit(submit)} loading={isSubmitting}>
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit(submit)}
+            disabled={isSubmitting}
+            className="flex flex-[2] items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-rogue to-rogue-dk py-2.5 text-[13px] font-bold text-batter-lt shadow-[0_3px_10px_rgba(58,61,46,0.25)] transition hover:-translate-y-px hover:shadow-[0_5px_16px_rgba(58,61,46,0.35)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+          >
+            {isSubmitting && (
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            )}
             {editing ? 'Lưu thay đổi' : 'Thêm món'}
-          </Button>
+          </button>
         </>
       }
     >
       {serverError && (
-        <div className="mb-4 rounded-lg border border-wine/30 bg-wine/8 px-4 py-3 text-sm text-wine">
+        <div className="rounded-lg border border-wine/30 bg-wine/8 px-4 py-3 text-[13px] text-wine">
           {serverError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold text-rogue">Danh mục</span>
-          <select
-            className={`h-10 w-full rounded-lg border bg-batter-lt px-3 text-sm text-ink-deep outline-none transition focus:border-rogue focus:bg-cream focus:ring-[3px] focus:ring-rogue/15 ${
-              errors.categoryId ? 'border-wine' : 'border-olive-mute'
-            }`}
-            disabled={isSubmitting}
-            {...register('categoryId', { required: 'Chưa chọn danh mục' })}
-          >
-            {categories.length === 0 && <option value="">Chưa có danh mục nào</option>}
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          {errors.categoryId && (
-            <span className="mt-1.5 block text-xs text-wine">{errors.categoryId.message}</span>
-          )}
-        </label>
+      <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-3.5" noValidate>
+        <div className="flex gap-3.5">
+          <div className="flex flex-[2] flex-col gap-1.5">
+            <FieldLabel>Tên món</FieldLabel>
+            <input
+              className={`${inputClass} ${errors.name ? 'border-wine' : 'border-olive-mute'}`}
+              placeholder="vd: Cà phê sữa đá"
+              disabled={isSubmitting}
+              {...register('name', {
+                required: 'Chưa nhập tên món',
+                maxLength: { value: 150, message: 'Tên món tối đa 150 ký tự' },
+              })}
+            />
+            {errors.name && <span className="text-[11px] text-wine">{errors.name.message}</span>}
+          </div>
 
-        <Input
-          label="Tên món"
-          placeholder="vd: Đen đá"
-          disabled={isSubmitting}
-          error={errors.name?.message}
-          {...register('name', {
-            required: 'Chưa nhập tên món',
-            maxLength: { value: 150, message: 'Tên món tối đa 150 ký tự' },
-          })}
-        />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <FieldLabel>Danh mục</FieldLabel>
+            <select
+              className={`${inputClass} cursor-pointer ${
+                errors.categoryId ? 'border-wine' : 'border-olive-mute'
+              }`}
+              disabled={isSubmitting}
+              {...register('categoryId', { required: 'Chưa chọn danh mục' })}
+            >
+              {categories.length === 0 && <option value="">Chưa có danh mục</option>}
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-        <Input
-          label="Giá (VNĐ)"
-          type="number"
-          step="1"
-          min="0"
-          placeholder="25000"
-          disabled={isSubmitting}
-          hint="Số nguyên, không có phần thập phân. Món tặng kèm để 0."
-          error={errors.price?.message}
-          {...register('price', {
-            required: 'Chưa nhập giá',
-            min: { value: 0, message: 'Giá không được âm' },
-            validate: (v) =>
-              Number.isInteger(Number(v)) || 'Giá phải là số nguyên, không có phần lẻ',
-          })}
-        />
+        <div className="flex gap-3.5">
+          <div className="flex max-w-[180px] flex-1 flex-col gap-1.5">
+            <FieldLabel>Giá bán (VNĐ)</FieldLabel>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              className={`${inputClass} ${errors.price ? 'border-wine' : 'border-olive-mute'}`}
+              placeholder="29000"
+              disabled={isSubmitting}
+              {...register('price', {
+                required: 'Chưa nhập giá',
+                min: { value: 0, message: 'Giá không được âm' },
+                validate: (v) =>
+                  Number.isInteger(Number(v)) || 'Giá phải là số nguyên, không có phần lẻ',
+              })}
+            />
+            {errors.price && <span className="text-[11px] text-wine">{errors.price.message}</span>}
+          </div>
 
-        <Input
-          label="Thứ tự hiển thị"
-          type="number"
-          min="0"
-          disabled={isSubmitting}
-          hint="Số nhỏ hiện trước."
-          error={errors.displayOrder?.message}
-          {...register('displayOrder', {
-            min: { value: 0, message: 'Thứ tự không được âm' },
-          })}
-        />
+          <div className="flex max-w-[180px] flex-1 flex-col gap-1.5">
+            <FieldLabel>Thứ tự hiển thị</FieldLabel>
+            <input
+              type="number"
+              min="0"
+              className={`${inputClass} border-olive-mute`}
+              disabled={isSubmitting}
+              {...register('displayOrder', { min: 0 })}
+            />
+          </div>
+        </div>
 
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold text-rogue">
-            Mô tả <span className="font-normal text-olive">(không bắt buộc)</span>
-          </span>
+        <div className="flex flex-col gap-1.5">
+          <FieldLabel>Mô tả (tùy chọn)</FieldLabel>
           <textarea
-            rows={2}
+            rows={3}
+            className="resize-none rounded-lg border border-olive-mute bg-batter-lt px-3 py-2.5 text-[13.5px] outline-none transition placeholder:text-olive/70 focus:border-rogue focus:ring-[3px] focus:ring-rogue/8"
+            placeholder="Mô tả ngắn về món..."
             disabled={isSubmitting}
-            className="w-full rounded-lg border border-olive-mute bg-batter-lt px-3 py-2 text-sm text-ink-deep outline-none transition placeholder:text-olive/70 focus:border-rogue focus:bg-cream focus:ring-[3px] focus:ring-rogue/15"
-            placeholder="Ghi chú thêm về món"
             {...register('description')}
           />
-        </label>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <FieldLabel>Biến thể</FieldLabel>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="flex items-center gap-1.5 rounded-full border border-rogue/18 bg-rogue/8 px-2.5 py-1.5 text-xs font-medium text-rogue">
+              <Sparkles size={11} strokeWidth={2} />
+              Mức ngọt
+            </span>
+            <span className="flex items-center gap-1.5 rounded-full border border-rogue/18 bg-rogue/8 px-2.5 py-1.5 text-xs font-medium text-rogue">
+              <Sparkles size={11} strokeWidth={2} />
+              Mức đá
+            </span>
+            <span className="text-[11px] text-olive">áp dụng cho mọi món, 3 mức 0/50/100%</span>
+          </div>
+        </div>
+
+        {editing && (
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <div className="text-[13.5px] font-medium">Hiển thị trên POS</div>
+              <div className="mt-px text-[11.5px] text-olive">
+                Tắt để tạm ẩn món khỏi màn hình bán hàng
+              </div>
+            </div>
+            <Toggle checked={active} onChange={setActive} disabled={isSubmitting} />
+          </div>
+        )}
       </form>
     </Modal>
   );

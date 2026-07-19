@@ -33,4 +33,13 @@
   h3 {
     @apply font-display;
   }
+
+  /* Tailwind mặc định để placeholder màu xám lạnh #9ca3af, trái quy định
+     "không dùng màu lạnh" ở CLAUDE.md mục 9. Đổi mặc định sang tông ấm để
+     ô nhập nào quên đặt màu vẫn không bị lệch bảng màu. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--olive);
+    opacity: 0.7;
+  }
 }

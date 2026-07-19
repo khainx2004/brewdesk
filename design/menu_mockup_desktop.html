@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Menu · BrewDesk Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C1510;--cocoa:#442D1C;--cocoa-lt:#5C3D22;
+  --rogue:#3A3D2E;--rogue-dk:#272A1F;
+  --caramel:#84592B;--olive:#9D9167;--olive-mute:#C4BAA0;
+  --batter:#EDE3CE;--batter-lt:#F5EDD8;--batter-warm:#E2D4B7;
+  --wine:#743014;--cream:#FAF6EE;
+  --serif:'DM Serif Display',Georgia,serif;
+  --ui:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --r:10px;--rl:16px;--rxl:22px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--batter);color:var(--ink);min-width:1180px;min-height:100vh}
+
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;
+  background:linear-gradient(120deg,var(--ink) 0%,#2E1E12 60%,var(--cocoa-lt) 100%);
+  box-shadow:0 1px 0 rgba(157,145,103,.2),0 4px 20px rgba(28,21,16,.45);z-index:10;position:relative}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-name{font-family:var(--serif);font-style:italic;font-size:21px;color:var(--batter-lt);letter-spacing:.015em}
+.brand-tag{font-size:9.5px;font-weight:700;letter-spacing:.2em;color:var(--olive);text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.admin-badge{font-size:10px;font-weight:700;letter-spacing:.12em;padding:4px 10px;background:rgba(132,89,43,.2);border:1px solid rgba(132,89,43,.35);border-radius:999px;color:var(--caramel);text-transform:uppercase}
+.avatar{width:29px;height:29px;border-radius:50%;background:linear-gradient(135deg,var(--caramel),#9A6B38);color:var(--cream);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.staff-pill{display:flex;align-items:center;gap:9px}
+.staff-name{font-size:13px;font-weight:500;color:var(--olive-mute)}
+
+/* layout */
+.app-wrap{display:flex;height:calc(100vh - 60px)}
+
+/* sidebar */
+.sidebar{width:220px;flex-shrink:0;background:linear-gradient(to bottom,#211710,#1C1510);display:flex;flex-direction:column;padding:20px 12px;gap:4px}
+.sidebar-section{font-size:9.5px;font-weight:700;letter-spacing:.12em;color:rgba(157,145,103,.5);text-transform:uppercase;padding:12px 10px 6px;margin-top:8px}
+.sidebar-section:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:rgba(196,186,160,.65);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--olive-mute)}
+.nav-item.active{background:rgba(58,61,46,.5);color:var(--batter-lt)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+
+/* main */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+.page-title{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink)}
+.page-subtitle{font-size:12.5px;color:var(--olive);margin-top:2px}
+.btn-primary{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:var(--r);border:none;background:linear-gradient(135deg,var(--rogue),var(--rogue-dk));color:var(--batter-lt);font-family:var(--ui);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(58,61,46,.3);transition:all .15s}
+.btn-primary:hover{box-shadow:0 5px 16px rgba(58,61,46,.4);transform:translateY(-1px)}
+.btn-primary svg{width:15px;height:15px}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 28px 0;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;max-width:300px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--olive);pointer-events:none}
+.search-wrap input{width:100%;height:38px;border-radius:var(--r);border:1px solid var(--olive-mute);background:var(--cream);padding:0 12px 0 36px;font-family:var(--ui);font-size:13px;color:var(--ink);transition:border-color .15s}
+.search-wrap input:focus{outline:none;border-color:var(--rogue)}
+.search-wrap input::placeholder{color:var(--olive);opacity:.7}
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.cat-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-family:var(--ui);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.cat-tab:hover{border-color:var(--rogue);color:var(--rogue)}
+.cat-tab.active{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+.btn-filter{display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:var(--r);border:1px solid var(--olive-mute);background:var(--cream);font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--ink);cursor:pointer;transition:all .15s}
+.btn-filter:hover{border-color:var(--rogue)}
+.btn-filter svg{width:14px;height:14px}
+
+/* grid */
+.grid-wrap{padding:14px 28px 28px;flex:1}
+.grid-stats{font-size:12px;color:var(--olive);margin-bottom:12px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+
+/* card */
+.product-card{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);overflow:hidden;box-shadow:0 1px 3px rgba(28,21,16,.05),0 4px 10px rgba(28,21,16,.04);transition:all .18s;position:relative}
+.product-card:hover{border-color:var(--rogue);transform:translateY(-2px);box-shadow:0 2px 8px rgba(28,21,16,.07),0 12px 24px rgba(58,61,46,.1)}
+.product-card.inactive{opacity:.52}
+.card-thumb{height:80px;background:linear-gradient(135deg,var(--batter),var(--batter-warm));display:flex;align-items:center;justify-content:center;position:relative}
+.card-thumb svg{width:28px;height:28px;stroke:var(--rogue);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.card-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,.3),transparent);pointer-events:none}
+.status-badge{position:absolute;top:8px;right:8px;font-size:9.5px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:999px;text-transform:uppercase}
+.status-badge.on{background:rgba(58,61,46,.15);color:var(--rogue);border:1px solid rgba(58,61,46,.25)}
+.status-badge.off{background:rgba(116,48,20,.12);color:var(--wine);border:1px solid rgba(116,48,20,.2)}
+.cat-badge{position:absolute;top:8px;left:8px;font-size:9px;font-weight:600;letter-spacing:.05em;padding:3px 8px;border-radius:999px;text-transform:uppercase;background:rgba(68,45,28,.55);color:var(--batter-lt)}
+.card-body{padding:12px 13px 13px}
+.card-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3;margin-bottom:4px}
+.card-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.card-price{font-size:14px;font-weight:700;color:var(--caramel)}
+.card-variants{font-size:11px;color:var(--olive);display:flex;align-items:center;gap:4px}
+.card-variants svg{width:11px;height:11px}
+.card-recipe{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--olive);margin-top:8px;padding-top:8px;border-top:1px solid rgba(196,186,160,.4)}
+.card-recipe svg{width:11px;height:11px}
+.recipe-count{font-weight:600;color:var(--rogue)}
+.card-recipe.warn{color:var(--wine)}
+.card-actions{display:flex;gap:6px;margin-top:10px}
+.btn-edit,.btn-recipe,.btn-toggle{height:30px;border-radius:7px;font-family:var(--ui);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:4px}
+.btn-edit{flex:1;background:var(--batter-lt);border:1px solid var(--olive-mute);color:var(--ink)}
+.btn-edit:hover{border-color:var(--rogue);color:var(--rogue)}
+.btn-recipe{flex:1;background:rgba(58,61,46,.08);border:1px solid rgba(58,61,46,.2);color:var(--rogue)}
+.btn-recipe:hover{background:rgba(58,61,46,.15)}
+.btn-toggle{flex:0 0 30px;background:var(--batter-lt);border:1px solid var(--olive-mute);color:var(--olive)}
+.btn-toggle:hover{border-color:var(--wine);color:var(--wine)}
+.card-actions svg{width:12px;height:12px}
+
+/* modal shared */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(28,21,16,.6);backdrop-filter:blur(4px) saturate(.8);display:none;align-items:flex-start;justify-content:center;padding-top:40px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{width:520px;background:var(--cream);border-radius:var(--rxl);border:1px solid rgba(196,186,160,.5);box-shadow:0 24px 64px rgba(28,21,16,.35);margin-bottom:40px;overflow:hidden}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid rgba(196,186,160,.4);background:linear-gradient(to bottom,var(--batter-lt),var(--cream))}
+.modal-title{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--olive);padding:4px;border-radius:6px;transition:color .12s}
+.modal-close:hover{color:var(--wine)}
+.modal-close svg{width:18px;height:18px}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.modal-footer{display:flex;gap:10px;padding:14px 24px;border-top:1px solid rgba(196,186,160,.4);background:var(--batter-lt)}
+
+/* form */
+.form-row{display:flex;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:6px;flex:1}
+.form-label{font-size:10.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.08em}
+.form-input,.form-select,.form-textarea{height:38px;border-radius:var(--r);border:1px solid var(--olive-mute);background:var(--batter-lt);padding:0 12px;font-family:var(--ui);font-size:13.5px;color:var(--ink);transition:border-color .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--rogue);box-shadow:0 0 0 3px rgba(58,61,46,.08)}
+.form-textarea{height:68px;padding:10px 12px;resize:none}
+.form-select{cursor:pointer}
+.variant-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.variant-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;background:rgba(58,61,46,.08);border:1px solid rgba(58,61,46,.18);font-size:12px;color:var(--rogue);font-weight:500}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.toggle-label{font-size:13.5px;font-weight:500;color:var(--ink)}
+.toggle-sub{font-size:11.5px;color:var(--olive);margin-top:1px}
+.toggle-btn{width:40px;height:22px;border-radius:999px;background:var(--olive-mute);cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0}
+.toggle-btn.on{background:var(--rogue)}
+.toggle-btn::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-btn.on::after{transform:translateX(18px)}
+
+/* recipe section */
+.recipe-box{background:var(--batter);border-radius:var(--r);padding:14px}
+.recipe-hint{font-size:12px;color:var(--olive);margin-bottom:12px}
+.recipe-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(196,186,160,.3)}
+.recipe-row:last-of-type{border-bottom:none}
+.recipe-ing{flex:1;height:30px;border-radius:7px;border:1px solid var(--olive-mute);background:var(--cream);font-family:var(--ui);font-size:12.5px;color:var(--ink);padding:0 8px;cursor:pointer}
+.recipe-ing:focus{outline:none;border-color:var(--rogue)}
+.recipe-qty{width:68px;height:30px;border-radius:7px;border:1px solid var(--olive-mute);background:var(--cream);font-family:var(--ui);font-size:13px;color:var(--ink);padding:0 8px;text-align:right}
+.recipe-qty:focus{outline:none;border-color:var(--rogue)}
+.recipe-unit{width:58px;height:30px;border-radius:7px;border:1px solid var(--olive-mute);background:var(--cream);font-family:var(--ui);font-size:12px;color:var(--ink);padding:0 4px;cursor:pointer}
+.recipe-unit:focus{outline:none;border-color:var(--rogue)}
+.recipe-del{background:none;border:none;cursor:pointer;color:var(--olive-mute);transition:color .12s;padding:2px}
+.recipe-del:hover{color:var(--wine)}
+.recipe-del svg{width:14px;height:14px}
+.btn-add-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:8px;border-radius:var(--r);border:1px dashed var(--olive-mute);background:transparent;font-family:var(--ui);font-size:12.5px;font-weight:500;color:var(--olive);cursor:pointer;transition:all .15s;width:100%}
+.btn-add-row:hover{border-color:var(--rogue);color:var(--rogue)}
+.btn-add-row svg{width:13px;height:13px}
+
+/* footer buttons */
+.btn-save{flex:2;padding:11px;border-radius:var(--r);border:none;background:linear-gradient(135deg,var(--rogue),var(--rogue-dk));color:var(--batter-lt);font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(58,61,46,.25);transition:all .15s}
+.btn-save:hover{box-shadow:0 5px 16px rgba(58,61,46,.35);transform:translateY(-1px)}
+.btn-cancel{flex:1;padding:11px;border-radius:var(--r);border:1px solid var(--olive-mute);background:var(--cream);font-family:var(--ui);font-size:13px;font-weight:600;cursor:pointer;color:var(--olive);transition:all .15s}
+.btn-cancel:hover{border-color:var(--wine);color:var(--wine)}
+.btn-danger{flex:1;padding:11px;border-radius:var(--r);border:1px solid rgba(116,48,20,.25);background:rgba(116,48,20,.06);font-family:var(--ui);font-size:13px;font-weight:600;cursor:pointer;color:var(--wine);transition:all .15s}
+.btn-danger:hover{background:rgba(116,48,20,.12)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--olive-mute);border-radius:99px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">BrewDesk</span>
+    <span class="brand-tag">Admin</span>
+  </div>
+  <div class="topbar-right">
+    <span class="admin-badge">Admin</span>
+    <div class="staff-pill">
+      <div class="avatar">AD</div>
+      <span class="staff-name">Admin</span>
+    </div>
+  </div>
+</header>
+
+<div class="app-wrap">
+  <nav class="sidebar">
+    <div class="sidebar-section">Vận hành</div>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      POS Bán hàng
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Checklist
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>
+      Test cafe
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Bàn giao ca
+    </button>
+    <div class="sidebar-section">Quản lý</div>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h18l-2 7H5L3 2z"/><path d="M5 9l-1 13h16l-1-13"/><path d="M10 13h4"/></svg>
+      Menu
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Kho nguyên liệu
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Nhân viên
+    </button>
+    <div class="sidebar-section">Báo cáo</div>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Thống kê
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Kiểm kê kho
+    </button>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Quản lý Menu</div>
+        <div class="page-subtitle" id="pageSubtitle">12 món · 4 danh mục</div>
+      </div>
+      <button class="btn-primary" onclick="openEditModal(null)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Thêm món mới
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="searchInput" placeholder="Tìm tên món..." oninput="renderGrid()"/>
+      </div>
+      <div class="cat-tabs" id="catTabs"></div>
+      <button class="btn-filter" onclick="cycleFilter()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <span id="filterLabel">Tất cả</span>
+      </button>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="grid-stats" id="gridStats"></div>
+      <div class="product-grid" id="productGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL SỬA MÓN -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="editTitle">Thêm món mới</span>
+      <button class="modal-close" onclick="closeEditModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
+          <label class="form-label">Tên món</label>
+          <input class="form-input" id="fName" placeholder="vd: Cà phê sữa đá"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Danh mục</label>
+          <select class="form-select" id="fCat">
+            <option>Cà phê</option><option>Trà</option><option>Đá xay</option><option>Bánh</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="max-width:180px">
+          <label class="form-label">Giá bán (VNĐ)</label>
+          <input class="form-input" id="fPrice" type="number" placeholder="29000"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mô tả (tùy chọn)</label>
+        <textarea class="form-textarea" id="fDesc" placeholder="Mô tả ngắn về món..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Biến thể</label>
+        <div class="variant-chips">
+          <div class="variant-chip">Mức ngọt</div>
+          <div class="variant-chip">Mức đá</div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Hiển thị trên POS</div>
+          <div class="toggle-sub">Tắt để tạm ẩn món khỏi màn hình bán hàng</div>
+        </div>
+        <button class="toggle-btn on" id="activeToggle" onclick="this.classList.toggle('on')"></button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="btnDelete" onclick="alert('Xác nhận xóa món?')">Xóa món</button>
+      <button class="btn-cancel" onclick="closeEditModal()">Huỷ</button>
+      <button class="btn-save" onclick="closeEditModal()">Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECIPE -->
+<div class="modal-overlay" id="recipeModal" onclick="if(event.target===this)closeRecipeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="recipeTitle">Công thức nguyên liệu</span>
+      <button class="modal-close" onclick="closeRecipeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="recipe-box">
+        <p class="recipe-hint">Định nghĩa lượng nguyên liệu cần dùng cho <strong>1 phần</strong> của món này.</p>
+        <div id="recipeRows"></div>
+        <button class="btn-add-row" onclick="addRecipeRow()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm nguyên liệu
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRecipeModal()">Huỷ</button>
+      <button class="btn-save" onclick="closeRecipeModal()">Lưu công thức</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS = ['Tất cả','Cà phê','Trà','Đá xay','Bánh'];
+const INGREDIENTS = ['Cà phê Arabica','Cà phê Robusta','Cà phê Coldbriu','Sữa đặc','Sữa tươi','Sữa bò','OAT','Đường vàng','Đường trắng','Mật ong','Caramel/Hazelnut','Vani','Chocolate','Matcha','Cacao','Houjicha','Genmaicha','Đá viên','Tonic','Nước lọc','Syrup dâu','Syrup vải'];
+const UNITS = ['g','kg','ml','l','chai','lon','gói','muỗng','bình'];
+
+const ICO = {
+  coffee: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>',
+  tea:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M12 3c0 1-1.5 2-1.5 3S12 7 12 8"/></svg>',
+  ice:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="M2 12h20"/><path d="m19.07 4.93-4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>',
+  bread:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5a8.5 8.5 0 0 1 17 0"/><path d="M4 11.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8.5"/></svg>',
+};
+const VARIANT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
+const RECIPE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
+const WARN_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+const EDIT_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+const PWR_ICON   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>';
+const DEL_ICON   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+const PLUS_ICON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+const PRODUCTS = [
+  {id:1, name:'Cà phê sữa đá',  cat:'Cà phê', price:29000, icon:'coffee', active:true,  recipe:[['Cà phê Arabica','18','g'],['Sữa đặc','30','ml'],['Đá viên','100','g']], hasVariant:true},
+  {id:2, name:'Cà phê đen đá',  cat:'Cà phê', price:25000, icon:'coffee', active:true,  recipe:[['Cà phê Arabica','18','g'],['Đá viên','150','g']], hasVariant:true},
+  {id:3, name:'Bạc xỉu',        cat:'Cà phê', price:32000, icon:'coffee', active:true,  recipe:[['Cà phê Robusta','15','g'],['Sữa đặc','40','ml'],['Sữa tươi','80','ml']], hasVariant:true},
+  {id:4, name:'Cold brew',       cat:'Cà phê', price:39000, icon:'coffee', active:true,  recipe:[['Cà phê Coldbriu','20','g'],['Nước lọc','200','ml']], hasVariant:false},
+  {id:5, name:'Americano',       cat:'Cà phê', price:35000, icon:'coffee', active:false, recipe:[['Cà phê Arabica','18','g'],['Nước lọc','150','ml']], hasVariant:true},
+  {id:6, name:'Trà đào cam sả', cat:'Trà',    price:39000, icon:'tea',    active:true,  recipe:[['Houjicha','5','g'],['Đường vàng','15','g'],['Syrup dâu','20','ml']], hasVariant:true},
+  {id:7, name:'Trà vải',         cat:'Trà',    price:35000, icon:'tea',    active:true,  recipe:[['Genmaicha','5','g'],['Syrup vải','25','ml'],['Đá viên','150','g']], hasVariant:true},
+  {id:8, name:'Hồng trà sữa',   cat:'Trà',    price:32000, icon:'tea',    active:true,  recipe:[['Houjicha','5','g'],['Sữa đặc','30','ml'],['Sữa tươi','100','ml']], hasVariant:true},
+  {id:9, name:'Matcha đá xay',  cat:'Đá xay', price:45000, icon:'ice',    active:true,  recipe:[['Matcha','10','g'],['Sữa tươi','200','ml'],['Đường trắng','15','g']], hasVariant:false},
+  {id:10,name:'Choco đá xay',   cat:'Đá xay', price:45000, icon:'ice',    active:true,  recipe:[['Cacao','12','g'],['Sữa tươi','180','ml'],['Chocolate','20','g']], hasVariant:false},
+  {id:11,name:'Cookie bơ',       cat:'Bánh',   price:22000, icon:'bread',  active:true,  recipe:[], hasVariant:false},
+  {id:12,name:'Bánh mì que',     cat:'Bánh',   price:18000, icon:'bread',  active:true,  recipe:[], hasVariant:false},
+];
+
+let activeCat='Tất cả', filterIdx=0;
+const FILTERS=['all','active','inactive'], FILTER_LABELS=['Tất cả','Đang bán','Tạm ẩn'];
+
+function renderTabs(){
+  const el=document.getElementById('catTabs');
+  el.innerHTML='';
+  CATS.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(c===activeCat?' active':'');
+    b.textContent=c;
+    b.onclick=()=>{activeCat=c;renderTabs();renderGrid();};
+    el.appendChild(b);
+  });
+}
+
+function renderGrid(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  const f=FILTERS[filterIdx];
+  const el=document.getElementById('productGrid');
+  el.innerHTML='';
+  const list=PRODUCTS.filter(p=>
+    (activeCat==='Tất cả'||p.cat===activeCat)&&
+    p.name.toLowerCase().includes(q)&&
+    (f==='all'||(f==='active'?p.active:!p.active))
+  );
+  document.getElementById('gridStats').textContent=list.length+' món';
+  list.forEach(p=>{
+    const d=document.createElement('div');
+    d.className='product-card'+(p.active?'':' inactive');
+    const rCount=p.recipe.length;
+    d.innerHTML=
+      '<div class="card-thumb">'+
+        (ICO[p.icon]||ICO.coffee)+
+        '<span class="cat-badge">'+p.cat+'</span>'+
+        '<span class="status-badge '+(p.active?'on':'off')+'">'+(p.active?'Đang bán':'Tạm ẩn')+'</span>'+
+      '</div>'+
+      '<div class="card-body">'+
+        '<div class="card-name">'+p.name+'</div>'+
+        '<div class="card-meta">'+
+          '<span class="card-price">'+p.price.toLocaleString('vi-VN')+'đ</span>'+
+          (p.hasVariant?'<span class="card-variants">'+VARIANT_ICON+' Ngọt · Đá</span>':'')+
+        '</div>'+
+        (rCount>0
+          ?'<div class="card-recipe">'+RECIPE_ICON+'<span class="recipe-count">'+rCount+'</span> nguyên liệu</div>'
+          :'<div class="card-recipe warn">'+WARN_ICON+' Chưa có công thức</div>')+
+        '<div class="card-actions">'+
+          '<button class="btn-edit" data-id="'+p.id+'" onclick="openEditModal('+p.id+')">'+EDIT_ICON+' Sửa</button>'+
+          '<button class="btn-recipe" data-id="'+p.id+'" onclick="openRecipeModal('+p.id+')">'+RECIPE_ICON+' Recipe</button>'+
+          '<button class="btn-toggle" title="'+(p.active?'Tắt':'Bật')+' món" onclick="toggleProduct('+p.id+')">'+PWR_ICON+'</button>'+
+        '</div>'+
+      '</div>';
+    el.appendChild(d);
+  });
+}
+
+function toggleProduct(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  if(p){p.active=!p.active;renderGrid();}
+}
+
+function cycleFilter(){
+  filterIdx=(filterIdx+1)%3;
+  document.getElementById('filterLabel').textContent=FILTER_LABELS[filterIdx];
+  renderGrid();
+}
+
+/* ── EDIT MODAL ── */
+function openEditModal(id){
+  const p=id?PRODUCTS.find(x=>x.id===id):null;
+  document.getElementById('editTitle').textContent=p?'Sửa món — '+p.name:'Thêm món mới';
+  document.getElementById('fName').value=p?p.name:'';
+  document.getElementById('fPrice').value=p?p.price:'';
+  document.getElementById('fDesc').value='';
+  document.getElementById('btnDelete').style.display=p?'':'none';
+  const tog=document.getElementById('activeToggle');
+  tog.className='toggle-btn'+((!p||p.active)?' on':'');
+  document.getElementById('editModal').classList.add('open');
+}
+function closeEditModal(){document.getElementById('editModal').classList.remove('open');}
+
+/* ── RECIPE MODAL ── */
+function openRecipeModal(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('recipeTitle').textContent='Công thức — '+p.name;
+  const rows=document.getElementById('recipeRows');
+  rows.innerHTML='';
+  p.recipe.forEach(function(r){addRecipeRow(r[0],r[1],r[2]);});
+  document.getElementById('recipeModal').classList.add('open');
+}
+function closeRecipeModal(){document.getElementById('recipeModal').classList.remove('open');}
+
+function addRecipeRow(ing,qty,unit){
+  ing=ing||''; qty=qty||''; unit=unit||'g';
+  const row=document.createElement('div');
+  row.className='recipe-row';
+  var ingOpts=INGREDIENTS.map(function(i){return '<option'+(i===ing?' selected':'')+'>'+i+'</option>';}).join('');
+  var unitOpts=UNITS.map(function(u){return '<option'+(u===unit?' selected':'')+'>'+u+'</option>';}).join('');
+  row.innerHTML=
+    '<select class="recipe-ing"><option value="">-- Chọn nguyên liệu --</option>'+ingOpts+'</select>'+
+    '<input class="recipe-qty" type="number" value="'+qty+'" placeholder="0" min="0"/>'+
+    '<select class="recipe-unit">'+unitOpts+'</select>'+
+    '<button class="recipe-del" onclick="this.closest(\'.recipe-row\').remove()">'+DEL_ICON+'</button>';
+  document.getElementById('recipeRows').appendChild(row);
+}
+
+renderTabs();
+renderGrid();
+</script>
+</body>
+</html>
