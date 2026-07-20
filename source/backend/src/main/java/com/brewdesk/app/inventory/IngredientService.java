@@ -9,6 +9,7 @@ import com.brewdesk.app.inventory.dto.IngredientRequest;
 import com.brewdesk.app.inventory.dto.IngredientResponse;
 import com.brewdesk.app.menu.RecipeRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +20,31 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class IngredientService {
 
+    /**
+     * BigDecimal lấy thẳng từ JSON request mang scale của chuỗi người dùng gõ:
+     * gửi 5 thì scale 0, gửi 5.000 thì scale 3. Còn giá trị đọc từ DB luôn mang
+     * scale của cột. Không chuẩn hoá thì cùng một nguyên liệu lúc vừa tạo trả
+     * "5" mà đọc lại trả "5.000" — frontend hiển thị lệch nhau.
+     *
+     * <p>Lỗi này từng xảy ra với stockQty ở Phase 4 và bị vá lẻ; chuẩn hoá tập
+     * trung ở đây để không tái diễn khi thêm cột số mới.
+     */
+    private static final int QTY_SCALE = 3; // khớp DECIMAL(12,3)
+    private static final int MONEY_SCALE = 0; // khớp DECIMAL(12,0), VNĐ nguyên
+
+    private static BigDecimal qty(BigDecimal value) {
+        return value == null ? null : value.setScale(QTY_SCALE, RoundingMode.HALF_UP);
+    }
+
+    private static BigDecimal money(BigDecimal value) {
+        return value == null ? null : value.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    }
+
     private final IngredientRepository ingredientRepository;
     private final IngredientCategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
     private final RecipeRepository recipeRepository;
+    private final UnitConverter unitConverter;
 
     @Transactional(readOnly = true)
     public PageResponse<IngredientResponse> search(
@@ -62,13 +84,12 @@ public class IngredientService {
                         .name(request.name())
                         // Tồn luôn bắt đầu từ 0 — muốn có tồn thì phải nhập kho,
                         // để mọi thay đổi tồn đều có chứng từ truy ngược được.
-                        // Scale 3 cho khớp DECIMAL(12,3): JSON luôn trả "0.000"
-                        // thay vì lúc "0" lúc "5.000" tuỳ đường dữ liệu.
-                        .stockQty(BigDecimal.ZERO.setScale(3))
-                        .lowStockThreshold(request.lowStockThreshold())
-                        .costPrice(adminOnlyCost(request.costPrice(), BigDecimal.ZERO))
+                        .stockQty(qty(BigDecimal.ZERO))
+                        .lowStockThreshold(qty(request.lowStockThreshold()))
+                        .costPrice(money(adminOnlyCost(request.costPrice(), BigDecimal.ZERO)))
                         .active(true)
                         .build();
+        applyYield(ingredient, request);
         return IngredientResponse.from(ingredientRepository.save(ingredient), CurrentUser.isAdmin());
     }
 
@@ -83,8 +104,9 @@ public class IngredientService {
         ingredient.setCategory(findCategory(request.categoryId()));
         ingredient.setUnit(findUnit(request.unitId()));
         ingredient.setName(request.name());
-        ingredient.setLowStockThreshold(request.lowStockThreshold());
-        ingredient.setCostPrice(adminOnlyCost(request.costPrice(), ingredient.getCostPrice()));
+        ingredient.setLowStockThreshold(qty(request.lowStockThreshold()));
+        ingredient.setCostPrice(money(adminOnlyCost(request.costPrice(), ingredient.getCostPrice())));
+        applyYield(ingredient, request);
 
         return IngredientResponse.from(ingredientRepository.save(ingredient), CurrentUser.isAdmin());
     }
@@ -99,6 +121,38 @@ public class IngredientService {
         }
         ingredient.setActive(active);
         return IngredientResponse.from(ingredientRepository.save(ingredient), CurrentUser.isAdmin());
+    }
+
+    /**
+     * Tỉ lệ ủ cho bán thành phẩm. Hai trường phải cùng có hoặc cùng không —
+     * thiếu một cái thì phép quy đổi vô nghĩa, DB cũng có CHECK chặn.
+     *
+     * <p>Bắt buộc đơn vị thành phẩm phải KHÁC hệ đo với đơn vị lưu kho. Nếu cùng
+     * hệ (kg và g chẳng hạn) thì đã quy đổi trực tiếp được rồi, khai thêm tỉ lệ
+     * chỉ gây mâu thuẫn: cùng một lượng ra hai kết quả trừ kho khác nhau.
+     */
+    private void applyYield(Ingredient ingredient, IngredientRequest request) {
+        if (request.yieldUnitId() == null && request.yieldQuantity() == null) {
+            ingredient.setYieldUnit(null);
+            ingredient.setYieldQuantity(null);
+            return;
+        }
+        if (request.yieldUnitId() == null || request.yieldQuantity() == null) {
+            throw new AppException(
+                    ErrorCode.VALIDATION_ERROR,
+                    "Khai báo bán thành phẩm cần cả đơn vị thành phẩm lẫn tỉ lệ ủ");
+        }
+
+        Unit yieldUnit = findUnit(request.yieldUnitId());
+        if (unitConverter.isConvertible(yieldUnit, ingredient.getUnit())) {
+            throw new AppException(
+                    ErrorCode.VALIDATION_ERROR,
+                    "Đơn vị thành phẩm (%s) cùng hệ đo với đơn vị lưu kho (%s) nên quy đổi trực tiếp được, không cần khai tỉ lệ ủ"
+                            .formatted(yieldUnit.getCode(), ingredient.getUnit().getCode()));
+        }
+
+        ingredient.setYieldUnit(yieldUnit);
+        ingredient.setYieldQuantity(qty(request.yieldQuantity()));
     }
 
     /**

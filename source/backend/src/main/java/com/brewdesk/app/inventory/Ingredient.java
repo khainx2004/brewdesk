@@ -56,6 +56,18 @@ public class Ingredient {
     @Column(name = "cost_price", nullable = false, precision = 12, scale = 0)
     private BigDecimal costPrice;
 
+    /**
+     * Đơn vị thành phẩm sau sơ chế, null nghĩa là nguyên liệu dùng trực tiếp.
+     * Ví dụ trà lưu kho bằng kg lá khô nhưng công thức tính theo ml nước trà.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "yield_unit_id")
+    private Unit yieldUnit;
+
+    /** Số đơn vị thành phẩm thu được từ 1 đơn vị lưu kho. */
+    @Column(name = "yield_quantity", precision = 12, scale = 3)
+    private BigDecimal yieldQuantity;
+
     @Column(name = "is_active", nullable = false)
     private boolean active;
 

@@ -16,7 +16,11 @@ public record IngredientResponse(
         /** Null với STAFF — giá vốn là thông tin chỉ ADMIN được xem. */
         BigDecimal costPrice,
         boolean lowStock,
-        boolean active) {
+        boolean active,
+        /** Bán thành phẩm: null nghĩa là nguyên liệu dùng trực tiếp. */
+        UUID yieldUnitId,
+        String yieldUnitCode,
+        BigDecimal yieldQuantity) {
 
     public static IngredientResponse from(Ingredient i, boolean includeCost) {
         return new IngredientResponse(
@@ -30,6 +34,9 @@ public record IngredientResponse(
                 i.getLowStockThreshold(),
                 includeCost ? i.getCostPrice() : null,
                 i.getStockQty().compareTo(i.getLowStockThreshold()) <= 0,
-                i.isActive());
+                i.isActive(),
+                i.getYieldUnit() != null ? i.getYieldUnit().getId() : null,
+                i.getYieldUnit() != null ? i.getYieldUnit().getCode() : null,
+                i.getYieldQuantity());
     }
 }

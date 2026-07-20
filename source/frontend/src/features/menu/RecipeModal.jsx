@@ -79,17 +79,36 @@ export default function RecipeModal({ open, onClose, item }) {
   const removeRow = (key) => setRows((prev) => prev.filter((r) => r.key !== key));
   const addRow = () => setRows((prev) => [...prev, newRow()]);
 
-  /** Chỉ những đơn vị cùng hệ đo với đơn vị lưu kho của nguyên liệu. */
+  /**
+   * Đơn vị chọn được cho một nguyên liệu: cùng hệ đo với đơn vị lưu kho, cộng
+   * thêm hệ đo của đơn vị thành phẩm nếu là bán thành phẩm.
+   *
+   * Ví dụ trà lưu kho bằng kg và khai 1kg ra 50 lít nước trà thì chọn được cả
+   * kg, g (lá khô) lẫn l, ml (nước trà đã ủ).
+   */
   const unitsFor = (ingredientId) => {
     const ingredient = ingredients.find((i) => i.id === ingredientId);
     if (!ingredient) return [];
+
+    const bases = new Set();
     const stockUnit = units.find((u) => u.id === ingredient.unitId);
-    const base = baseIdOf(stockUnit);
-    return units.filter((u) => baseIdOf(u) === base);
+    if (stockUnit) bases.add(baseIdOf(stockUnit));
+
+    if (ingredient.yieldUnitId) {
+      const yieldUnit = units.find((u) => u.id === ingredient.yieldUnitId);
+      if (yieldUnit) bases.add(baseIdOf(yieldUnit));
+    }
+    return units.filter((u) => bases.has(baseIdOf(u)));
   };
 
-  const stockUnitCodeOf = (ingredientId) =>
-    ingredients.find((i) => i.id === ingredientId)?.unitCode ?? '';
+  const hintFor = (ingredientId) => {
+    const ing = ingredients.find((i) => i.id === ingredientId);
+    if (!ing) return 'Chọn nguyên liệu trước';
+    if (ing.yieldUnitId) {
+      return `Kho tính bằng ${ing.unitCode}; 1 ${ing.unitCode} ra ${ing.yieldQuantity} ${ing.yieldUnitCode} thành phẩm. Chọn được cả hai hệ.`;
+    }
+    return `Kho tính bằng ${ing.unitCode}, chỉ chọn được đơn vị cùng hệ đo`;
+  };
 
   /**
    * Đổi nguyên liệu thì chọn sẵn luôn đơn vị lưu kho của nó. Nhờ vậy ô đơn vị
@@ -195,11 +214,7 @@ export default function RecipeModal({ open, onClose, item }) {
                   value={row.unitId}
                   onChange={(e) => updateRow(row.key, { unitId: e.target.value })}
                   disabled={!row.ingredientId}
-                  title={
-                    row.ingredientId
-                      ? `Kho tính bằng ${stockUnitCodeOf(row.ingredientId)}, chỉ chọn được đơn vị cùng hệ đo`
-                      : 'Chọn nguyên liệu trước'
-                  }
+                  title={hintFor(row.ingredientId)}
                   className={`${selectClass} w-[64px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}
                 >
                   <option value="">Đvt</option>

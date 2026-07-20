@@ -5,11 +5,12 @@ import com.brewdesk.app.common.exception.AppException;
 import com.brewdesk.app.common.exception.ErrorCode;
 import com.brewdesk.app.inventory.Ingredient;
 import com.brewdesk.app.inventory.IngredientRepository;
+import com.brewdesk.app.inventory.IngredientStockResolver;
 import com.brewdesk.app.inventory.Unit;
-import com.brewdesk.app.inventory.UnitConverter;
 import com.brewdesk.app.inventory.UnitRepository;
 import com.brewdesk.app.menu.dto.RecipeLineRequest;
 import com.brewdesk.app.menu.dto.RecipeLineResponse;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +28,7 @@ public class RecipeService {
     private final MenuItemRepository menuItemRepository;
     private final IngredientRepository ingredientRepository;
     private final UnitRepository unitRepository;
-    private final UnitConverter unitConverter;
+    private final IngredientStockResolver stockResolver;
     private final AuditService auditService;
 
     @Transactional(readOnly = true)
@@ -76,8 +77,21 @@ public class RecipeService {
                             .orElseThrow(() -> new AppException(ErrorCode.UNIT_NOT_FOUND));
 
             // Bắt lỗi đơn vị lệch hệ ngay lúc lưu công thức, thay vì đợi tới lúc
-            // bán mới sập ở bước trừ kho. Kết quả quy đổi không lưu — chỉ kiểm tra.
-            unitConverter.convert(line.quantity(), unit, ingredient.getUnit());
+            // bán mới sập ở bước trừ kho. Dùng resolver để chấp nhận cả đường tỉ
+            // lệ ủ của bán thành phẩm.
+            BigDecimal deducted = stockResolver.toStockQuantity(line.quantity(), unit, ingredient);
+
+            // Tồn kho chỉ lưu 3 chữ số thập phân. Lượng trừ mỗi phần nhỏ hơn
+            // 0.001 sẽ làm tròn về 0, tức bán bao nhiêu cũng không trừ kho —
+            // sai âm thầm, nguy hiểm hơn báo lỗi. Chặn ngay lúc lưu công thức.
+            if (deducted.signum() == 0) {
+                throw new AppException(
+                        ErrorCode.VALIDATION_ERROR,
+                        ("Lượng \"%s\" cho 1 phần quá nhỏ so với đơn vị lưu kho (%s) nên khi trừ kho"
+                                + " sẽ làm tròn về 0. Hãy đổi đơn vị lưu kho của nguyên liệu sang"
+                                + " đơn vị nhỏ hơn, ví dụ dùng g thay cho kg.")
+                                .formatted(ingredient.getName(), ingredient.getUnit().getCode()));
+            }
 
             entities.add(
                     Recipe.builder()

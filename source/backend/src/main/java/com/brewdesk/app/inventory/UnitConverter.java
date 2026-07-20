@@ -37,6 +37,11 @@ public class UnitConverter {
                 .divide(to.getConversionFactor(), STOCK_SCALE, RoundingMode.HALF_UP);
     }
 
+    /** Kiểm tra quy đổi được hay không mà không ném lỗi. */
+    public boolean isConvertible(Unit from, Unit to) {
+        return baseIdOf(from).equals(baseIdOf(to));
+    }
+
     /** Đơn vị gốc là chính nó nếu không khai báo baseUnit. */
     private java.util.UUID baseIdOf(Unit unit) {
         return unit.getBaseUnit() != null ? unit.getBaseUnit().getId() : unit.getId();

@@ -192,7 +192,8 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 - `recipes` — cầu nối bắt buộc giữa menu_items và ingredients
 
 **Kho:**
-- `ingredients` — stock_qty, low_stock_threshold
+- `ingredients` — stock_qty, low_stock_threshold, và **tỉ lệ ủ** cho bán thành phẩm
+  (`yield_unit_id` + `yield_quantity`, thêm ở V4)
 - `suppliers`
 - `stock_imports` — có batch_code để truy vết QC test theo lô
 - `stock_take_sessions` — header phiếu kiểm kê tuần
@@ -240,6 +241,31 @@ Ca được tính ở **server** (KHÔNG tin giờ client gửi lên) để trá
 Chỉ có đúng 3 mức: `0%`, `50%`, `100%`  
 Tên hiển thị: `0%` = "Không ngọt" / "Không đá"  
 Tên field trong DB: `SWEETNESS_LEVEL`, `ICE_LEVEL`
+
+### Bán thành phẩm (trà ủ, cold brew, siro tự nấu)
+
+Trà mua vào là lá khô tính kg nhưng công thức pha chế lại tính theo ml nước trà
+đã ủ. Hai đơn vị khác hệ đo, và tỉ lệ phụ thuộc cách ủ của quán chứ không phải
+hằng số vật lý.
+
+Cách xử lý đã chốt: khai trên chính nguyên liệu rằng **1 đơn vị lưu kho ra được
+bao nhiêu đơn vị thành phẩm** (`yield_unit_id` + `yield_quantity`). Ví dụ trà Ô
+long lưu kho kg, khai `yield = 50 l` nghĩa là 1 kg lá ủ ra 50 lít nước trà.
+Công thức ghi 150 ml cho tự nhiên, hệ thống tự quy ngược ra 0.003 kg lá khô để
+trừ kho.
+
+**KHÔNG tạo bảng tồn riêng cho nước trà** — quán gần như không phải hủy cuối
+ngày nên theo dõi tồn bán thành phẩm là chi phí thừa. Nếu sau này cần biết lượng
+đổ bỏ thì mới nâng lên mô hình có bảng ghi mẻ ủ.
+
+Ràng buộc: đơn vị thành phẩm phải KHÁC hệ đo với đơn vị lưu kho (cùng hệ thì đã
+quy đổi trực tiếp được, khai thêm chỉ gây mâu thuẫn).
+
+⚠️ **Chọn đơn vị lưu kho cho khéo.** Tồn kho lưu 3 chữ số thập phân, nên lượng
+trừ mỗi phần dưới 0.001 sẽ làm tròn về 0 — bán mãi không trừ kho. Nguyên liệu
+pha loãng nhiều nên lưu bằng `g` thay vì `kg`. Hệ thống chặn lúc lưu công thức
+nếu lượng trừ ra đúng 0, nhưng sai số do làm tròn (ví dụ 0.00075 thành 0.001)
+thì không chặn được — kiểm kê tuần sẽ tự hiệu chỉnh.
 
 ### Đơn hàng
 - KHÔNG có trạng thái trung gian (pending/processing) — đơn chỉ có 2 trạng thái: active hoặc cancelled

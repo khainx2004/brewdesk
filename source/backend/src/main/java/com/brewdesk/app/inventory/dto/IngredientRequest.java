@@ -3,6 +3,7 @@ package com.brewdesk.app.inventory.dto;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -24,4 +25,13 @@ public record IngredientRequest(
                         integer = 12,
                         fraction = 0,
                         message = "Giá vốn phải là số nguyên VNĐ, không có phần thập phân")
-                BigDecimal costPrice) {}
+                BigDecimal costPrice,
+        /**
+         * Bán thành phẩm: đơn vị thành phẩm sau sơ chế. Để trống với nguyên liệu
+         * dùng trực tiếp. Ví dụ trà lưu kho bằng kg lá khô thì yieldUnit là l.
+         */
+        UUID yieldUnitId,
+        /** Số đơn vị thành phẩm thu được từ 1 đơn vị lưu kho, ví dụ 1 kg lá ra 50 l. */
+        @Positive(message = "Tỉ lệ ủ phải lớn hơn 0")
+                @Digits(integer = 9, fraction = 3, message = "Tỉ lệ ủ tối đa 3 chữ số thập phân")
+                BigDecimal yieldQuantity) {}
