@@ -7,6 +7,7 @@ import com.brewdesk.app.common.exception.ErrorCode;
 import com.brewdesk.app.common.security.CurrentUser;
 import com.brewdesk.app.inventory.dto.IngredientRequest;
 import com.brewdesk.app.inventory.dto.IngredientResponse;
+import com.brewdesk.app.menu.RecipeRepository;
 import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class IngredientService {
     private final IngredientRepository ingredientRepository;
     private final IngredientCategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
+    private final RecipeRepository recipeRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<IngredientResponse> search(
@@ -90,6 +92,11 @@ public class IngredientService {
     @Transactional
     public IngredientResponse setActive(UUID id, boolean active) {
         Ingredient ingredient = findOrThrow(id);
+        // Ngừng dùng nguyên liệu còn trong công thức thì lúc bán món đó sẽ sập
+        // ở bước trừ kho — bắt gỡ khỏi công thức trước.
+        if (!active && recipeRepository.existsByIngredientId(id)) {
+            throw new AppException(ErrorCode.INGREDIENT_IN_RECIPE);
+        }
         ingredient.setActive(active);
         return IngredientResponse.from(ingredientRepository.save(ingredient), CurrentUser.isAdmin());
     }

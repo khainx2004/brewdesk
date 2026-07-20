@@ -37,6 +37,9 @@ public enum ErrorCode {
     INGREDIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nguyên liệu"),
     INGREDIENT_NAME_EXISTS(HttpStatus.CONFLICT, "Tên nguyên liệu đã tồn tại"),
     INGREDIENT_INACTIVE(HttpStatus.BAD_REQUEST, "Nguyên liệu đang ngừng sử dụng"),
+    INGREDIENT_IN_RECIPE(
+            HttpStatus.CONFLICT,
+            "Nguyên liệu đang nằm trong công thức của món, cần gỡ khỏi công thức trước"),
     SUPPLIER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhà cung cấp"),
     SUPPLIER_NAME_EXISTS(HttpStatus.CONFLICT, "Tên nhà cung cấp đã tồn tại"),
     UNIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy đơn vị tính"),

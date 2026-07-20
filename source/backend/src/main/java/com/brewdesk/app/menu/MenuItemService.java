@@ -6,7 +6,10 @@ import com.brewdesk.app.common.exception.AppException;
 import com.brewdesk.app.common.exception.ErrorCode;
 import com.brewdesk.app.menu.dto.MenuItemRequest;
 import com.brewdesk.app.menu.dto.MenuItemResponse;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,18 +21,31 @@ public class MenuItemService {
 
     private final MenuItemRepository menuItemRepository;
     private final CategoryRepository categoryRepository;
+    private final RecipeRepository recipeRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<MenuItemResponse> search(
             UUID categoryId, String keyword, boolean includeInactive, Pageable pageable) {
         String normalized = (keyword == null || keyword.isBlank()) ? "" : keyword.trim();
         var page = menuItemRepository.search(categoryId, normalized, includeInactive, pageable);
-        return PageResponse.from(page.map(MenuItemResponse::from));
+
+        // Đếm dòng công thức cho cả trang bằng một query, không phải N query
+        List<UUID> ids = page.getContent().stream().map(MenuItem::getId).toList();
+        Map<UUID, Long> counts =
+                ids.isEmpty()
+                        ? Map.of()
+                        : recipeRepository.countByMenuItemIds(ids).stream()
+                                .collect(
+                                        Collectors.toMap(
+                                                row -> (UUID) row[0], row -> (Long) row[1]));
+
+        return PageResponse.from(
+                page.map(item -> MenuItemResponse.from(item, counts.getOrDefault(item.getId(), 0L))));
     }
 
     @Transactional(readOnly = true)
     public MenuItemResponse get(UUID id) {
-        return MenuItemResponse.from(findOrThrow(id));
+        return withCount(findOrThrow(id));
     }
 
     @Transactional
@@ -50,7 +66,8 @@ public class MenuItemService {
                         .active(true)
                         .displayOrder(request.displayOrder())
                         .build();
-        return MenuItemResponse.from(menuItemRepository.save(item));
+        // Món mới chưa thể có công thức
+        return MenuItemResponse.from(menuItemRepository.save(item), 0L);
     }
 
     @Transactional
@@ -69,7 +86,7 @@ public class MenuItemService {
         item.setDescription(request.description());
         item.setPrice(request.price());
         item.setDisplayOrder(request.displayOrder());
-        return MenuItemResponse.from(menuItemRepository.save(item));
+        return withCount(menuItemRepository.save(item));
     }
 
     /** Ngừng bán thay vì xoá, để đơn cũ vẫn tra ngược được món. */
@@ -78,7 +95,7 @@ public class MenuItemService {
     public MenuItemResponse deactivate(UUID id) {
         MenuItem item = findOrThrow(id);
         item.setActive(false);
-        return MenuItemResponse.from(menuItemRepository.save(item));
+        return withCount(menuItemRepository.save(item));
     }
 
     @Transactional
@@ -88,7 +105,12 @@ public class MenuItemService {
             throw new AppException(ErrorCode.CATEGORY_INACTIVE);
         }
         item.setActive(true);
-        return MenuItemResponse.from(menuItemRepository.save(item));
+        return withCount(menuItemRepository.save(item));
+    }
+
+    private MenuItemResponse withCount(MenuItem item) {
+        long count = recipeRepository.findByMenuItemId(item.getId()).size();
+        return MenuItemResponse.from(item, count);
     }
 
     private MenuItem findOrThrow(UUID id) {

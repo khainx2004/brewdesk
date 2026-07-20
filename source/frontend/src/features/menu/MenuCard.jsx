@@ -1,4 +1,4 @@
-import { AlertCircle, BookOpen, Coffee, CupSoda, Pencil, Power, Snowflake, Sparkles } from 'lucide-react';
+import { AlertCircle, BookOpen, CheckCircle2, Coffee, CupSoda, Pencil, Power, Snowflake, Sparkles } from 'lucide-react';
 import { formatVnd } from '../../utils/fmt';
 
 /** Chọn hình minh hoạ theo tên danh mục, không có gì khớp thì dùng tách cà phê. */
@@ -9,8 +9,9 @@ function categoryIcon(categoryName = '') {
   return Coffee;
 }
 
-export default function MenuCard({ item, canEdit, onEdit, onToggle, toggling }) {
+export default function MenuCard({ item, canEdit, onEdit, onToggle, onRecipe, toggling }) {
   const Icon = categoryIcon(item.categoryName);
+  const hasRecipe = item.recipeCount > 0;
 
   return (
     <div
@@ -50,11 +51,17 @@ export default function MenuCard({ item, canEdit, onEdit, onToggle, toggling }) 
           </span>
         </div>
 
-        {/* Công thức cần module kho (backend Phase 4) nên chưa có dữ liệu thật */}
-        <div className="mt-2 flex items-center gap-1.5 border-t border-olive-mute/40 pt-2 text-[11px] text-wine">
-          <AlertCircle size={11} strokeWidth={1.5} />
-          Chưa có công thức
-        </div>
+        {hasRecipe ? (
+          <div className="mt-2 flex items-center gap-1.5 border-t border-olive-mute/40 pt-2 text-[11px] text-rogue">
+            <CheckCircle2 size={11} strokeWidth={1.5} />
+            <span className="font-semibold">{item.recipeCount}</span> nguyên liệu
+          </div>
+        ) : (
+          <div className="mt-2 flex items-center gap-1.5 border-t border-olive-mute/40 pt-2 text-[11px] text-wine">
+            <AlertCircle size={11} strokeWidth={1.5} />
+            Chưa có công thức
+          </div>
+        )}
 
         {canEdit && (
           <div className="mt-2.5 flex gap-1.5">
@@ -66,9 +73,8 @@ export default function MenuCard({ item, canEdit, onEdit, onToggle, toggling }) 
               Sửa
             </button>
             <button
-              disabled
-              title="Cần module Kho nguyên liệu, sẽ mở khi làm xong phase kho"
-              className="flex h-[30px] flex-1 cursor-not-allowed items-center justify-center gap-1 rounded-[7px] border border-rogue/20 bg-rogue/8 text-[11.5px] font-semibold text-rogue opacity-45"
+              onClick={() => onRecipe(item)}
+              className="flex h-[30px] flex-1 items-center justify-center gap-1 rounded-[7px] border border-rogue/20 bg-rogue/8 text-[11.5px] font-semibold text-rogue transition hover:bg-rogue/15"
             >
               <BookOpen size={12} strokeWidth={1.5} />
               Công thức

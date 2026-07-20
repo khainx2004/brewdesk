@@ -8,6 +8,7 @@ import { useAuthStore } from '../../stores/authStore';
 import MenuCard from './MenuCard';
 import MenuItemFormModal from './MenuItemFormModal';
 import CategoryModal from './CategoryModal';
+import RecipeModal from './RecipeModal';
 
 const PAGE_SIZE = 60;
 
@@ -30,6 +31,7 @@ export default function MenuPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [recipeItem, setRecipeItem] = useState(null);
   const [actionError, setActionError] = useState(null);
 
   const filter = FILTERS[filterIdx];
@@ -223,6 +225,7 @@ export default function MenuPage() {
                   setFormOpen(true);
                 }}
                 onToggle={(it) => toggleMutation.mutate({ id: it.id, active: it.active })}
+                onRecipe={(it) => setRecipeItem(it)}
                 toggling={
                   toggleMutation.isPending && toggleMutation.variables?.id === item.id
                 }
@@ -269,6 +272,12 @@ export default function MenuPage() {
         open={categoryOpen}
         onClose={() => setCategoryOpen(false)}
         categories={allCategories}
+      />
+
+      <RecipeModal
+        open={Boolean(recipeItem)}
+        onClose={() => setRecipeItem(null)}
+        item={recipeItem}
       />
     </AppShell>
   );

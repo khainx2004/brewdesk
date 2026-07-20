@@ -12,9 +12,11 @@ public record MenuItemResponse(
         String description,
         BigDecimal price,
         boolean active,
-        int displayOrder) {
+        int displayOrder,
+        /** Số dòng công thức — 0 nghĩa là chưa gắn công thức, POS sẽ không trừ kho được. */
+        long recipeCount) {
 
-    public static MenuItemResponse from(MenuItem item) {
+    public static MenuItemResponse from(MenuItem item, long recipeCount) {
         return new MenuItemResponse(
                 item.getId(),
                 item.getCategory().getId(),
@@ -23,6 +25,7 @@ public record MenuItemResponse(
                 item.getDescription(),
                 item.getPrice(),
                 item.isActive(),
-                item.getDisplayOrder());
+                item.getDisplayOrder(),
+                recipeCount);
     }
 }
