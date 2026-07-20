@@ -12,6 +12,15 @@ function newRow() {
   return { key: crypto.randomUUID(), ingredientId: '', quantity: '', unitId: '' };
 }
 
+/**
+ * Đơn vị gốc của một đơn vị: đơn vị quy đổi thì lấy baseUnitId, đơn vị gốc thì
+ * là chính nó. Hai đơn vị cùng gốc mới quy đổi được cho nhau.
+ * Khớp đúng logic UnitConverter ở backend.
+ */
+function baseIdOf(unit) {
+  return unit?.baseUnitId ?? unit?.id;
+}
+
 export default function RecipeModal({ open, onClose, item }) {
   const queryClient = useQueryClient();
   const [rows, setRows] = useState([]);
@@ -70,6 +79,28 @@ export default function RecipeModal({ open, onClose, item }) {
   const removeRow = (key) => setRows((prev) => prev.filter((r) => r.key !== key));
   const addRow = () => setRows((prev) => [...prev, newRow()]);
 
+  /** Chỉ những đơn vị cùng hệ đo với đơn vị lưu kho của nguyên liệu. */
+  const unitsFor = (ingredientId) => {
+    const ingredient = ingredients.find((i) => i.id === ingredientId);
+    if (!ingredient) return [];
+    const stockUnit = units.find((u) => u.id === ingredient.unitId);
+    const base = baseIdOf(stockUnit);
+    return units.filter((u) => baseIdOf(u) === base);
+  };
+
+  const stockUnitCodeOf = (ingredientId) =>
+    ingredients.find((i) => i.id === ingredientId)?.unitCode ?? '';
+
+  /**
+   * Đổi nguyên liệu thì chọn sẵn luôn đơn vị lưu kho của nó. Nhờ vậy ô đơn vị
+   * không bao giờ ở trạng thái lệch hệ đo — sai đơn vị thành chuyện không thể
+   * xảy ra, thay vì để người dùng chọn bừa rồi báo lỗi lúc bấm Lưu.
+   */
+  const changeIngredient = (key, ingredientId) => {
+    const ingredient = ingredients.find((i) => i.id === ingredientId);
+    updateRow(key, { ingredientId, unitId: ingredient?.unitId ?? '' });
+  };
+
   const save = () => {
     setServerError(null);
     const filled = rows.filter((r) => r.ingredientId && r.quantity && r.unitId);
@@ -123,8 +154,10 @@ export default function RecipeModal({ open, onClose, item }) {
         <p className="py-8 text-center text-sm text-olive">Đang tải...</p>
       ) : (
         <div className="rounded-lg bg-batter p-3.5">
-          <p className="mb-3 text-xs text-olive">
+          <p className="mb-3 text-xs leading-relaxed text-olive">
             Định nghĩa lượng nguyên liệu cần dùng cho <strong>1 phần</strong> của món này.
+            Đơn vị trong ngoặc là đơn vị kho — ô đvt chỉ hiện những đơn vị quy đổi được
+            sang nó.
           </p>
 
           <div className="flex flex-col">
@@ -137,13 +170,13 @@ export default function RecipeModal({ open, onClose, item }) {
               >
                 <select
                   value={row.ingredientId}
-                  onChange={(e) => updateRow(row.key, { ingredientId: e.target.value })}
+                  onChange={(e) => changeIngredient(row.key, e.target.value)}
                   className={`${selectClass} flex-1 cursor-pointer`}
                 >
                   <option value="">Chọn nguyên liệu...</option>
                   {ingredients.map((ing) => (
                     <option key={ing.id} value={ing.id}>
-                      {ing.name}
+                      {ing.name} ({ing.unitCode})
                     </option>
                   ))}
                 </select>
@@ -161,10 +194,16 @@ export default function RecipeModal({ open, onClose, item }) {
                 <select
                   value={row.unitId}
                   onChange={(e) => updateRow(row.key, { unitId: e.target.value })}
-                  className={`${selectClass} w-[64px] cursor-pointer`}
+                  disabled={!row.ingredientId}
+                  title={
+                    row.ingredientId
+                      ? `Kho tính bằng ${stockUnitCodeOf(row.ingredientId)}, chỉ chọn được đơn vị cùng hệ đo`
+                      : 'Chọn nguyên liệu trước'
+                  }
+                  className={`${selectClass} w-[64px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}
                 >
                   <option value="">Đvt</option>
-                  {units.map((u) => (
+                  {unitsFor(row.ingredientId).map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.code}
                     </option>
