@@ -33,6 +33,24 @@ public enum ErrorCode {
     MENU_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy món"),
     MENU_ITEM_NAME_EXISTS(HttpStatus.CONFLICT, "Danh mục này đã có món trùng tên"),
 
+    // Kho
+    INGREDIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nguyên liệu"),
+    INGREDIENT_NAME_EXISTS(HttpStatus.CONFLICT, "Tên nguyên liệu đã tồn tại"),
+    INGREDIENT_INACTIVE(HttpStatus.BAD_REQUEST, "Nguyên liệu đang ngừng sử dụng"),
+    SUPPLIER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhà cung cấp"),
+    SUPPLIER_NAME_EXISTS(HttpStatus.CONFLICT, "Tên nhà cung cấp đã tồn tại"),
+    UNIT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy đơn vị tính"),
+    INGREDIENT_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhóm nguyên liệu"),
+    UNIT_NOT_CONVERTIBLE(
+            HttpStatus.BAD_REQUEST,
+            "Không quy đổi được giữa hai đơn vị này vì chúng không cùng hệ đo"),
+    STOCK_TAKE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phiếu kiểm kê"),
+    STOCK_TAKE_ALREADY_COMPLETED(
+            HttpStatus.CONFLICT, "Phiếu kiểm kê đã chốt, không sửa được nữa"),
+    STOCK_TAKE_LINE_DUPLICATED(
+            HttpStatus.CONFLICT, "Nguyên liệu này đã có trong phiếu kiểm kê"),
+    STOCK_TAKE_EMPTY(HttpStatus.BAD_REQUEST, "Phiếu kiểm kê chưa có dòng nào để chốt"),
+
     // Chung
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không hợp lệ"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy dữ liệu"),

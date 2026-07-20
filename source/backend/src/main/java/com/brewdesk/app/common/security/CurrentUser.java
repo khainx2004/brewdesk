@@ -27,4 +27,14 @@ public final class CurrentUser {
     public static Optional<UUID> findId() {
         return find().map(UserPrincipal::getId);
     }
+
+    /** Dùng cho các quy tắc chỉ ADMIN, ví dụ xem và sửa giá vốn nguyên liệu. */
+    public static boolean isAdmin() {
+        return find()
+                .map(
+                        principal ->
+                                principal.getAuthorities().stream()
+                                        .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())))
+                .orElse(false);
+    }
 }
