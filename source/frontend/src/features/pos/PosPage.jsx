@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Coffee, CupSoda, LogOut, Search, Snowflake, Cookie } from 'lucide-react';
+import { ArrowLeft, Coffee, CupSoda, LogOut, Search, Snowflake, Cookie } from 'lucide-react';
 import { categoryApi, menuItemApi, variantApi } from '../../services/menuApi';
 import { orderApi } from '../../services/posApi';
 import { errorMessage } from '../../services/api';
@@ -138,12 +138,21 @@ export default function PosPage() {
   return (
     <div className="flex h-screen flex-col bg-batter">
       <header className="relative z-10 flex h-[60px] shrink-0 items-center justify-between bg-gradient-to-r from-ink-deep via-[#2E1E12] to-cocoa-lt px-7 shadow-[0_1px_0_rgba(157,145,103,0.2),0_4px_20px_rgba(28,21,16,0.45)]">
-        <NavLink to="/" className="flex items-baseline gap-3" title="Về trang chủ">
-          <span className="font-display text-xl lowercase tracking-wide text-batter-lt">
-            nhahaisaus
-          </span>
-          <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-olive">POS</span>
-        </NavLink>
+        {/* POS bỏ sidebar để lưới món rộng hết cỡ, nên đường quay ra phải hiện
+            thành nút thật. Chỉ dựa vào việc bấm được lên tên quán thì nhân viên
+            không đoán ra. */}
+        <div className="flex items-center gap-4">
+          <ExitButton hasCart={lines.length > 0} itemCount={lines.length} />
+          <span className="h-5 w-px bg-olive/25" />
+          <div className="flex items-baseline gap-3">
+            <span className="font-display text-xl lowercase tracking-wide text-batter-lt">
+              nhahaisaus
+            </span>
+            <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-olive">
+              POS
+            </span>
+          </div>
+        </div>
 
         <div className="flex items-center gap-4">
           <span
@@ -291,6 +300,66 @@ function ProductCard({ item, onPick }) {
         </span>
       )}
     </button>
+  );
+}
+
+/**
+ * Thoát POS. Giỏ hàng không lưu xuống storage nên rời màn là mất đơn đang gõ —
+ * hỏi lại một nhịp khi giỏ còn món, thay vì để nhân viên bấm nhầm rồi gõ lại từ
+ * đầu trước mặt khách.
+ */
+function ExitButton({ hasCart, itemCount }) {
+  const [confirming, setConfirming] = useState(false);
+  const navigate = useNavigate();
+
+  const base =
+    'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition';
+
+  if (!hasCart) {
+    return (
+      <NavLink
+        to="/"
+        className={`${base} border-olive/30 text-olive-mute hover:border-olive hover:bg-white/5 hover:text-batter-lt`}
+      >
+        <ArrowLeft size={14} strokeWidth={2} />
+        Thoát POS
+      </NavLink>
+    );
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className={`${base} border-olive/30 text-olive-mute hover:border-olive hover:bg-white/5 hover:text-batter-lt`}
+      >
+        <ArrowLeft size={14} strokeWidth={2} />
+        Thoát POS
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-medium text-batter-warm">
+        Thoát sẽ mất đơn đang gõ ({itemCount} món)?
+      </span>
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        className={`${base} border-wine/50 bg-wine/25 text-batter-warm hover:bg-wine/40`}
+      >
+        Thoát
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirming(false)}
+        className={`${base} border-olive/30 text-olive-mute hover:border-olive hover:text-batter-lt`}
+      >
+        Ở lại
+      </button>
+    </div>
   );
 }
 
