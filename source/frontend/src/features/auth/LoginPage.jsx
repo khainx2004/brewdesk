@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { errorMessage } from '../../services/api';
 import LoginShell from './LoginShell';
@@ -8,7 +8,6 @@ import LoginShell from './LoginShell';
 export default function LoginPage() {
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
-  const location = useLocation();
   const [serverError, setServerError] = useState(null);
 
   const {
@@ -25,9 +24,10 @@ export default function LoginPage() {
         navigate('/doi-mat-khau', { replace: true });
         return;
       }
-      // Quay lại đúng trang người dùng định vào trước khi bị chặn
-      const target = location.state?.from ?? '/';
-      navigate(target, { replace: true });
+      // Luôn về màn hình chính, không quay lại trang đang mở trước khi đăng
+      // xuất. Ca sau thường là người khác: mở thẳng vào POS của ca trước dễ
+      // khiến họ tưởng vẫn đang là phiên cũ.
+      navigate('/', { replace: true });
     } catch (error) {
       setServerError(errorMessage(error));
     }

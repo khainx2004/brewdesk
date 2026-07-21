@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { registerAuthHandlers } from './services/api';
 import LoginPage from './features/auth/LoginPage';
@@ -10,16 +10,19 @@ import PosPage from './features/pos/PosPage';
 
 /**
  * Chặn hai lớp:
- * - chưa đăng nhập thì về màn đăng nhập, nhớ trang định vào để quay lại sau
+ * - chưa đăng nhập thì về màn đăng nhập
  * - đã đăng nhập nhưng còn cờ bắt đổi mật khẩu thì ép ở lại màn đổi mật khẩu
+ *
+ * Cố ý **không** nhớ trang đang mở để quay lại sau khi đăng nhập. Đăng nhập
+ * xong luôn về màn hình chính — ca sau thường là người khác, mở thẳng vào POS
+ * của ca trước dễ khiến họ tưởng vẫn đang là phiên cũ.
  */
 function RequireAuth({ children }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
-  const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/dang-nhap" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/dang-nhap" replace />;
   }
   if (user?.mustChangePassword) {
     return <Navigate to="/doi-mat-khau" replace />;

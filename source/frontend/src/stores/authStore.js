@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api, tokenStorage, unwrap } from '../services/api';
+import { useCartStore } from './cartStore';
 
 const USER_KEY = 'brewdesk_user';
 
@@ -64,6 +65,10 @@ export const useAuthStore = create((set, get) => ({
   logout() {
     tokenStorage.clear();
     clearCachedUser();
+    // Giỏ hàng nằm trong bộ nhớ và đăng xuất không tải lại trang, nên không dọn
+    // ở đây thì ca sau đăng nhập vào POS sẽ thấy nguyên đơn dở của ca trước —
+    // rồi bấm Thanh toán và ghi đơn đó vào ca của mình.
+    useCartStore.getState().clear();
     set({ user: null, isAuthenticated: false });
   },
 }));
