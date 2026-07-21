@@ -107,3 +107,20 @@ export function visibleSections(isAdmin) {
     items: section.items.filter((item) => !item.adminOnly || isAdmin),
   })).filter((section) => section.items.length > 0);
 }
+
+const ALL_ITEMS = NAV_SECTIONS.flatMap((section) => section.items);
+
+/**
+ * Đường dẫn này có phải màn hình chỉ dành cho ADMIN không.
+ *
+ * Tra ngược từ chính `NAV_SECTIONS` chứ không gắn cờ ở từng `<Route>`: ẩn mục
+ * trên thanh bên **không phải** là chặn — gõ thẳng URL vẫn vào được. Đọc chung
+ * một nguồn thì thêm màn hình `adminOnly` mới là được chặn sẵn, không phải nhớ
+ * sửa hai chỗ.
+ */
+export function isAdminOnlyPath(pathname) {
+  return ALL_ITEMS.some(
+    (item) =>
+      item.adminOnly && (pathname === item.to || pathname.startsWith(`${item.to}/`)),
+  );
+}

@@ -1,31 +1,42 @@
 import { useEffect } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { registerAuthHandlers } from './services/api';
+import { isAdminOnlyPath } from './components/layout/navigation';
 import LoginPage from './features/auth/LoginPage';
 import ChangePasswordPage from './features/auth/ChangePasswordPage';
+import ForbiddenPage from './features/ForbiddenPage';
 import HomePage from './features/HomePage';
 import MenuPage from './features/menu/MenuPage';
 import PosPage from './features/pos/PosPage';
 
 /**
- * Chặn hai lớp:
+ * Chặn ba lớp:
  * - chưa đăng nhập thì về màn đăng nhập
  * - đã đăng nhập nhưng còn cờ bắt đổi mật khẩu thì ép ở lại màn đổi mật khẩu
+ * - nhân viên mở màn hình chỉ dành cho quản lý thì báo không có quyền
  *
- * Cố ý **không** nhớ trang đang mở để quay lại sau khi đăng nhập. Đăng nhập
- * xong luôn về màn hình chính — ca sau thường là người khác, mở thẳng vào POS
- * của ca trước dễ khiến họ tưởng vẫn đang là phiên cũ.
+ * Lớp thứ ba **không thay thế** việc backend chặn — backend vẫn là chốt thật,
+ * đây chỉ để nhân viên gõ nhầm URL thì thấy câu giải thích thay vì một trang
+ * hỏng đầy lỗi 403.
+ *
+ * `useLocation` ở đây chỉ để biết đang mở màn hình nào. Cố ý **không** nhớ trang
+ * đang mở để quay lại sau khi đăng nhập: ca sau thường là người khác, mở thẳng
+ * vào POS của ca trước dễ khiến họ tưởng vẫn đang là phiên cũ.
  */
 function RequireAuth({ children }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
+  const { pathname } = useLocation();
 
   if (!isAuthenticated) {
     return <Navigate to="/dang-nhap" replace />;
   }
   if (user?.mustChangePassword) {
     return <Navigate to="/doi-mat-khau" replace />;
+  }
+  if (isAdminOnlyPath(pathname) && user?.role !== 'ADMIN') {
+    return <ForbiddenPage />;
   }
   return children;
 }
