@@ -54,6 +54,19 @@ public enum ErrorCode {
             HttpStatus.CONFLICT, "Nguyên liệu này đã có trong phiếu kiểm kê"),
     STOCK_TAKE_EMPTY(HttpStatus.BAD_REQUEST, "Phiếu kiểm kê chưa có dòng nào để chốt"),
 
+    // POS
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng"),
+    ORDER_EMPTY(HttpStatus.BAD_REQUEST, "Đơn hàng chưa có món nào"),
+    ORDER_ALREADY_CANCELLED(HttpStatus.CONFLICT, "Đơn hàng đã bị huỷ trước đó"),
+    MENU_ITEM_INACTIVE(HttpStatus.BAD_REQUEST, "Món đang ngừng bán"),
+    MENU_ITEM_NO_RECIPE(
+            HttpStatus.BAD_REQUEST,
+            "Món chưa có công thức nguyên liệu nên không bán được, cần khai công thức trước"),
+    STOCK_NOT_ENOUGH(HttpStatus.CONFLICT, "Không đủ nguyên liệu trong kho"),
+    DISCOUNT_EXCEEDS_SUBTOTAL(HttpStatus.BAD_REQUEST, "Giảm giá không được vượt quá tiền hàng"),
+    VARIANT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy mức ngọt hoặc mức đá"),
+    VARIANT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Chọn nhầm loại mức ngọt / mức đá"),
+
     // Chung
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không hợp lệ"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy dữ liệu"),

@@ -1,6 +1,8 @@
 package com.brewdesk.app.inventory;
 
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -46,6 +48,24 @@ public interface IngredientRepository extends JpaRepository<Ingredient, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from Ingredient i where i.id = :id")
     Optional<Ingredient> findByIdForUpdate(@Param("id") UUID id);
+
+    /**
+     * Khoá nhiều nguyên liệu cùng lúc cho một đơn hàng — một query thay vì lặp
+     * findByIdForUpdate từng cái.
+     *
+     * <p>{@code order by i.id} không phải để hiển thị mà để <b>tránh deadlock</b>:
+     * hai đơn bán song song cùng đụng nguyên liệu A và B mà khoá theo thứ tự
+     * ngược nhau thì chúng khoá chéo và cùng treo. Khoá theo cùng một thứ tự thì
+     * đơn tới sau chỉ việc chờ.
+     *
+     * <p>Cố ý <b>không</b> join fetch unit và yieldUnit ở đây: PostgreSQL từ chối
+     * FOR UPDATE khi câu lệnh có outer join ("cannot be applied to the nullable
+     * side of an outer join"), mà yieldUnit thì nullable. Hai bảng đơn vị nhỏ và
+     * đã seed cố định nên để lazy load là đủ.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from Ingredient i where i.id in :ids order by i.id")
+    List<Ingredient> findAllByIdInForUpdate(@Param("ids") Collection<UUID> ids);
 
     boolean existsByNameIgnoreCase(String name);
 
