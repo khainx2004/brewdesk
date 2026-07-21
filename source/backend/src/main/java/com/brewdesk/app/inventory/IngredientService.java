@@ -102,7 +102,7 @@ public class IngredientService {
         }
 
         ingredient.setCategory(findCategory(request.categoryId()));
-        ingredient.setUnit(findUnit(request.unitId()));
+        applyUnitChange(ingredient, findUnit(request.unitId()));
         ingredient.setName(request.name());
         ingredient.setLowStockThreshold(qty(request.lowStockThreshold()));
         ingredient.setCostPrice(money(adminOnlyCost(request.costPrice(), ingredient.getCostPrice())));
@@ -121,6 +121,42 @@ public class IngredientService {
         }
         ingredient.setActive(active);
         return IngredientResponse.from(ingredientRepository.save(ingredient), CurrentUser.isAdmin());
+    }
+
+    /**
+     * Đổi đơn vị lưu kho thì phải quy đổi luôn tồn hiện có.
+     *
+     * <p>Không quy đổi là hỏng dữ liệu âm thầm: đổi kg sang g mà giữ nguyên con
+     * số thì 0.8 kg trở thành 0.8 g, bay mất 99.9% tồn mà không báo gì. Đây
+     * <b>không</b> phải thay đổi tồn kho theo nghĩa nghiệp vụ (nên không cần
+     * chứng từ như quy tắc ở Phase 4): lượng vật lý y nguyên, chỉ đổi cách ghi.
+     *
+     * <p>Đổi sang đơn vị khác hệ đo (kg sang chai) thì không có tỉ lệ nào đúng
+     * cả, nên chỉ cho phép khi tồn đang bằng 0.
+     */
+    private void applyUnitChange(Ingredient ingredient, Unit newUnit) {
+        Unit oldUnit = ingredient.getUnit();
+        if (oldUnit != null && oldUnit.getId().equals(newUnit.getId())) {
+            return;
+        }
+
+        BigDecimal stock = ingredient.getStockQty();
+        if (oldUnit != null && stock != null && stock.signum() != 0) {
+            if (!unitConverter.isConvertible(oldUnit, newUnit)) {
+                throw new AppException(
+                        ErrorCode.UNIT_NOT_CONVERTIBLE,
+                        ("Không đổi được đơn vị lưu kho từ %s sang %s khi còn tồn %s %s, vì hai đơn"
+                                + " vị khác hệ đo nên không có tỉ lệ quy đổi. Hãy kiểm kê đưa tồn"
+                                + " về 0 trước.")
+                                .formatted(
+                                        oldUnit.getCode(),
+                                        newUnit.getCode(),
+                                        stock.stripTrailingZeros().toPlainString(),
+                                        oldUnit.getCode()));
+            }
+            ingredient.setStockQty(qty(unitConverter.convert(stock, oldUnit, newUnit)));
+        }
+        ingredient.setUnit(newUnit);
     }
 
     /**

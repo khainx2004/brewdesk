@@ -20,7 +20,7 @@ const NAV_SECTIONS = [
   {
     title: 'Vận hành',
     items: [
-      { to: '/pos', label: 'POS Bán hàng', icon: Monitor, ready: false },
+      { to: '/pos', label: 'POS Bán hàng', icon: Monitor, ready: true },
       { to: '/checklist', label: 'Checklist', icon: ClipboardCheck, ready: false },
       { to: '/qc', label: 'Test cafe', icon: Coffee, ready: false },
       { to: '/ban-giao-ca', label: 'Bàn giao ca', icon: FileText, ready: false },

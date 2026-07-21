@@ -6,6 +6,7 @@ import LoginPage from './features/auth/LoginPage';
 import ChangePasswordPage from './features/auth/ChangePasswordPage';
 import HomePage from './features/HomePage';
 import MenuPage from './features/menu/MenuPage';
+import PosPage from './features/pos/PosPage';
 
 /**
  * Chặn hai lớp:
@@ -55,6 +56,16 @@ export default function App() {
         element={
           <RequireAuth>
             <HomePage />
+          </RequireAuth>
+        }
+      />
+      {/* POS không nằm trong AppShell: mockup đã duyệt cho nó topbar riêng và
+          bỏ sidebar để lưới món rộng hết cỡ. Logo trên topbar là đường quay về. */}
+      <Route
+        path="/pos"
+        element={
+          <RequireAuth>
+            <PosPage />
           </RequireAuth>
         }
       />
