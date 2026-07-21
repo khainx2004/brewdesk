@@ -1,11 +1,16 @@
 package com.brewdesk.app.staff;
 
+import com.brewdesk.app.common.exception.AppException;
+import com.brewdesk.app.common.exception.ErrorCode;
 import com.brewdesk.app.staff.dto.CurrentShiftResponse;
 import com.brewdesk.app.staff.dto.ShiftTypeResponse;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +37,34 @@ public class ShiftService {
 
     public LocalTime now() {
         return LocalTime.now(ZONE);
+    }
+
+    /** Ngày làm việc theo giờ quán, không theo giờ máy chủ. */
+    public LocalDate today() {
+        return LocalDate.now(ZONE);
+    }
+
+    /** Mốc đầu ngày làm việc, dùng để lọc đơn theo ngày trong bàn giao ca. */
+    public OffsetDateTime startOfDay(LocalDate date) {
+        return date.atStartOfDay(ZONE).toOffsetDateTime();
+    }
+
+    /**
+     * Ca cho một nghiệp vụ bắt buộc phải có ca (test cafe, bàn giao ca).
+     *
+     * <p>Client được phép chỉ định ca — ví dụ nhập bù phiếu bàn giao ca sáng vào
+     * buổi chiều. Không chỉ định thì lấy ca hiện tại theo giờ server; ngoài giờ
+     * hoạt động thì báo lỗi thay vì đoán bừa, vì gán nhầm ca làm lệch cả tiền
+     * bàn giao lẫn thống kê chất lượng.
+     */
+    @Transactional(readOnly = true)
+    public ShiftType requireShift(UUID shiftTypeId) {
+        if (shiftTypeId != null) {
+            return shiftTypeRepository
+                    .findById(shiftTypeId)
+                    .orElseThrow(() -> new AppException(ErrorCode.SHIFT_TYPE_NOT_FOUND));
+        }
+        return currentShift().orElseThrow(() -> new AppException(ErrorCode.SHIFT_REQUIRED));
     }
 
     /**

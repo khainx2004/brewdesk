@@ -1,5 +1,6 @@
 package com.brewdesk.app.pos;
 
+import com.brewdesk.app.pos.dto.CashSummary;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,4 +57,26 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             @Param("includeCancelled") boolean includeCancelled,
             @Param("code") String code,
             Pageable pageable);
+
+    /**
+     * Tổng tiền và số đơn theo một hình thức thanh toán, trong một ca của một
+     * ngày. Bàn giao ca dùng số này làm dòng POS — số máy ghi nhận được, để đối
+     * chiếu với tiền thực đếm trong két.
+     *
+     * <p>Đơn đã huỷ không tính.
+     */
+    @Query("""
+        select new com.brewdesk.app.pos.dto.CashSummary(sum(o.total), count(o))
+        from Order o
+        where o.cancelled = false
+          and o.paymentMethod = :method
+          and o.shiftType.id = :shiftTypeId
+          and o.createdAt >= :from
+          and o.createdAt < :to
+        """)
+    CashSummary sumByShift(
+            @Param("method") PaymentMethod method,
+            @Param("shiftTypeId") UUID shiftTypeId,
+            @Param("from") OffsetDateTime from,
+            @Param("to") OffsetDateTime to);
 }

@@ -67,6 +67,28 @@ public enum ErrorCode {
     VARIANT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy mức ngọt hoặc mức đá"),
     VARIANT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Chọn nhầm loại mức ngọt / mức đá"),
 
+    // Checklist
+    CHECKLIST_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy đầu việc"),
+    CHECKLIST_TEMPLATE_INACTIVE(HttpStatus.BAD_REQUEST, "Đầu việc đang ngừng áp dụng"),
+    CHECKLIST_TITLE_EXISTS(HttpStatus.CONFLICT, "Đã có đầu việc trùng tên"),
+    CHECKLIST_ALREADY_DONE(HttpStatus.CONFLICT, "Đầu việc này đã được tick rồi"),
+    CHECKLIST_COMPLETION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy lượt tick"),
+
+    // QC test cafe
+    QC_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phiên test cafe"),
+    QC_TESTS_EMPTY(HttpStatus.BAD_REQUEST, "Phiên test chưa có lần test nào"),
+    STOCK_IMPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phiếu nhập kho"),
+
+    // Ca làm việc
+    SHIFT_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy ca làm việc"),
+    SHIFT_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "Đang ngoài giờ hoạt động nên không tự xác định được ca, cần chọn ca"),
+
+    // Bàn giao ca
+    RECONCILIATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phiếu bàn giao ca"),
+    RECONCILIATION_EXISTS(HttpStatus.CONFLICT, "Ca này trong ngày đã có phiếu bàn giao"),
+
     // Chung
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không hợp lệ"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy dữ liệu"),

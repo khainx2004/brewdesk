@@ -89,6 +89,7 @@ source/backend/src/main/java/com/brewdesk/app/
 ├── staff/              # User, Shift (chấm công KHÔNG dùng vì quán không cần)
 ├── pos/                # Order, OrderItem, Payment
 ├── checklist/          # ChecklistTemplate, ChecklistCompletion, QcTest
+├── reconciliation/     # Bàn giao ca — đối soát tiền mặt cuối ca
 ├── reporting/          # Báo cáo doanh thu, tồn kho, hao hụt
 └── BrewDeskApplication.java
 
@@ -228,6 +229,8 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 - `price >= 0`, `quantity > 0`, `stock_qty >= 0` — CHECK constraint ở DB
 - `discount_value` không vượt `subtotal` — validate ở Service layer (KHÔNG dùng DB CHECK vì logic % vs FIXED khác nhau)
 - Chênh lệch bàn giao ca tính ở app: `TT - POS - CHI` — KHÔNG lưu cột riêng
+- Dòng `POS` do hệ thống cộng từ **đơn tiền mặt** của ca, KHÔNG nhận từ client —
+  cho nhập tay thì người đếm thiếu chỉ cần sửa dòng POS cho khớp là hết chênh lệch
 
 ---
 
