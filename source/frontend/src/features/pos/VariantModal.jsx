@@ -14,8 +14,11 @@ export default function VariantModal({ open, item, variants, onClose, onAdd }) {
   const [iceId, setIceId] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
-  const sweetLevels = variants?.SWEETNESS_LEVEL ?? [];
-  const iceLevels = variants?.ICE_LEVEL ?? [];
+  // Bánh và đồ đóng chai không có mức ngọt / mức đá. Modal vẫn mở để chọn số
+  // lượng, chỉ bỏ hai hàng nút đi — thao tác đồng nhất với mọi món khác.
+  const hasOptions = item?.hasOptions ?? true;
+  const sweetLevels = hasOptions ? (variants?.SWEETNESS_LEVEL ?? []) : [];
+  const iceLevels = hasOptions ? (variants?.ICE_LEVEL ?? []) : [];
 
   // Mở modal thì đặt lại mặc định: 100% ngọt, 100% đá — mức khách gọi nhiều nhất.
   useEffect(() => {

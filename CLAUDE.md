@@ -180,12 +180,17 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 
 **Danh mục dùng chung:**
 - `units` — kg, g, l, ml, chai, lon, gói... có quy đổi base_unit
-- `ingredient_categories` — COFFEE, POWDER, TEA, SWEET, MILK&#35;, SYRUP, homemade, TOPPING, CLEANING, POUR
+- `ingredient_categories` — COFFEE, POWDER, TEA, SWEET, MILK&#35;, SYRUP, homemade, TOPPING, CLEANING, POUR, BAKERY (thêm ở V6)
 - `categories` — danh mục món menu
 
 **Menu:**
-- `menu_items` — tên, giá, is_active
+- `menu_items` — tên, giá, is_active, và `has_options` (thêm ở V6)
 - `variants` — SWEETNESS_LEVEL (0%/50%/100%), ICE_LEVEL (0%/50%/100%) — CHỈ 3 mức, KHÔNG thêm mức khác
+> **Không phải món nào cũng có mức ngọt / mức đá.** Cột `menu_items.has_options`
+> (mặc định TRUE) tắt cho bánh và đồ đóng chai — "bánh chuối ngọt 50%, đá 100%"
+> là vô nghĩa. Cờ đặt ở từng món chứ không ở danh mục, vì ngoại lệ có thể nằm
+> ngay trong nhóm đồ uống (cold brew đóng chai). Backend từ chối đơn gửi kèm mức
+> ngọt cho món `has_options = false`.
 > **Không có combo/set.** Quán không bán combo. Bảng `combo_items` và cột
 > `menu_items.is_combo` đã bị xoá ở `V3__drop_combo.sql`. Đừng dựng lại tính
 > năng này trừ khi chủ quán yêu cầu.
@@ -241,6 +246,23 @@ Ca được tính ở **server** (KHÔNG tin giờ client gửi lên) để trá
 Chỉ có đúng 3 mức: `0%`, `50%`, `100%`  
 Tên hiển thị: `0%` = "Không ngọt" / "Không đá"  
 Tên field trong DB: `SWEETNESS_LEVEL`, `ICE_LEVEL`
+
+### Hàng mua sẵn bán lại (bánh: cookies, brownies, bánh chuối)
+
+Quán nhập bánh thành phẩm chứ không tự làm, nên không có công thức pha chế theo
+nghĩa thông thường.
+
+Cách xử lý đã chốt: **vẫn khai bánh như một nguyên liệu** (nhóm BAKERY, đơn vị
+`cái`), rồi món bánh có công thức đúng một dòng 1:1 — 1 cái bánh cho 1 phần bán.
+Nhờ vậy bán ra vẫn trừ kho, vẫn cảnh báo sắp hết, vẫn kiểm kê và tính được giá
+vốn từng cái.
+
+**KHÔNG cho phép món không có công thức được bán.** Nghe có vẻ tiện hơn nhưng
+khi đó bánh bán ra không để lại dấu vết nào trong kho, kiểm kê tuần không đối
+chiếu được, và nó chọc thủng ràng buộc "mọi món bán ra đều trừ kho" mà toàn bộ
+luồng POS dựa vào.
+
+Nhớ tắt `has_options` cho món bánh.
 
 ### Bán thành phẩm (trà ủ, cold brew, siro tự nấu)
 

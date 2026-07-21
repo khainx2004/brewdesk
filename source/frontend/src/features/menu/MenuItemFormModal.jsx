@@ -22,6 +22,7 @@ export default function MenuItemFormModal({
   const editing = Boolean(item);
   const [serverError, setServerError] = useState(null);
   const [active, setActive] = useState(true);
+  const [hasOptions, setHasOptions] = useState(true);
 
   const {
     register,
@@ -34,6 +35,7 @@ export default function MenuItemFormModal({
     if (!open) return;
     setServerError(null);
     setActive(item ? item.active : true);
+    setHasOptions(item ? item.hasOptions : true);
     reset(
       item
         ? {
@@ -56,6 +58,7 @@ export default function MenuItemFormModal({
         description: values.description?.trim() || null,
         price: Number(values.price),
         displayOrder: Number(values.displayOrder) || 0,
+        hasOptions,
       });
 
       // Cờ hiển thị dùng endpoint riêng, chỉ gọi khi người dùng thực sự đổi
@@ -182,19 +185,22 @@ export default function MenuItemFormModal({
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <FieldLabel>Biến thể</FieldLabel>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1.5 rounded-full border border-rogue/18 bg-rogue/8 px-2.5 py-1.5 text-xs font-medium text-rogue">
-              <Sparkles size={11} strokeWidth={2} />
-              Mức ngọt
-            </span>
-            <span className="flex items-center gap-1.5 rounded-full border border-rogue/18 bg-rogue/8 px-2.5 py-1.5 text-xs font-medium text-rogue">
-              <Sparkles size={11} strokeWidth={2} />
-              Mức đá
-            </span>
-            <span className="text-[11px] text-olive">áp dụng cho mọi món, 3 mức 0/50/100%</span>
+        {/* Bánh và đồ đóng chai không chọn mức ngọt / mức đá được. Cờ đặt ở
+            từng món chứ không ở danh mục, vì ngoại lệ có thể nằm ngay trong
+            nhóm đồ uống — cold brew đóng chai chẳng hạn. */}
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <div className="flex items-center gap-1.5 text-[13.5px] font-medium">
+              <Sparkles size={12} strokeWidth={2} className="text-rogue" />
+              Cho chọn mức ngọt / mức đá
+            </div>
+            <div className="mt-px text-[11.5px] text-olive">
+              {hasOptions
+                ? 'Khi bán sẽ hỏi 3 mức 0% / 50% / 100% cho mỗi loại'
+                : 'Tắt cho bánh và đồ đóng chai — khi bán chỉ hỏi số lượng'}
+            </div>
           </div>
+          <Toggle checked={hasOptions} onChange={setHasOptions} disabled={isSubmitting} />
         </div>
 
         {editing && (

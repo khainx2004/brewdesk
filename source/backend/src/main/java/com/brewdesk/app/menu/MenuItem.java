@@ -53,6 +53,13 @@ public class MenuItem {
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
+    /**
+     * Món có cho chọn mức ngọt / mức đá hay không. FALSE cho bánh và đồ đóng
+     * chai — "bánh chuối ngọt 50%, đá 100%" là vô nghĩa.
+     */
+    @Column(name = "has_options", nullable = false)
+    private boolean hasOptions;
+
     @Column(name = "display_order", nullable = false)
     private int displayOrder;
 

@@ -45,10 +45,13 @@ export default function MenuCard({ item, canEdit, onEdit, onToggle, onRecipe, to
 
         <div className="mt-1.5 flex items-center justify-between">
           <span className="text-sm font-bold text-caramel">{formatVnd(item.price)}</span>
-          <span className="flex items-center gap-1 text-[11px] text-olive">
-            <Sparkles size={11} strokeWidth={2} />
-            Ngọt · Đá
-          </span>
+          {/* Món không có tuỳ chọn (bánh, đồ đóng chai) thì không hiện chip này. */}
+          {item.hasOptions && (
+            <span className="flex items-center gap-1 text-[11px] text-olive">
+              <Sparkles size={11} strokeWidth={2} />
+              Ngọt · Đá
+            </span>
+          )}
         </div>
 
         {hasRecipe ? (

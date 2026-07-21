@@ -65,6 +65,7 @@ public class MenuItemService {
                         .price(request.price())
                         .active(true)
                         .displayOrder(request.displayOrder())
+                        .hasOptions(request.hasOptionsOrDefault())
                         .build();
         // Món mới chưa thể có công thức
         return MenuItemResponse.from(menuItemRepository.save(item), 0L);
@@ -85,6 +86,7 @@ public class MenuItemService {
         item.setName(request.name());
         item.setDescription(request.description());
         item.setPrice(request.price());
+        item.setHasOptions(request.hasOptionsOrDefault());
         item.setDisplayOrder(request.displayOrder());
         return withCount(menuItemRepository.save(item));
     }

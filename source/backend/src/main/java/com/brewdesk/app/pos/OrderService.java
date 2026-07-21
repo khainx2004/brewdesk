@@ -100,6 +100,7 @@ public class OrderService {
 
         Map<UUID, MenuItem> menuItems = loadSellableMenuItems(lines);
         Map<UUID, Variant> variants = loadVariants(lines);
+        rejectOptionsOnPlainItems(lines, menuItems);
 
         // Số phần cần pha cho mỗi món. Cùng một món có thể nằm ở nhiều dòng (khác
         // mức ngọt/đá) nên phải gộp lại trước khi tính kho.
@@ -186,6 +187,28 @@ public class OrderService {
             requireVariantType(found, line.iceVariantId(), VariantType.ICE_LEVEL);
         }
         return found;
+    }
+
+    /**
+     * Món không có tuỳ chọn (bánh, đồ đóng chai) thì không được kèm mức ngọt hay
+     * mức đá.
+     *
+     * <p>Bỏ qua im lặng thì hoá đơn in ra "Bánh chuối · Ngọt 50%" và không ai
+     * hiểu vì sao. Chặn hẳn để lỗi lộ ngay ở nơi gây ra nó.
+     */
+    private void rejectOptionsOnPlainItems(
+            List<OrderLineRequest> lines, Map<UUID, MenuItem> menuItems) {
+        for (OrderLineRequest line : lines) {
+            if (line.sweetnessVariantId() == null && line.iceVariantId() == null) {
+                continue;
+            }
+            MenuItem item = menuItems.get(line.menuItemId());
+            if (!item.isHasOptions()) {
+                throw new AppException(
+                        ErrorCode.VALIDATION_ERROR,
+                        "Món \"%s\" không có mức ngọt / mức đá".formatted(item.getName()));
+            }
+        }
     }
 
     private void requireVariantType(Map<UUID, Variant> variants, UUID id, VariantType expected) {

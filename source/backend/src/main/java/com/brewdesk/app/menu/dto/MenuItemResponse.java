@@ -13,6 +13,8 @@ public record MenuItemResponse(
         BigDecimal price,
         boolean active,
         int displayOrder,
+        /** Có cho chọn mức ngọt / mức đá không. POS ẩn hai hàng nút đó khi false. */
+        boolean hasOptions,
         /** Số dòng công thức — 0 nghĩa là chưa gắn công thức, POS sẽ không trừ kho được. */
         long recipeCount) {
 
@@ -26,6 +28,7 @@ public record MenuItemResponse(
                 item.getPrice(),
                 item.isActive(),
                 item.getDisplayOrder(),
+                item.isHasOptions(),
                 recipeCount);
     }
 }

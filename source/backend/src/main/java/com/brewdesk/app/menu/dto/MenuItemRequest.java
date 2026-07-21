@@ -21,4 +21,14 @@ public record MenuItemRequest(
                         fraction = 0,
                         message = "Giá phải là số nguyên VNĐ, không có phần thập phân")
                 BigDecimal price,
-        @PositiveOrZero(message = "Thứ tự hiển thị không được âm") int displayOrder) {}
+        @PositiveOrZero(message = "Thứ tự hiển thị không được âm") int displayOrder,
+        /**
+         * Cho chọn mức ngọt / mức đá hay không. Bỏ trống hiểu là có — phần lớn
+         * món là đồ uống pha chế, và để client cũ không phải sửa.
+         */
+        Boolean hasOptions) {
+
+    public boolean hasOptionsOrDefault() {
+        return hasOptions == null || hasOptions;
+    }
+}
