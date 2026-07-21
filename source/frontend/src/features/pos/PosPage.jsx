@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Coffee, CupSoda, LogOut, Search, Snowflake, Cookie } from 'lucide-react';
+import { Coffee, CupSoda, Search, Snowflake, Cookie } from 'lucide-react';
 import { categoryApi, menuItemApi, variantApi } from '../../services/menuApi';
 import { orderApi } from '../../services/posApi';
+import AppShell from '../../components/layout/AppShell';
 import { errorMessage } from '../../services/api';
-import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useShift } from '../../hooks/useShift';
 import { formatVnd } from '../../utils/fmt';
@@ -21,14 +20,7 @@ function iconFor(categoryName = '') {
   return Coffee;
 }
 
-function initials(fullName) {
-  if (!fullName) return '?';
-  return fullName.trim().split(/\s+/).slice(-2).map((w) => w[0]).join('').toUpperCase();
-}
-
 export default function PosPage() {
-  const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
   const { label: shiftLabel, shift, isOpen, clock } = useShift();
 
   const [activeCategory, setActiveCategory] = useState(null);
@@ -135,54 +127,26 @@ export default function PosPage() {
 
   const loading = menuQuery.isLoading || categoriesQuery.isLoading;
 
+  // Badge ca và đồng hồ chèn vào topbar chung, không dựng topbar riêng nữa —
+  // thanh bên gập được đã lo phần không gian cho lưới món.
+  const topbarExtra = (
+    <>
+      <span
+        className={`rounded-full border px-3.5 py-1 text-xs font-semibold tracking-wide transition ${
+          isOpen
+            ? 'border-olive/30 bg-olive/15 text-olive-mute'
+            : 'border-wine/40 bg-wine/25 text-batter-warm'
+        }`}
+      >
+        {shift ? `${shift.name} · ${shift.code}` : shiftLabel || '...'}
+      </span>
+      <span className="text-[12.5px] tabular-nums tracking-wider text-olive/70">{clock}</span>
+    </>
+  );
+
   return (
-    <div className="flex h-screen flex-col bg-batter">
-      <header className="relative z-10 flex h-[60px] shrink-0 items-center justify-between bg-gradient-to-r from-ink-deep via-[#2E1E12] to-cocoa-lt px-7 shadow-[0_1px_0_rgba(157,145,103,0.2),0_4px_20px_rgba(28,21,16,0.45)]">
-        {/* POS bỏ sidebar để lưới món rộng hết cỡ, nên đường quay ra phải hiện
-            thành nút thật. Chỉ dựa vào việc bấm được lên tên quán thì nhân viên
-            không đoán ra. */}
-        <div className="flex items-center gap-4">
-          <ExitButton hasCart={lines.length > 0} itemCount={lines.length} />
-          <span className="h-5 w-px bg-olive/25" />
-          <div className="flex items-baseline gap-3">
-            <span className="font-display text-xl lowercase tracking-wide text-batter-lt">
-              nhahaisaus
-            </span>
-            <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-olive">
-              POS
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span
-            className={`rounded-full border px-3.5 py-1 text-xs font-semibold tracking-wide transition ${
-              isOpen
-                ? 'border-olive/30 bg-olive/15 text-olive-mute'
-                : 'border-wine/40 bg-wine/25 text-batter-warm'
-            }`}
-          >
-            {shift ? `${shift.name} · ${shift.code}` : shiftLabel || '...'}
-          </span>
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-caramel to-[#9A6B38] text-[11px] font-bold text-cream">
-              {initials(user?.fullName)}
-            </span>
-            <span className="text-[13px] font-medium text-olive-mute">{user?.fullName}</span>
-          </div>
-          <span className="text-[12.5px] tabular-nums tracking-wider text-olive/70">{clock}</span>
-          <button
-            onClick={logout}
-            aria-label="Đăng xuất"
-            title="Đăng xuất"
-            className="grid h-8 w-8 place-items-center rounded-lg text-olive transition hover:bg-white/5 hover:text-batter-lt"
-          >
-            <LogOut size={16} strokeWidth={1.5} />
-          </button>
-        </div>
-      </header>
-
-      <div className="flex min-h-0 flex-1 gap-3 p-3.5">
+    <AppShell topbarExtra={topbarExtra}>
+      <div className="flex h-full min-h-0 gap-3 p-3.5">
         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
           <div className="relative">
             <Search
@@ -255,7 +219,7 @@ export default function PosPage() {
           setNotice(null);
         }}
       />
-    </div>
+    </AppShell>
   );
 }
 
@@ -300,66 +264,6 @@ function ProductCard({ item, onPick }) {
         </span>
       )}
     </button>
-  );
-}
-
-/**
- * Thoát POS. Giỏ hàng không lưu xuống storage nên rời màn là mất đơn đang gõ —
- * hỏi lại một nhịp khi giỏ còn món, thay vì để nhân viên bấm nhầm rồi gõ lại từ
- * đầu trước mặt khách.
- */
-function ExitButton({ hasCart, itemCount }) {
-  const [confirming, setConfirming] = useState(false);
-  const navigate = useNavigate();
-
-  const base =
-    'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition';
-
-  if (!hasCart) {
-    return (
-      <NavLink
-        to="/"
-        className={`${base} border-olive/30 text-olive-mute hover:border-olive hover:bg-white/5 hover:text-batter-lt`}
-      >
-        <ArrowLeft size={14} strokeWidth={2} />
-        Thoát POS
-      </NavLink>
-    );
-  }
-
-  if (!confirming) {
-    return (
-      <button
-        type="button"
-        onClick={() => setConfirming(true)}
-        className={`${base} border-olive/30 text-olive-mute hover:border-olive hover:bg-white/5 hover:text-batter-lt`}
-      >
-        <ArrowLeft size={14} strokeWidth={2} />
-        Thoát POS
-      </button>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-medium text-batter-warm">
-        Thoát sẽ mất đơn đang gõ ({itemCount} món)?
-      </span>
-      <button
-        type="button"
-        onClick={() => navigate('/')}
-        className={`${base} border-wine/50 bg-wine/25 text-batter-warm hover:bg-wine/40`}
-      >
-        Thoát
-      </button>
-      <button
-        type="button"
-        onClick={() => setConfirming(false)}
-        className={`${base} border-olive/30 text-olive-mute hover:border-olive hover:text-batter-lt`}
-      >
-        Ở lại
-      </button>
-    </div>
   );
 }
 
