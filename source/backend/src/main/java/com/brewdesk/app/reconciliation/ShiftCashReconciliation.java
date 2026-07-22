@@ -10,7 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -55,6 +57,24 @@ public class ShiftCashReconciliation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "received_by")
     private User receivedBy;
+
+    /**
+     * Tiền mặt có sẵn trong két đầu ca. Hệ thống lấy từ số thực đếm của ca liền
+     * trước, KHÔNG nhận từ client — cùng lý do dòng POS không cho nhập tay.
+     */
+    @Column(name = "opening_amount", nullable = false, precision = 12, scale = 0)
+    private BigDecimal openingAmount;
+
+    /** Tiền mặt rút khỏi két trong ca. */
+    @Column(name = "withdrawn_amount", nullable = false, precision = 12, scale = 0)
+    private BigDecimal withdrawnAmount;
+
+    /** Giờ thực tế vào ca. Không phải chấm công — quán không dùng chấm công. */
+    @Column(name = "start_time")
+    private LocalTime startTime;
+
+    @Column(name = "end_time")
+    private LocalTime endTime;
 
     @Column(name = "note")
     private String note;

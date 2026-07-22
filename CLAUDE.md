@@ -219,8 +219,11 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 - `qc_tests` — detail, thang điểm acidity/body/sweetness 1–5
 
 **Bàn giao ca:**
-- `shift_cash_reconciliations` — header mỗi ca
-- `shift_cash_lines` — 3 dòng: POS (ghi nhận máy) / TT (thực tế đếm được) / CHI (khoản đã chi)
+- `shift_cash_reconciliations` — header mỗi ca, có `opening_amount` (tiền đầu ca),
+  `withdrawn_amount` (rút khỏi két trong ca), `start_time` / `end_time` (thêm ở V8)
+- `shift_cash_lines` — 3 dòng: POS (ghi nhận máy) / TT (thực tế đếm được) / CHI (khoản đã chi).
+  Mỗi dòng có `cash_amount` và `bank_amount` (thêm ở V8); khoản chi của quán luôn là
+  tiền mặt nên dòng CHI thực tế để `bank_amount = 0`
 
 **Audit:**
 - `audit_logs` — ghi mọi thao tác nhạy cảm: hủy đơn, giảm giá, sửa kho thủ công
@@ -228,9 +231,11 @@ POST /api/v1/admin/staff          # Tạo tài khoản — chỉ ADMIN
 ### Ràng buộc nghiệp vụ quan trọng
 - `price >= 0`, `quantity > 0`, `stock_qty >= 0` — CHECK constraint ở DB
 - `discount_value` không vượt `subtotal` — validate ở Service layer (KHÔNG dùng DB CHECK vì logic % vs FIXED khác nhau)
-- Chênh lệch bàn giao ca tính ở app: `TT - POS - CHI` — KHÔNG lưu cột riêng
+- Chênh lệch bàn giao ca tính ở app: `(TT + CHI + Rút − Đầu ca) − POS` — KHÔNG lưu cột riêng
 - Dòng `POS` do hệ thống cộng từ **đơn tiền mặt** của ca, KHÔNG nhận từ client —
   cho nhập tay thì người đếm thiếu chỉ cần sửa dòng POS cho khớp là hết chênh lệch
+- `opening_amount` cũng do hệ thống lấy từ số thực đếm của ca liền trước, KHÔNG nhận
+  từ client — cùng lý do trên
 
 ---
 
@@ -304,6 +309,39 @@ giá đều ghi `audit_logs` với hành động `ORDER_DISCOUNT`, kèm người
 số tiền. Đơn thường không ghi audit — chỉ đơn giảm giá và đơn huỷ.
 
 Đừng thêm ngưỡng duyệt trừ khi chủ quán yêu cầu.
+
+### Bàn giao ca — đối soát tiền mặt
+
+Két **luôn có sẵn tiền từ ca trước**, không bao giờ bắt đầu từ 0. Đây là chỗ dễ
+làm sai nhất và bản chốt đầu tiên đã sai vì bỏ qua nó.
+
+Cách quán làm thật: cuối ca đếm tiền trong két, **cộng lại** các khoản đã chi
+bằng tiền mặt trong ca (tiền đã ra khỏi két nên phải bù vào mới ra doanh thu),
+trừ đi tiền đầu ca, rồi so với POS.
+
+```
+chênh lệch = (TT + CHI + Rút − Đầu ca) − POS
+```
+
+Ví dụ có thật của quán: ca tối hôm trước đếm được 3.500.000; sáng hôm sau rút
+1.500.000 nên vốn đầu ngày còn 2.000.000; trong ngày chi 60.000 mua hoa và đá;
+cuối ca đếm được 3.040.000; POS ghi nhận 1.100.000.
+
+```
+(3.040.000 + 60.000 + 1.500.000 − 3.500.000) − 1.100.000 = 0   → khớp
+```
+
+⚠️ **CHI mang dấu CỘNG.** Bản chốt đầu tiên ghi `TT − POS − CHI`, tức trừ khoản
+chi thêm một lần nữa trong khi nó đã nằm sẵn trong số đếm được — lệch đúng gấp
+đôi số đã chi. Đã sửa ở V8.
+
+**Đối soát theo từng ca**, không gộp cả ngày: đầu ca này là số thực đếm cuối ca
+trước, nên lệch ở đâu thì biết ngay ca đó. Gộp cả ngày thì biết có lệch mà không
+biết do ai.
+
+Hai con số **không được nhập tay** là `POS` và `opening_amount` — sửa được thì
+người đếm thiếu chỉ cần chỉnh cho khớp là hết chênh lệch, và toàn bộ việc đối
+soát mất ý nghĩa.
 
 ### Đơn hàng
 - KHÔNG có trạng thái trung gian (pending/processing) — đơn chỉ có 2 trạng thái: active hoặc cancelled

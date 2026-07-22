@@ -41,8 +41,13 @@ public class ShiftCashLine {
     @Column(name = "line_type", nullable = false, length = 10, updatable = false)
     private CashLineType lineType;
 
-    @Column(name = "amount", nullable = false, precision = 12, scale = 0)
-    private BigDecimal amount;
+    /** Phần tiền mặt của dòng. Đổi tên từ `amount` ở V8 khi thêm bank_amount. */
+    @Column(name = "cash_amount", nullable = false, precision = 12, scale = 0)
+    private BigDecimal cashAmount;
+
+    /** Phần chuyển khoản. Dòng CHI thường bằng 0 vì quán chi bằng tiền mặt. */
+    @Column(name = "bank_amount", nullable = false, precision = 12, scale = 0)
+    private BigDecimal bankAmount;
 
     @Column(name = "note")
     private String note;

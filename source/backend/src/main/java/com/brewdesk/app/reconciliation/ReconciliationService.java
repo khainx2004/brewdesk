@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,19 +91,30 @@ public class ReconciliationService {
                         .shiftType(shift)
                         .handedOverBy(handedOverBy)
                         .receivedBy(findUser(request.receivedById()))
+                        .openingAmount(openingFor(day, shift))
+                        .withdrawnAmount(money(request.withdrawnOrZero()))
+                        .startTime(request.startTime())
+                        .endTime(request.endTime())
                         .note(request.note())
                         .build();
         reconciliationRepository.save(reconciliation);
 
         BigDecimal posAmount = cashOf(day, shift.getId()).totalOrZero();
+        BigDecimal posBank = bankOf(day, shift.getId()).totalOrZero();
         List<ShiftCashLine> lines =
                 List.of(
-                        line(reconciliation, CashLineType.POS, posAmount, null),
-                        line(reconciliation, CashLineType.TT, request.actualAmount(), null),
+                        line(reconciliation, CashLineType.POS, posAmount, posBank, null),
+                        line(
+                                reconciliation,
+                                CashLineType.TT,
+                                request.actualAmount(),
+                                request.actualBankOrZero(),
+                                null),
                         line(
                                 reconciliation,
                                 CashLineType.CHI,
                                 request.spentOrZero(),
+                                BigDecimal.ZERO,
                                 request.spentNote()));
         lineRepository.saveAll(lines);
 
@@ -138,13 +150,30 @@ public class ReconciliationService {
                 lines.stream()
                         .collect(Collectors.toMap(ShiftCashLine::getLineType, line -> line));
 
-        setAmount(byType, reconciliation, CashLineType.POS, posAmount, null);
-        setAmount(byType, reconciliation, CashLineType.TT, request.actualAmount(), null);
+        BigDecimal posBank =
+                bankOf(
+                                reconciliation.getReconciliationDate(),
+                                reconciliation.getShiftType().getId())
+                        .totalOrZero();
+
+        reconciliation.setWithdrawnAmount(money(request.withdrawnOrZero()));
+        reconciliation.setStartTime(request.startTime());
+        reconciliation.setEndTime(request.endTime());
+
+        setAmount(byType, reconciliation, CashLineType.POS, posAmount, posBank, null);
+        setAmount(
+                byType,
+                reconciliation,
+                CashLineType.TT,
+                request.actualAmount(),
+                request.actualBankOrZero(),
+                null);
         setAmount(
                 byType,
                 reconciliation,
                 CashLineType.CHI,
                 request.spentOrZero(),
+                BigDecimal.ZERO,
                 request.spentNote());
         lineRepository.saveAll(byType.values());
 
@@ -216,12 +245,14 @@ public class ReconciliationService {
     private ShiftCashLine line(
             ShiftCashReconciliation reconciliation,
             CashLineType type,
-            BigDecimal amount,
+            BigDecimal cash,
+            BigDecimal bank,
             String note) {
         return ShiftCashLine.builder()
                 .reconciliation(reconciliation)
                 .lineType(type)
-                .amount(amount.setScale(0))
+                .cashAmount(money(cash))
+                .bankAmount(money(bank))
                 .note(note)
                 .build();
     }
@@ -230,15 +261,59 @@ public class ReconciliationService {
             Map<CashLineType, ShiftCashLine> byType,
             ShiftCashReconciliation reconciliation,
             CashLineType type,
-            BigDecimal amount,
+            BigDecimal cash,
+            BigDecimal bank,
             String note) {
         ShiftCashLine existing = byType.get(type);
         if (existing == null) {
-            byType.put(type, line(reconciliation, type, amount, note));
+            byType.put(type, line(reconciliation, type, cash, bank, note));
             return;
         }
-        existing.setAmount(amount.setScale(0));
+        existing.setCashAmount(money(cash));
+        existing.setBankAmount(money(bank));
         existing.setNote(note);
+    }
+
+    /**
+     * Tiền mặt có sẵn trong két đầu ca = số thực đếm của ca liền trước.
+     *
+     * <p>Hệ thống tự lấy chứ không nhận từ client, cùng lý do dòng POS không cho
+     * nhập tay: sửa được thì người đếm thiếu chỉ cần chỉnh đầu ca cho khớp là hết
+     * chênh lệch.
+     *
+     * <p>Chưa có phiếu nào trước đó thì trả 0 — ca đầu tiên của quán không có gì
+     * để kế thừa, chênh lệch của riêng ca đó sẽ bằng đúng số tiền vốn có sẵn
+     * trong két và người lập phiếu ghi vào ghi chú.
+     */
+    private BigDecimal openingFor(LocalDate day, ShiftType shift) {
+        return reconciliationRepository
+                .findPrevious(day, shift.getStartTime(), PageRequest.of(0, 1))
+                .stream()
+                .findFirst()
+                .map(
+                        previous ->
+                                lineRepository.findByReconciliationIdIn(List.of(previous.getId()))
+                                        .stream()
+                                        .filter(l -> l.getLineType() == CashLineType.TT)
+                                        .findFirst()
+                                        .map(ShiftCashLine::getCashAmount)
+                                        .orElse(BigDecimal.ZERO))
+                .map(this::money)
+                .orElse(money(BigDecimal.ZERO));
+    }
+
+    /** VNĐ là số nguyên — mọi BigDecimal tự tạo phải đặt scale khớp cột DECIMAL(12,0). */
+    private BigDecimal money(BigDecimal value) {
+        return value.setScale(0);
+    }
+
+    /** Tổng đơn chuyển khoản của ca, dùng cho phần bank của dòng POS. */
+    private CashSummary bankOf(LocalDate day, UUID shiftTypeId) {
+        return orderRepository.sumByShift(
+                PaymentMethod.TRANSFER,
+                shiftTypeId,
+                shiftService.startOfDay(day),
+                shiftService.startOfDay(day.plusDays(1)));
     }
 
     private void requireCanEdit(ShiftCashReconciliation reconciliation) {
@@ -278,12 +353,15 @@ public class ReconciliationService {
                 "shift_cash_reconciliations",
                 response.id(),
                 """
-                {"date":"%s","pos":"%s","actual":"%s","spent":"%s","difference":"%s"}"""
+                {"date":"%s","opening":"%s","pos":"%s","actual":"%s","spent":"%s",\
+                "withdrawn":"%s","difference":"%s"}"""
                         .formatted(
                                 response.reconciliationDate(),
+                                response.openingAmount(),
                                 response.posAmount(),
                                 response.actualAmount(),
                                 response.spentAmount(),
+                                response.withdrawnAmount(),
                                 response.difference()));
     }
 }
