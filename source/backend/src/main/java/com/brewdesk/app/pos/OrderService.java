@@ -398,7 +398,11 @@ public class OrderService {
 
         // Ca lấy theo giờ server. Ngoài giờ hoạt động vẫn cho bán, chỉ là đơn
         // không thuộc ca nào — chủ quán vẫn muốn ghi nhận doanh thu.
-        ShiftType shift = shiftService.currentShift().orElse(null);
+        // Dùng shiftForRevenue chứ không phải currentShift: đơn bán ngoài giờ vẫn
+        // phải thuộc một ca, nếu không tiền đó không xuất hiện ở phiếu bàn giao
+        // nào. Badge "Ngoài giờ hoạt động" trên POS vẫn dựa vào currentShift —
+        // hai việc khác nhau: hiển thị trạng thái quán, và ghi nhận doanh thu.
+        ShiftType shift = shiftService.shiftForRevenue().orElse(null);
 
         return Order.builder()
                 .orderCode(nextOrderCode())

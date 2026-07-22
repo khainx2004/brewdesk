@@ -81,6 +81,40 @@ public class ShiftService {
                 .findFirst();
     }
 
+    /**
+     * Ca dùng để <b>ghi nhận doanh thu</b> của một đơn — không bao giờ rỗng.
+     *
+     * <p>Khác {@link #currentShift()}: hàm kia trả rỗng khi ngoài giờ, đúng cho
+     * việc hiển thị badge "Ngoài giờ hoạt động" trên POS. Nhưng tiền thì không
+     * có chỗ nào để rơi vào — đơn bán lúc 21:12 vẫn nằm trong két khi ca tối bàn
+     * giao, nên phải thuộc ca tối.
+     *
+     * <p>Trước đây đơn ngoài giờ có {@code shift_type_id = null} và dòng POS của
+     * bàn giao ca lọc theo ca, nên số tiền đó <b>không xuất hiện ở phiếu nào</b>.
+     * Ca đó hiện thừa tiền mà không ai hiểu vì sao — đúng thứ phiếu đối soát sinh
+     * ra để phát hiện, lại tự tạo tín hiệu giả.
+     *
+     * <p>Quy tắc: trong giờ thì lấy ca đó; trước ca đầu tiên thì lấy ca đầu tiên
+     * (tiền sẽ nằm trong két khi ca sáng bàn giao); sau ca cuối thì lấy ca cuối.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ShiftType> shiftForRevenue() {
+        List<ShiftType> shifts = shiftTypeRepository.findByActiveTrueOrderByDisplayOrderAsc();
+        if (shifts.isEmpty()) {
+            return Optional.empty();
+        }
+
+        LocalTime now = now();
+        return shifts.stream()
+                .filter(s -> !now.isBefore(s.getStartTime()) && now.isBefore(s.getEndTime()))
+                .findFirst()
+                .or(
+                        () ->
+                                now.isBefore(shifts.getFirst().getStartTime())
+                                        ? Optional.of(shifts.getFirst())
+                                        : Optional.of(shifts.getLast()));
+    }
+
     @Transactional(readOnly = true)
     public CurrentShiftResponse current() {
         return currentShift()
