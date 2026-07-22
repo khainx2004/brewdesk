@@ -32,7 +32,7 @@ export const NAV_SECTIONS = [
         to: '/checklist',
         label: 'Checklist',
         icon: ClipboardCheck,
-        ready: false,
+        ready: true,
         description: 'Đầu ca, cuối ca và công việc định kỳ.',
       },
       {

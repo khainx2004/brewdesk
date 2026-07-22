@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Checklist · BrewDesk Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C1510;--cocoa:#442D1C;--cocoa-lt:#5C3D22;
+  --rogue:#3A3D2E;--rogue-dk:#272A1F;
+  --caramel:#84592B;--olive:#9D9167;--olive-mute:#C4BAA0;
+  --batter:#EDE3CE;--batter-lt:#F5EDD8;--batter-warm:#E2D4B7;
+  --wine:#743014;--cream:#FAF6EE;
+  --serif:'DM Serif Display',Georgia,serif;
+  --ui:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --r:10px;--rl:16px;--rxl:22px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--batter);color:var(--ink);min-width:1180px;min-height:100vh}
+
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;
+  background:linear-gradient(120deg,var(--ink) 0%,#2E1E12 60%,var(--cocoa-lt) 100%);
+  box-shadow:0 1px 0 rgba(157,145,103,.2),0 4px 20px rgba(28,21,16,.45);z-index:10;position:relative}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-name{font-family:var(--serif);font-style:italic;font-size:21px;color:var(--batter-lt);letter-spacing:.015em}
+.brand-tag{font-size:9.5px;font-weight:700;letter-spacing:.2em;color:var(--olive);text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.admin-badge{font-size:10px;font-weight:700;letter-spacing:.12em;padding:4px 10px;background:rgba(132,89,43,.2);border:1px solid rgba(132,89,43,.35);border-radius:999px;color:var(--caramel);text-transform:uppercase}
+.avatar{width:29px;height:29px;border-radius:50%;background:linear-gradient(135deg,var(--caramel),#9A6B38);color:var(--cream);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.staff-pill{display:flex;align-items:center;gap:9px}
+.staff-name{font-size:13px;font-weight:500;color:var(--olive-mute)}
+.role-toggle{display:flex;gap:3px;background:rgba(255,255,255,.06);border-radius:999px;padding:3px}
+.role-btn{padding:5px 12px;border-radius:999px;border:none;background:transparent;color:rgba(196,186,160,.6);font-family:var(--ui);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .15s}
+.role-btn.active{background:var(--caramel);color:var(--cream)}
+
+/* layout */
+.app-wrap{display:flex;height:calc(100vh - 60px)}
+
+/* sidebar */
+.sidebar{width:220px;flex-shrink:0;background:linear-gradient(to bottom,#211710,#1C1510);display:flex;flex-direction:column;padding:20px 12px;gap:4px}
+.sidebar-section{font-size:9.5px;font-weight:700;letter-spacing:.12em;color:rgba(157,145,103,.5);text-transform:uppercase;padding:12px 10px 6px;margin-top:8px}
+.sidebar-section:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:rgba(196,186,160,.65);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--olive-mute)}
+.nav-item.active{background:rgba(58,61,46,.5);color:var(--batter-lt)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+
+/* main */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+.page-title{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink)}
+.page-subtitle{font-size:12.5px;color:var(--olive);margin-top:2px}
+
+/* toolbar (tabs) */
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 28px 0;flex-wrap:wrap}
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.cat-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-family:var(--ui);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.cat-tab:hover{border-color:var(--rogue);color:var(--rogue)}
+.cat-tab.active{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+
+.form-select{height:38px;border-radius:var(--r);border:1px solid var(--olive-mute);background:var(--cream);padding:0 12px;font-family:var(--ui);font-size:13px;color:var(--ink);cursor:pointer}
+.form-select:focus{outline:none;border-color:var(--rogue)}
+
+/* progress */
+.progress-wrap{display:flex;align-items:center;gap:12px;padding:14px 28px 0}
+.progress-track{flex:1;height:7px;background:var(--batter-warm);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--rogue),var(--rogue-dk));border-radius:99px;transition:width .2s}
+.progress-text{font-size:12.5px;color:var(--olive);font-weight:600;min-width:52px;text-align:right}
+
+/* content wrap */
+.content-wrap{padding:16px 28px 28px;flex:1}
+.section-box{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);box-shadow:0 1px 3px rgba(28,21,16,.05),0 4px 10px rgba(28,21,16,.04);overflow:hidden}
+.section-hint{font-size:12px;color:var(--olive);margin:0 0 12px}
+
+/* task rows */
+.task-row{padding:13px 18px;border-bottom:1px solid rgba(196,186,160,.4);transition:background .12s}
+.task-row:last-child{border-bottom:none}
+.task-row:hover{background:rgba(58,61,46,.03)}
+.task-top{display:flex;align-items:flex-start;gap:12px}
+.task-chk{width:20px;height:20px;flex-shrink:0;margin-top:2px;accent-color:var(--rogue);cursor:pointer}
+.task-title{font-size:13.5px;font-weight:500;color:var(--ink);line-height:1.4}
+.task-meta{font-size:11.5px;color:var(--olive);margin-top:3px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.task-meta:hover{color:var(--rogue)}
+.task-meta svg{width:11px;height:11px}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--olive-mute);padding:4px;border-radius:7px;transition:all .12s;flex-shrink:0}
+.icon-btn:hover{color:var(--rogue);background:rgba(58,61,46,.08)}
+.icon-btn svg{width:15px;height:15px}
+
+.badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:999px;text-transform:uppercase;margin-left:8px}
+.badge.handover{background:rgba(132,89,43,.15);color:var(--caramel);border:1px solid rgba(132,89,43,.3)}
+.badge.overdue{background:rgba(116,48,20,.12);color:var(--wine);border:1px solid rgba(116,48,20,.22)}
+
+.note-box{margin:8px 0 0 32px;display:none}
+.note-box.open{display:block}
+.note-box textarea{width:100%;min-height:34px;border-radius:8px;border:1px solid var(--olive-mute);background:var(--batter-lt);padding:8px 10px;font-family:var(--ui);font-size:12.5px;color:var(--ink);resize:vertical}
+.note-box textarea:focus{outline:none;border-color:var(--rogue)}
+
+.hist-box{margin:8px 0 0 32px;display:none;background:var(--batter-lt);border-radius:8px;padding:8px 12px}
+.hist-box.open{display:block}
+.hist-line{font-size:11.5px;color:var(--olive);padding:2px 0}
+.hist-line b{color:var(--ink);font-weight:600}
+
+/* week day pills */
+.day-row{display:flex;gap:5px;margin-top:8px}
+.day-pill{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:10.5px;font-weight:600;border:1px solid var(--olive-mute);cursor:pointer;color:var(--olive);background:var(--cream);transition:all .12s}
+.day-pill:hover{border-color:var(--rogue)}
+.day-pill.on{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+.day-pill.overdue{border-color:var(--wine);color:var(--wine);border-width:1.5px}
+
+.flex-section{margin-top:18px}
+.flex-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);padding:0 18px;margin-bottom:8px}
+
+.section-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.btn-add-task{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px dashed var(--olive-mute);background:transparent;font-family:var(--ui);font-size:12px;font-weight:600;color:var(--olive);cursor:pointer;transition:all .15s}
+.btn-add-task:hover{border-color:var(--rogue);color:var(--rogue)}
+.btn-add-task svg{width:13px;height:13px}
+.task-admin-actions{display:flex;gap:2px;flex-shrink:0}
+.locked-name{font-size:13px;font-weight:600;color:var(--ink);background:var(--batter-lt);border:1px solid var(--olive-mute);border-radius:var(--r);padding:0 14px;height:38px;display:flex;align-items:center;gap:7px}
+.locked-name svg{width:14px;height:14px;color:var(--olive)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);padding:14px 16px}
+.stat-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--olive)}
+.stat-value{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink);margin-top:4px}
+.staff-stat-row{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid rgba(196,186,160,.4)}
+.staff-stat-row:last-child{border-bottom:none}
+.staff-stat-name{width:70px;font-size:13px;font-weight:600;color:var(--ink);flex-shrink:0}
+.staff-stat-track{flex:1;height:8px;background:var(--batter-warm);border-radius:99px;overflow:hidden}
+.staff-stat-fill{height:100%;background:linear-gradient(90deg,var(--rogue),var(--rogue-dk));border-radius:99px}
+.staff-stat-pct{width:38px;text-align:right;font-size:12.5px;font-weight:600;color:var(--olive)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--olive-mute);border-radius:99px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">BrewDesk</span>
+    <span class="brand-tag">Admin</span>
+  </div>
+  <div class="topbar-right">
+    <div class="role-toggle" id="roleToggle">
+      <button class="role-btn active" data-role="admin">Xem như Admin</button>
+      <button class="role-btn" data-role="staff">Xem như Nhân viên</button>
+    </div>
+    <span class="admin-badge" id="roleBadge">Admin</span>
+    <div class="staff-pill">
+      <div class="avatar" id="topAvatar">AD</div>
+      <span class="staff-name" id="topName">Admin</span>
+    </div>
+  </div>
+</header>
+
+<div class="app-wrap">
+  <nav class="sidebar">
+    <div class="sidebar-section">Vận hành</div>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      POS Bán hàng
+    </button>
+    <button class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Checklist
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>
+      Test cafe
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Bàn giao ca
+    </button>
+    <div class="sidebar-section">Quản lý</div>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h18l-2 7H5L3 2z"/><path d="M5 9l-1 13h16l-1-13"/><path d="M10 13h4"/></svg>
+      Menu
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Kho nguyên liệu
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Nhân viên
+    </button>
+    <div class="sidebar-section">Báo cáo</div>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Thống kê
+    </button>
+    <button class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Kiểm kê kho
+    </button>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Checklist công việc</div>
+        <div class="page-subtitle" id="pageSubtitle">Ca sáng (P1) · 10 việc cần làm</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="cat-tabs" id="mainTabs"></div>
+    </div>
+
+    <div id="paneCa">
+      <div class="toolbar" style="padding-top:12px">
+        <div class="cat-tabs" id="shiftTabs"></div>
+        <button class="btn-add-task" id="addTaskCaBtn" style="margin-left:auto" onclick="alert('Mở form thêm task mới cho ca '+curShift)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm task
+        </button>
+        <select class="form-select" id="staffSelect" style="margin-left:8px">
+          <option>Choi</option><option>Lam</option><option>Uyên</option><option>Khải</option><option>Mi</option>
+        </select>
+        <span class="locked-name" id="lockedName" style="display:none;margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span id="lockedNameText">Choi</span>
+        </span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span class="progress-text" id="progressText">0/10</span>
+      </div>
+      <div class="content-wrap">
+        <div class="section-box" id="taskList"></div>
+      </div>
+    </div>
+
+    <div id="paneTuan" style="display:none">
+      <div class="content-wrap">
+        <div class="section-toolbar">
+          <p class="section-hint" style="margin:0">Tuần 13/7 – 20/7 · viền đỏ = đã qua ngày mà chưa làm</p>
+          <button class="btn-add-task" id="addTaskTuanBtn" onclick="alert('Mở form thêm task tuần mới')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Thêm task
+          </button>
+        </div>
+        <div class="section-box" id="weekList"></div>
+        <div class="flex-section">
+          <div class="flex-title">Linh động</div>
+          <div class="section-box" id="flexList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="paneThang" style="display:none">
+      <div class="content-wrap">
+        <div class="section-toolbar">
+          <p class="section-hint" style="margin:0">Tháng 7</p>
+          <button class="btn-add-task" id="addTaskThangBtn" onclick="alert('Mở form thêm task tháng mới')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Thêm task
+          </button>
+        </div>
+        <div class="section-box" id="monthList"></div>
+      </div>
+    </div>
+
+    <div id="paneStats" style="display:none">
+      <div class="content-wrap">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Hoàn thành hôm nay</div><div class="stat-value">83%</div></div>
+          <div class="stat-card"><div class="stat-label">Task bàn giao ca sau</div><div class="stat-value">3</div></div>
+          <div class="stat-card"><div class="stat-label">Task quá hạn (tháng)</div><div class="stat-value">1</div></div>
+          <div class="stat-card"><div class="stat-label">Trung bình tuần này</div><div class="stat-value">91%</div></div>
+        </div>
+        <p class="section-hint">Tỷ lệ hoàn thành checklist theo nhân viên (7 ngày gần nhất)</p>
+        <div class="section-box" id="staffStatsList"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const HIST_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>';
+const NOTE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+const EDIT_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+const DEL_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+let currentRole='admin';
+const loggedInStaff='Choi';
+function adminActionsHtml(kind,id){
+  if(currentRole!=='admin') return '';
+  return '<div class="task-admin-actions">'+
+    '<button class="icon-btn" title="Sửa task" onclick="alert(\'Sửa task '+kind+' #'+id+'\')">'+EDIT_ICON+'</button>'+
+    '<button class="icon-btn" title="Xóa task" onclick="alert(\'Xóa task '+kind+' #'+id+'\')">'+DEL_ICON+'</button>'+
+    '</div>';
+}
+
+const tasks = {
+P1:["Quét bụi rác trước cửa","Dội nước cọ vỉa hè (khi nhiều bụi, có vết bẩn từ đồ ăn/uống)","Lau lại bề mặt bàn ghế","Tắm nắng, tưới cây, lau bể mặt lá Mon","Test cà phê, báo cáo trên nhóm","Check tủ lạnh (lọc coldbrew/ủ, refill NL nếu cần)","Lau cửa kính, gương NVS, check giấy NVS","Check gạt tàn (fill sẵn giấy), gọi đá nếu cần","Thay nước (T2-4-6-CN) và cho cá ăn","Thay nước bình hoa (cắt bớt gốc nát, hoa héo)"],
+P2:["Check không gian trong, ngoài nhà, NVS, quầy bar","Check lại profile cà, báo cáo nhóm nếu có thay đổi","Check tủ lạnh (ủ/refill NL nếu cần), check sạc cần","Check làm đá (đổ vun đá trong khay)"],
+P3:["Check không gian trong, ngoài nhà, NVS, quầy bar","Refill đồ takeaway, check sạc cần","Check tủ lạnh (ủ trà, refill NL nếu cần)","Vệ sinh chai syrup, huỷ NL sữa thừa","Vệ sinh lò nướng, lò vi sóng","Đóng máy (T2-4-6 vệ sinh hoá chất, T4 tháo vòi sữa)","Lau bề mặt quầy, máy móc (cân, macbook, máy xay, tủ lạnh)","10h01: bật lại máy, kiểm tra khoá vòi hơi máy pha","Quét nhà, lau nhà, lau bục đá trước quầy, rút phích cắm","Sắp xếp lại gọn ghế ngồi, vệ sinh cống thoát nước","Cọ NVS, thay túi rác, vệ sinh cống thoát nước","Giặt khăn, bật quạt phơi khăn","Cọ, phơi thảm bar, vệ sinh thùng đá","Chốt tiền, bàn giao ca","Tắt toàn bộ thiết bị điện (macbook, đèn, loa, ổ điện, điều hoà)","Khoá kho, chốt cửa gỗ"]
+};
+const shiftLabels={P1:"P1 · Sáng",P2:"P2 · Giữa ca",P3:"P3 · Tối"};
+const mockHistory=[
+  {who:"Choi",when:"Hôm qua 08:12"},
+  {who:"Lam",when:"20/7 08:05"},
+  {who:"Uyên",when:"19/7 08:20"}
+];
+
+let mainTab='ca', curShift='P1';
+const state={}, notes={}, noteOpen={}, histOpen={};
+function taskKey(s,i){return s+'_'+i;}
+
+function renderMainTabs(){
+  const el=document.getElementById('mainTabs');
+  const tabs=[['ca','Theo ca'],['tuan','Theo tuần'],['thang','Theo tháng']];
+  if(currentRole==='admin') tabs.push(['stats','Thống kê']);
+  if(mainTab==='stats'&&currentRole!=='admin') mainTab='ca';
+  el.innerHTML='';
+  tabs.forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(mainTab===k?' active':'');
+    b.textContent=label;
+    b.onclick=()=>{mainTab=k;renderMainTabs();
+      document.getElementById('paneCa').style.display=k==='ca'?'':'none';
+      document.getElementById('paneTuan').style.display=k==='tuan'?'':'none';
+      document.getElementById('paneThang').style.display=k==='thang'?'':'none';
+      document.getElementById('paneStats').style.display=k==='stats'?'':'none';
+      if(k==='stats') renderStaffStats();
+      updateSubtitle();
+    };
+    el.appendChild(b);
+  });
+  document.getElementById('paneCa').style.display=mainTab==='ca'?'':'none';
+  document.getElementById('paneTuan').style.display=mainTab==='tuan'?'':'none';
+  document.getElementById('paneThang').style.display=mainTab==='thang'?'':'none';
+  document.getElementById('paneStats').style.display=mainTab==='stats'?'':'none';
+}
+
+const staffStats=[{name:'Choi',pct:96},{name:'Lam',pct:88},{name:'Uyên',pct:91},{name:'Khải',pct:79},{name:'Mi',pct:85}];
+function renderStaffStats(){
+  const list=document.getElementById('staffStatsList');
+  list.innerHTML='';
+  staffStats.slice().sort((a,b)=>b.pct-a.pct).forEach(s=>{
+    const row=document.createElement('div');
+    row.className='staff-stat-row';
+    row.innerHTML='<div class="staff-stat-name">'+s.name+'</div><div class="staff-stat-track"><div class="staff-stat-fill" style="width:'+s.pct+'%"></div></div><div class="staff-stat-pct">'+s.pct+'%</div>';
+    list.appendChild(row);
+  });
+}
+
+function setRole(role){
+  currentRole=role;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
+  document.getElementById('roleBadge').textContent=role==='admin'?'Admin':'Nhân viên';
+  document.getElementById('topAvatar').textContent=role==='admin'?'AD':loggedInStaff.slice(0,2).toUpperCase();
+  document.getElementById('topName').textContent=role==='admin'?'Admin':loggedInStaff;
+  document.getElementById('staffSelect').style.display=role==='admin'?'':'none';
+  document.getElementById('lockedName').style.display=role==='staff'?'flex':'none';
+  document.getElementById('lockedNameText').textContent=loggedInStaff;
+  document.getElementById('addTaskCaBtn').style.display=role==='admin'?'flex':'none';
+  document.getElementById('addTaskTuanBtn').style.display=role==='admin'?'flex':'none';
+  document.getElementById('addTaskThangBtn').style.display=role==='admin'?'flex':'none';
+  renderMainTabs();
+  renderTasks();
+  renderWeek();
+  renderMonth();
+}
+document.querySelectorAll('.role-btn').forEach(b=>b.addEventListener('click',()=>setRole(b.dataset.role)));
+
+function renderShiftTabs(){
+  const el=document.getElementById('shiftTabs');
+  el.innerHTML='';
+  Object.keys(shiftLabels).forEach(s=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(curShift===s?' active':'');
+    b.textContent=shiftLabels[s];
+    b.onclick=()=>{curShift=s;renderShiftTabs();renderTasks();updateSubtitle();};
+    el.appendChild(b);
+  });
+}
+
+function updateSubtitle(){
+  const sub=document.getElementById('pageSubtitle');
+  if(mainTab==='ca') sub.textContent='Ca '+(curShift==='P1'?'sáng':curShift==='P2'?'giữa':'tối')+' ('+curShift+') · '+tasks[curShift].length+' việc cần làm';
+  else if(mainTab==='tuan') sub.textContent='Tuần 13/7 – 20/7';
+  else sub.textContent='Checklist tháng 7';
+}
+
+function renderTasks(){
+  const list=document.getElementById('taskList');
+  list.innerHTML='';
+  const arr=tasks[curShift];
+  let done=0;
+  arr.forEach((t,i)=>{
+    const id=taskKey(curShift,i);
+    if(state[id]===undefined) state[id]=false;
+    if(notes[id]===undefined) notes[id]='';
+    if(state[id]) done++;
+    const overdue=curShift==='P3'&&i>=13&&!state[id];
+    const doneBy=currentRole==='staff'?loggedInStaff:document.getElementById('staffSelect').value;
+    const row=document.createElement('div');
+    row.className='task-row';
+    row.innerHTML=
+      '<div class="task-top">'+
+        '<input type="checkbox" class="task-chk" '+(state[id]?'checked':'')+' data-id="'+id+'"/>'+
+        '<div style="flex:1">'+
+          '<div class="task-title">'+t+(overdue?'<span class="badge handover">Bàn giao ca sau</span>':'')+'</div>'+
+          '<div class="task-meta" data-hist="'+id+'">'+HIST_ICON+' '+(state[id]?'Đã xong · '+doneBy:'Chưa thực hiện')+'</div>'+
+        '</div>'+
+        '<button class="icon-btn" data-note="'+id+'" title="Ghi chú">'+NOTE_ICON+'</button>'+
+        adminActionsHtml('ca',id)+
+      '</div>'+
+      '<div class="note-box '+(noteOpen[id]?'open':'')+'"><textarea placeholder="Ghi chú (vd: hết syrup vani, đã báo quản lý)" data-notearea="'+id+'">'+notes[id]+'</textarea></div>'+
+      '<div class="hist-box '+(histOpen[id]?'open':'')+'">'+mockHistory.map(h=>'<div class="hist-line"><b>'+h.who+'</b> · '+h.when+'</div>').join('')+'</div>';
+    list.appendChild(row);
+  });
+  document.getElementById('progressText').textContent=done+'/'+arr.length;
+  document.getElementById('progressFill').style.width=(done/arr.length*100)+'%';
+  list.querySelectorAll('.task-chk').forEach(c=>c.addEventListener('change',e=>{state[e.target.dataset.id]=e.target.checked;renderTasks();}));
+  list.querySelectorAll('[data-note]').forEach(b=>b.addEventListener('click',e=>{
+    const id=e.currentTarget.dataset.note;noteOpen[id]=!noteOpen[id];renderTasks();
+  }));
+  list.querySelectorAll('[data-notearea]').forEach(ta=>ta.addEventListener('input',e=>{
+    notes[e.target.dataset.notearea]=e.target.value;
+  }));
+  list.querySelectorAll('[data-hist]').forEach(m=>m.addEventListener('click',e=>{
+    const id=e.currentTarget.dataset.hist;histOpen[id]=!histOpen[id];renderTasks();
+  }));
+}
+document.getElementById('staffSelect').addEventListener('change',renderTasks);
+
+const weekTasks=[
+{name:'Lau dọn, sắp xếp hai kệ sách tầng 1',days:[1,3,5]},
+{name:'Lau dọn 2 tủ lạnh (bao gồm nóc tủ)',days:[1,5]},
+{name:'Cọ 2 thùng rác, đổ 1/2 bình nước nóng xuống cống (ca tối)',days:[1]},
+{name:'Lau cầu thang gỗ',days:[2,4,6]},
+{name:'Hút bụi, lau sàn/kính/kệ sách gác xép',days:[2,6]},
+{name:'Deepclean 8 hộc tủ quầy bar, kệ dưới máy',days:[2,4,6]},
+{name:'Lau 2 đợt gỗ quầy, toàn bộ chao đèn',days:[0]},
+{name:'Kiểm/order NL, dọn kho',days:[0]}
+];
+const dayLabels=['CN','T2','T3','T4','T5','T6','T7'];
+const todayIdx=2;
+const weekNotes={}, weekNoteOpen={};
+function renderWeek(){
+  const list=document.getElementById('weekList');
+  list.innerHTML='';
+  weekTasks.forEach((t,ti)=>{
+    const id='w'+ti;
+    if(weekNotes[id]===undefined) weekNotes[id]='';
+    const row=document.createElement('div');
+    row.className='task-row';
+    let pills='';
+    for(let d=0;d<7;d++){
+      const scheduled=t.days.includes(d);
+      const overdue=scheduled&&d<todayIdx;
+      pills+='<span class="day-pill '+(scheduled?'on':'')+(overdue?' overdue':'')+'" data-t="'+ti+'" data-d="'+d+'">'+dayLabels[d]+'</span>';
+    }
+    row.innerHTML=
+      '<div class="task-top">'+
+        '<div style="flex:1">'+
+          '<div class="task-title">'+t.name+'</div>'+
+          '<div class="day-row">'+pills+'</div>'+
+        '</div>'+
+        '<button class="icon-btn" data-wnote="'+id+'" title="Ghi chú">'+NOTE_ICON+'</button>'+
+        adminActionsHtml('tuan',ti)+
+      '</div>'+
+      '<div class="note-box '+(weekNoteOpen[id]?'open':'')+'"><textarea placeholder="Ghi chú (vd: đổi ca do bận, chưa làm được tuần này)" data-wnotearea="'+id+'">'+weekNotes[id]+'</textarea></div>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-wnote]').forEach(b=>b.addEventListener('click',e=>{
+    const id=e.currentTarget.dataset.wnote;weekNoteOpen[id]=!weekNoteOpen[id];renderWeek();
+  }));
+  list.querySelectorAll('[data-wnotearea]').forEach(ta=>ta.addEventListener('input',e=>{
+    weekNotes[e.target.dataset.wnotearea]=e.target.value;
+  }));
+}
+renderWeek();
+
+const flexTasks=['Clean ngăn bàn order','Thay nước cho cây thuỷ sinh (lưu ý cây trên nóc tủ hay hết nước)','Dọn ngăn dưới bồn rửa','Lau ghế gỗ dài sau nhà','Cọ thảm NVS và sau nhà','Cọ thảm trước cửa','Lau toàn bộ chân bàn trong nhà, sofa'];
+function renderFlex(){
+  const list=document.getElementById('flexList');
+  list.innerHTML='';
+  flexTasks.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.className='task-row';
+    row.innerHTML='<div class="task-top"><input type="checkbox" class="task-chk" id="flex-'+i+'"/><div class="task-title" style="flex:1">'+t+'</div></div>';
+    list.appendChild(row);
+  });
+}
+renderFlex();
+
+const monthTasks=[
+{name:'Vệ sinh máy chiếu',done:true,who:'Khải',date:'11/7'},
+{name:'Vệ sinh lưới lọc điều hoà',done:false,who:'',date:'',overdue:true},
+{name:'Vệ sinh lồng quạt trắng + đen',done:true,who:'Uyên',date:'16/7'},
+{name:'Vệ sinh 2 quạt ngoài',done:true,who:'Uyên',date:'16/7'},
+{name:'Giặt lót cốc tròn',done:true,who:'Uyên',date:'5/7'},
+{name:'Giặt lót cốc vuông',done:true,who:'Uyên',date:'5/7'},
+{name:'Lau toàn bộ cửa (NVS, kho, gỗ)',done:true,who:'Lam',date:'30/6'},
+{name:'Vệ sinh xi phông bồn rửa',done:true,who:'Lam',date:'9/7'}
+];
+const monthNotes={}, monthNoteOpen={};
+function renderMonth(){
+  const list=document.getElementById('monthList');
+  list.innerHTML='';
+  monthTasks.forEach((t,i)=>{
+    const id='m'+i;
+    if(monthNotes[id]===undefined) monthNotes[id]='';
+    const row=document.createElement('div');
+    row.className='task-row';
+    row.innerHTML=
+      '<div class="task-top">'+
+        '<input type="checkbox" class="task-chk" '+(t.done?'checked':'')+' id="m-'+i+'"/>'+
+        '<div style="flex:1">'+
+          '<div class="task-title">'+t.name+(t.overdue?'<span class="badge overdue">Quá hạn</span>':'')+'</div>'+
+          '<div class="task-meta">'+(t.done?t.who+' · '+t.date:'Chưa thực hiện')+'</div>'+
+        '</div>'+
+        '<button class="icon-btn" data-mnote="'+id+'" title="Ghi chú">'+NOTE_ICON+'</button>'+
+        adminActionsHtml('thang',i)+
+      '</div>'+
+      '<div class="note-box '+(monthNoteOpen[id]?'open':'')+'"><textarea placeholder="Ghi chú (vd: đã đặt thợ, chờ linh kiện)" data-mnotearea="'+id+'">'+monthNotes[id]+'</textarea></div>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-mnote]').forEach(b=>b.addEventListener('click',e=>{
+    const id=e.currentTarget.dataset.mnote;monthNoteOpen[id]=!monthNoteOpen[id];renderMonth();
+  }));
+  list.querySelectorAll('[data-mnotearea]').forEach(ta=>ta.addEventListener('input',e=>{
+    monthNotes[e.target.dataset.mnotearea]=e.target.value;
+  }));
+}
+renderMonth();
+
+renderShiftTabs();
+updateSubtitle();
+setRole('admin');
+</script>
+</body>
+</html>

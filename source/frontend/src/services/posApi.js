@@ -6,6 +6,9 @@ export const shiftApi = {
    * đặt sai giờ sẽ ghi đơn vào nhầm ca và bàn giao ca cuối ngày lệch tiền.
    */
   current: () => api.get('/shift-types/current').then(unwrap),
+
+  /** Ba ca P1/P2/P3, dùng cho tab chọn ca và ô gán ca cho đầu việc. */
+  list: () => api.get('/shift-types').then(unwrap),
 };
 
 export const orderApi = {

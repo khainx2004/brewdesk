@@ -29,6 +29,22 @@ export function formatDate(value) {
   );
 }
 
+/**
+ * Ngày dạng ngắn "20/7", dùng cho checklist — ở đó luôn là tuần/tháng hiện tại
+ * nên năm chỉ tổ dài dòng.
+ *
+ * Cắt thẳng chuỗi `yyyy-MM-dd` của backend chứ **không** đi qua `new Date()`:
+ * chuỗi ngày trần được JS hiểu là nửa đêm UTC, nên ở múi giờ âm sẽ lùi mất một
+ * ngày. Việt Nam là UTC+7 nên hiện tại không lộ, nhưng đây đúng loại lỗi chỉ
+ * hiện ra khi đổi máy chủ hoặc đổi múi giờ trình duyệt.
+ */
+export function formatDayMonth(value) {
+  if (!value) return '';
+  const [, month, day] = String(value).split('-');
+  if (!month || !day) return String(value);
+  return `${Number(day)}/${Number(month)}`;
+}
+
 export function formatDateTime(value) {
   if (!value) return '';
   return new Intl.DateTimeFormat('vi-VN', {

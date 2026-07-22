@@ -8,6 +8,7 @@ import ChangePasswordPage from './features/auth/ChangePasswordPage';
 import ForbiddenPage from './features/ForbiddenPage';
 import HomePage from './features/HomePage';
 import MenuPage from './features/menu/MenuPage';
+import ChecklistPage from './features/checklist/ChecklistPage';
 import PosPage from './features/pos/PosPage';
 
 /**
@@ -80,6 +81,14 @@ export default function App() {
         element={
           <RequireAuth>
             <PosPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/checklist"
+        element={
+          <RequireAuth>
+            <ChecklistPage />
           </RequireAuth>
         }
       />
