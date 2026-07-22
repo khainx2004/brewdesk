@@ -11,7 +11,7 @@ PASS=0; FAIL=0
 ok(){ PASS=$((PASS+1)); printf '  PASS  %s\n' "$1"; }
 no(){ FAIL=$((FAIL+1)); printf '  FAIL  %s\n     ky vong: %s\n     nhan:    %s\n' "$1" "$2" "$3"; }
 eq(){ [ "$2" = "$3" ] && ok "$1" || no "$1" "$2" "$3"; }
-has(){ [ "$(jq -r "$2 // \"MISSING\"" /tmp/f4.json)" != "MISSING" ] && ok "$1" || no "$1" "co truong $2" "MISSING"; }
+has(){ [ "$(jq -r "$2 | type" /tmp/f4.json 2>/dev/null)" != "null" ] && ok "$1" || no "$1" "co $2" "MISSING"; }
 
 "$HERE/clean_v7.sh" >/dev/null 2>&1
 

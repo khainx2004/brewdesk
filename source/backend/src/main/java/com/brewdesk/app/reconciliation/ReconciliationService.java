@@ -59,7 +59,9 @@ public class ReconciliationService {
                 day,
                 shift.getId(),
                 shift.getName(),
+                openingFor(day, shift),
                 summary.totalOrZero(),
+                bankOf(day, shift.getId()).totalOrZero(),
                 summary.orderCount(),
                 reconciliationRepository.existsByReconciliationDateAndShiftTypeId(
                         day, shift.getId()));
@@ -91,7 +93,7 @@ public class ReconciliationService {
                         .shiftType(shift)
                         .handedOverBy(handedOverBy)
                         .receivedBy(findUser(request.receivedById()))
-                        .openingAmount(openingFor(day, shift))
+                        .openingAmount(resolveOpening(day, shift, request.openingAmount()))
                         .withdrawnAmount(money(request.withdrawnOrZero()))
                         .startTime(request.startTime())
                         .endTime(request.endTime())
@@ -156,6 +158,18 @@ public class ReconciliationService {
                                 reconciliation.getShiftType().getId())
                         .totalOrZero();
 
+        // Sửa phiếu mà không gửi tiền đầu ca thì GIỮ NGUYÊN số cũ, không tính
+        // lại. Khác dòng POS — POS tính lại vì lý do sửa phiếu thường là vừa huỷ
+        // một đơn; còn tiền đầu ca đã là con số của thời điểm nhận ca, tự đổi nó
+        // trong một lần sửa không liên quan là làm sai biên bản.
+        if (request.openingAmount() != null) {
+            BigDecimal entered = money(request.openingAmount());
+            if (entered.compareTo(reconciliation.getOpeningAmount()) != 0) {
+                recordOpeningOverride(
+                        reconciliation.getId(), reconciliation.getOpeningAmount(), entered);
+                reconciliation.setOpeningAmount(entered);
+            }
+        }
         reconciliation.setWithdrawnAmount(money(request.withdrawnOrZero()));
         reconciliation.setStartTime(request.startTime());
         reconciliation.setEndTime(request.endTime());
@@ -272,6 +286,34 @@ public class ReconciliationService {
         existing.setCashAmount(money(cash));
         existing.setBankAmount(money(bank));
         existing.setNote(note);
+    }
+
+    /**
+     * Tiền đầu ca: lấy số người dùng gửi nếu có, không thì tính từ ca liền trước.
+     *
+     * <p>Ghi đè khác số hệ thống tính thì ghi audit. Chỉ ghi khi <b>khác</b> —
+     * ghi mọi lần lưu thì bảng audit đầy bản ghi vô nghĩa và những lần ghi đè
+     * thật bị chôn lẫn trong đó.
+     */
+    private BigDecimal resolveOpening(LocalDate day, ShiftType shift, BigDecimal entered) {
+        BigDecimal computed = openingFor(day, shift);
+        if (entered == null) {
+            return computed;
+        }
+        BigDecimal value = money(entered);
+        if (value.compareTo(computed) != 0) {
+            recordOpeningOverride(null, computed, value);
+        }
+        return value;
+    }
+
+    private void recordOpeningOverride(UUID id, BigDecimal computed, BigDecimal entered) {
+        auditService.record(
+                "OVERRIDE_OPENING_AMOUNT",
+                "shift_cash_reconciliations",
+                id,
+                """
+                {"computed":"%s","entered":"%s"}""".formatted(computed, entered));
     }
 
     /**

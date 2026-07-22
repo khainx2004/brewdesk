@@ -77,11 +77,18 @@ eq "Lap phieu ca sang hom sau" 201 "$c"
 eq "*** ke thua qua ngay: dau ca = 2.900.000" 2900000 "$(body '.data.openingAmount')"
 
 echo
-echo "--- 6. Tien dau ca KHONG nhan tu client ---"
-c=$(req PUT "/shift-reconciliations/$R4" "{\"actualAmount\":1000000,\"spentAmount\":0,\"withdrawnAmount\":0,\"openingAmount\":999999999,\"posAmount\":888888}")
-eq "Gui kem openingAmount va posAmount" 200 "$c"
-eq "*** openingAmount bi bo qua, van la 2.900.000" 2900000 "$(body '.data.openingAmount')"
+echo "--- 6. POS khoa cung, tien dau ca ghi de duoc ---"
+# POS khong bao gio nhan tu client. Tien dau ca thi nhan, vi chuoi ke thua co
+# ba cho dut that (ca dau tien, bo sot ca, tien ra vao ket ngoai gio ban giao).
+c=$(req PUT "/shift-reconciliations/$R4" "{\"actualAmount\":1000000,\"spentAmount\":0,\"withdrawnAmount\":0,\"posAmount\":888888}")
+eq "Gui kem posAmount" 200 "$c"
 eq "*** posAmount bi bo qua, van la 0" 0 "$(body '.data.posAmount')"
+eq "  khong gui openingAmount -> giu nguyen 2.900.000" 2900000 "$(body '.data.openingAmount')"
+
+c=$(req PUT "/shift-reconciliations/$R4" "{\"actualAmount\":1000000,\"spentAmount\":0,\"withdrawnAmount\":0,\"openingAmount\":2500000}")
+eq "*** Ghi de tien dau ca -> nhan" 200 "$c"
+eq "  luu dung so ghi de" 2500000 "$(body '.data.openingAmount')"
+eq "  chenh lech tinh lai theo so moi" -1500000 "$(body '.data.difference')"
 
 echo
 echo "--- 7. Phan chuyen khoan ---"
