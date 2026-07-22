@@ -66,8 +66,10 @@ export default function MenuCard({ item, canEdit, onEdit, onToggle, onRecipe, to
           </div>
         )}
 
-        {canEdit && (
-          <div className="mt-2.5 flex gap-1.5">
+        {/* Nút công thức hiện cho cả nhân viên: người pha chế cần tra định lượng,
+            và backend vốn đã cho đọc. Chỉ ADMIN mới sửa được, xem RecipeModal. */}
+        <div className="mt-2.5 flex gap-1.5">
+          {canEdit && (
             <button
               onClick={() => onEdit(item)}
               className="flex h-[30px] flex-1 items-center justify-center gap-1 rounded-[7px] border border-olive-mute bg-batter-lt text-[11.5px] font-semibold transition hover:border-rogue hover:text-rogue"
@@ -75,13 +77,15 @@ export default function MenuCard({ item, canEdit, onEdit, onToggle, onRecipe, to
               <Pencil size={12} strokeWidth={2} />
               Sửa
             </button>
-            <button
-              onClick={() => onRecipe(item)}
-              className="flex h-[30px] flex-1 items-center justify-center gap-1 rounded-[7px] border border-rogue/20 bg-rogue/8 text-[11.5px] font-semibold text-rogue transition hover:bg-rogue/15"
-            >
-              <BookOpen size={12} strokeWidth={1.5} />
-              Công thức
-            </button>
+          )}
+          <button
+            onClick={() => onRecipe(item)}
+            className="flex h-[30px] flex-1 items-center justify-center gap-1 rounded-[7px] border border-rogue/20 bg-rogue/8 text-[11.5px] font-semibold text-rogue transition hover:bg-rogue/15"
+          >
+            <BookOpen size={12} strokeWidth={1.5} />
+            {canEdit ? 'Công thức' : 'Xem công thức'}
+          </button>
+          {canEdit && (
             <button
               onClick={() => onToggle(item)}
               disabled={toggling}
@@ -94,8 +98,8 @@ export default function MenuCard({ item, canEdit, onEdit, onToggle, onRecipe, to
                 <Power size={12} strokeWidth={2} />
               )}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

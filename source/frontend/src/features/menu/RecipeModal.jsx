@@ -21,7 +21,15 @@ function baseIdOf(unit) {
   return unit?.baseUnitId ?? unit?.id;
 }
 
-export default function RecipeModal({ open, onClose, item }) {
+/**
+ * Công thức của một món.
+ *
+ * `canEdit = false` là chế độ chỉ xem, dành cho nhân viên: người pha chế cần tra
+ * định lượng nhưng không được sửa. Chế độ này đọc thẳng tên nguyên liệu và đơn
+ * vị có sẵn trong response công thức, nên **không** gọi tới danh sách nguyên
+ * liệu và đơn vị — hai truy vấn đó chỉ phục vụ việc chọn khi soạn thảo.
+ */
+export default function RecipeModal({ open, onClose, item, canEdit = false }) {
   const queryClient = useQueryClient();
   const [rows, setRows] = useState([]);
   const [serverError, setServerError] = useState(null);
@@ -29,12 +37,12 @@ export default function RecipeModal({ open, onClose, item }) {
   const ingredientsQuery = useQuery({
     queryKey: ['ingredients-all'],
     queryFn: () => ingredientApi.list({ size: 500, includeInactive: false }),
-    enabled: open,
+    enabled: open && canEdit,
   });
   const unitsQuery = useQuery({
     queryKey: ['units'],
     queryFn: unitApi.list,
-    enabled: open,
+    enabled: open && canEdit,
   });
   const recipeQuery = useQuery({
     queryKey: ['recipe', item?.id],
@@ -132,7 +140,8 @@ export default function RecipeModal({ open, onClose, item }) {
     );
   };
 
-  const loading = ingredientsQuery.isLoading || unitsQuery.isLoading || recipeQuery.isLoading;
+  const loading = recipeQuery.isLoading || (canEdit && (ingredientsQuery.isLoading || unitsQuery.isLoading));
+  const lines = recipeQuery.data ?? [];
 
   return (
     <Modal
@@ -140,27 +149,37 @@ export default function RecipeModal({ open, onClose, item }) {
       onClose={onClose}
       title={`Công thức nguyên liệu — ${item?.name ?? ''}`}
       footer={
-        <>
+        canEdit ? (
+          <>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saveMutation.isPending}
+              className="flex-1 rounded-lg border border-olive-mute bg-cream py-2.5 text-[13px] font-semibold text-olive transition hover:border-wine hover:text-wine disabled:opacity-50"
+            >
+              Huỷ
+            </button>
+            <button
+              type="button"
+              onClick={save}
+              disabled={saveMutation.isPending || loading}
+              className="flex flex-[2] items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-rogue to-rogue-dk py-2.5 text-[13px] font-bold text-batter-lt shadow-[0_3px_10px_rgba(58,61,46,0.25)] transition hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {saveMutation.isPending && (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              )}
+              Lưu công thức
+            </button>
+          </>
+        ) : (
           <button
             type="button"
             onClick={onClose}
-            disabled={saveMutation.isPending}
-            className="flex-1 rounded-lg border border-olive-mute bg-cream py-2.5 text-[13px] font-semibold text-olive transition hover:border-wine hover:text-wine disabled:opacity-50"
+            className="flex-1 rounded-lg border border-olive-mute bg-cream py-2.5 text-[13px] font-semibold text-olive transition hover:border-rogue hover:text-rogue"
           >
-            Huỷ
+            Đóng
           </button>
-          <button
-            type="button"
-            onClick={save}
-            disabled={saveMutation.isPending || loading}
-            className="flex flex-[2] items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-rogue to-rogue-dk py-2.5 text-[13px] font-bold text-batter-lt shadow-[0_3px_10px_rgba(58,61,46,0.25)] transition hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-          >
-            {saveMutation.isPending && (
-              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            )}
-            Lưu công thức
-          </button>
-        </>
+        )
       }
     >
       {serverError && (
@@ -171,6 +190,35 @@ export default function RecipeModal({ open, onClose, item }) {
 
       {loading ? (
         <p className="py-8 text-center text-sm text-olive">Đang tải...</p>
+      ) : !canEdit ? (
+        <div className="rounded-lg bg-batter p-3.5">
+          <p className="mb-3 text-xs leading-relaxed text-olive">
+            Lượng nguyên liệu cho <strong>1 phần</strong> của món này. Chỉ quản lý
+            mới sửa được công thức.
+          </p>
+
+          {lines.length === 0 ? (
+            <p className="py-4 text-center text-[13px] text-wine">
+              Món này chưa có công thức nên chưa bán được.
+            </p>
+          ) : (
+            <div className="flex flex-col">
+              {lines.map((line, i) => (
+                <div
+                  key={line.id}
+                  className={`flex items-baseline justify-between gap-3 py-2 ${
+                    i < lines.length - 1 ? 'border-b border-olive-mute/30' : ''
+                  }`}
+                >
+                  <span className="text-[13px]">{line.ingredientName}</span>
+                  <span className="shrink-0 text-[13px] font-semibold text-caramel">
+                    {line.quantity} {line.unitCode}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         <div className="rounded-lg bg-batter p-3.5">
           <p className="mb-3 text-xs leading-relaxed text-olive">

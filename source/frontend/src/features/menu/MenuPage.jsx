@@ -278,6 +278,7 @@ export default function MenuPage() {
         open={Boolean(recipeItem)}
         onClose={() => setRecipeItem(null)}
         item={recipeItem}
+        canEdit={isAdmin}
       />
     </AppShell>
   );
