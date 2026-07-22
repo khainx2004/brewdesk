@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Coffee, CupSoda, Search, Snowflake, Cookie } from 'lucide-react';
+import { Coffee, CupSoda, ReceiptText, Search, Snowflake, Cookie } from 'lucide-react';
 import { categoryApi, menuItemApi, variantApi } from '../../services/menuApi';
 import { orderApi } from '../../services/posApi';
 import AppShell from '../../components/layout/AppShell';
@@ -10,6 +10,7 @@ import { useShift } from '../../hooks/useShift';
 import { formatVnd } from '../../utils/fmt';
 import VariantModal from './VariantModal';
 import CartPanel from './CartPanel';
+import OrdersPanel from './OrdersPanel';
 
 /** Icon theo tên danh mục — line-art Lucide, không dùng emoji (CLAUDE.md mục 9). */
 function iconFor(categoryName = '') {
@@ -26,6 +27,7 @@ export default function PosPage() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [search, setSearch] = useState('');
   const [pendingItem, setPendingItem] = useState(null);
+  const [ordersOpen, setOrdersOpen] = useState(false);
 
   const [discountType, setDiscountType] = useState('FIXED');
   const [discountValue, setDiscountValue] = useState('');
@@ -131,6 +133,17 @@ export default function PosPage() {
   // thanh bên gập được đã lo phần không gian cho lưới món.
   const topbarExtra = (
     <>
+      {/* Nút mở panel đơn hôm nay. Đặt ngay trên topbar POS vì người cần huỷ đơn
+          là người vừa gõ nhầm, đang có khách đứng đợi — không thể bắt họ rời màn. */}
+      <button
+        type="button"
+        onClick={() => setOrdersOpen(true)}
+        title="Xem và huỷ đơn hôm nay"
+        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-olive/30 px-3 text-[12.5px] font-medium text-olive-mute transition hover:border-olive hover:bg-white/5 hover:text-batter-lt"
+      >
+        <ReceiptText size={14} strokeWidth={1.75} />
+        Đơn hôm nay
+      </button>
       <span
         className={`rounded-full border px-3.5 py-1 text-xs font-semibold tracking-wide transition ${
           isOpen
@@ -219,6 +232,7 @@ export default function PosPage() {
           setNotice(null);
         }}
       />
+      <OrdersPanel open={ordersOpen} onClose={() => setOrdersOpen(false)} />
     </AppShell>
   );
 }

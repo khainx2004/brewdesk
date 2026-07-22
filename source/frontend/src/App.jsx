@@ -9,6 +9,7 @@ import ForbiddenPage from './features/ForbiddenPage';
 import HomePage from './features/HomePage';
 import MenuPage from './features/menu/MenuPage';
 import ChecklistPage from './features/checklist/ChecklistPage';
+import ReconciliationPage from './features/reconciliation/ReconciliationPage';
 import PosPage from './features/pos/PosPage';
 
 /**
@@ -89,6 +90,14 @@ export default function App() {
         element={
           <RequireAuth>
             <ChecklistPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/ban-giao-ca"
+        element={
+          <RequireAuth>
+            <ReconciliationPage />
           </RequireAuth>
         }
       />

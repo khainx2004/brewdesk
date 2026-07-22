@@ -46,7 +46,7 @@ export const NAV_SECTIONS = [
         to: '/ban-giao-ca',
         label: 'Bàn giao ca',
         icon: FileText,
-        ready: false,
+        ready: true,
         description: 'Đối soát tiền mặt cuối ca.',
       },
     ],
