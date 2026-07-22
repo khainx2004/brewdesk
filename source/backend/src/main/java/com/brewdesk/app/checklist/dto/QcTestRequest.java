@@ -1,5 +1,8 @@
 package com.brewdesk.app.checklist.dto;
 
+import com.brewdesk.app.checklist.QcFailAction;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +23,14 @@ public record QcTestRequest(
         @Positive(message = "Lượng nước chiết ra phải lớn hơn 0") BigDecimal yieldGram,
         @Positive(message = "Thời gian chiết phải lớn hơn 0") Integer extractionSeconds,
         @Size(max = 50, message = "Mức xay tối đa 50 ký tự") String grindSetting,
+        /** Nhiệt độ nước pha, °C. Tuỳ chọn — có hôm chỉ chấm cảm quan. */
+        @DecimalMin(value = "0", message = "Nhiệt độ từ 0 đến 100")
+                @DecimalMax(value = "100", message = "Nhiệt độ từ 0 đến 100")
+                BigDecimal waterTempC,
+        /** Độ ẩm môi trường, %. Ảnh hưởng tới mức xay nên đáng ghi lại. */
+        @DecimalMin(value = "0", message = "Độ ẩm từ 0 đến 100")
+                @DecimalMax(value = "100", message = "Độ ẩm từ 0 đến 100")
+                BigDecimal humidityPercent,
         @NotNull(message = "Chưa chấm điểm chua")
                 @Min(value = 1, message = "Điểm chua từ 1 đến 5")
                 @Max(value = 5, message = "Điểm chua từ 1 đến 5")
@@ -32,4 +43,17 @@ public record QcTestRequest(
                 @Min(value = 1, message = "Điểm ngọt từ 1 đến 5")
                 @Max(value = 5, message = "Điểm ngọt từ 1 đến 5")
                 Integer sweetness,
-        String note) {}
+        /** Kết quả cảm quan. Bắt buộc — đây là lý do bảng này tồn tại. */
+        @NotNull(message = "Chưa chọn kết quả đạt hay không đạt") Boolean passed,
+        /**
+         * Hành động khi không đạt. Bắt buộc khi {@code passed = false}, và phải bỏ
+         * trống khi đạt — kiểm ở service để báo lỗi tiếng Việt thay vì để CHECK
+         * {@code chk_qc_action_matches_result} bắn ra lỗi ràng buộc thô.
+         */
+        QcFailAction failAction,
+        String note) {
+
+    public boolean passedOrFalse() {
+        return Boolean.TRUE.equals(passed);
+    }
+}

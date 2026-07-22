@@ -1,5 +1,6 @@
 package com.brewdesk.app.checklist.dto;
 
+import com.brewdesk.app.checklist.QcFailAction;
 import com.brewdesk.app.checklist.QcTest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,6 +17,10 @@ public record QcTestResponse(
         BigDecimal ratio,
         Integer extractionSeconds,
         String grindSetting,
+        BigDecimal waterTempC,
+        BigDecimal humidityPercent,
+        boolean passed,
+        QcFailAction failAction,
         int acidity,
         int body,
         int sweetness,
@@ -33,6 +38,10 @@ public record QcTestResponse(
                 ratio(t.getDoseGram(), t.getYieldGram()),
                 t.getExtractionSeconds(),
                 t.getGrindSetting(),
+                t.getWaterTempC(),
+                t.getHumidityPercent(),
+                t.isPassed(),
+                t.getFailAction(),
                 t.getAcidity(),
                 t.getBody(),
                 t.getSweetness(),

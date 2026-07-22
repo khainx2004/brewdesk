@@ -13,6 +13,7 @@ import com.brewdesk.app.inventory.StockImportRepository;
 import com.brewdesk.app.staff.ShiftService;
 import com.brewdesk.app.staff.User;
 import com.brewdesk.app.staff.UserRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,10 +67,14 @@ public class QcService {
                     QcTest.builder()
                             .session(session)
                             .stockImport(resolveStockImport(line.stockImportId()))
-                            .doseGram(line.doseGram())
-                            .yieldGram(line.yieldGram())
+                            .doseGram(qty(line.doseGram()))
+                            .yieldGram(qty(line.yieldGram()))
                             .extractionSeconds(line.extractionSeconds())
                             .grindSetting(line.grindSetting())
+                            .waterTempC(oneDecimal(line.waterTempC()))
+                            .humidityPercent(oneDecimal(line.humidityPercent()))
+                            .passed(line.passedOrFalse())
+                            .failAction(requireActionMatchesResult(line))
                             .acidity(line.acidity())
                             .body(line.body())
                             .sweetness(line.sweetness())
@@ -122,6 +127,53 @@ public class QcService {
                         Collectors.groupingBy(
                                 t -> t.getSession().getId(),
                                 Collectors.mapping(QcTestResponse::from, Collectors.toList())));
+    }
+
+    /**
+     * Chuẩn hoá scale cho số đọc từ JSON.
+     *
+     * <p>BigDecimal lấy từ request mang scale của chuỗi người gửi: gửi {@code 93}
+     * thì scale 0, trong khi đọc lại từ cột {@code DECIMAL(4,1)} ra {@code 93.0}.
+     * Cùng một trường trả về hai giá trị khác nhau tuỳ đường đi — đúng lỗi đã gặp
+     * ở Phase 4 với {@code stockQty} và tái phát ở V4 với hai cột khác. Lần đó
+     * bài học rút ra là chuẩn hoá tập trung chứ đừng vá lẻ từng chỗ.
+     */
+    private static BigDecimal qty(BigDecimal value) {
+        return scaled(value, 3);
+    }
+
+    private static BigDecimal oneDecimal(BigDecimal value) {
+        return scaled(value, 1);
+    }
+
+    private static BigDecimal scaled(BigDecimal value, int scale) {
+        return value != null ? value.setScale(scale, java.math.RoundingMode.HALF_UP) : null;
+    }
+
+    /**
+     * Không đạt thì bắt buộc ghi đã xử lý thế nào; đạt thì không được kèm hành
+     * động.
+     *
+     * <p>Ghi "không đạt" rồi bỏ trống xử lý chính là thứ biến bảng QC thành hình
+     * thức: biết cà phê hỏng mà không ai biết sau đó làm gì. DB cũng chặn bằng
+     * CHECK, nhưng kiểm ở đây để người dùng nhận câu tiếng Việt đọc được thay vì
+     * lỗi ràng buộc thô.
+     */
+    private QcFailAction requireActionMatchesResult(QcTestRequest line) {
+        if (line.passedOrFalse()) {
+            if (line.failAction() != null) {
+                throw new AppException(
+                        ErrorCode.VALIDATION_ERROR,
+                        "Lần test đạt thì không cần chọn hành động xử lý");
+            }
+            return null;
+        }
+        if (line.failAction() == null) {
+            throw new AppException(
+                    ErrorCode.VALIDATION_ERROR,
+                    "Lần test không đạt thì phải chọn hành động xử lý");
+        }
+        return line.failAction();
     }
 
     private StockImport resolveStockImport(UUID id) {

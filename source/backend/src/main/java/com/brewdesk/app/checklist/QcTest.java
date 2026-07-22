@@ -3,6 +3,8 @@ package com.brewdesk.app.checklist;
 import com.brewdesk.app.inventory.StockImport;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -63,6 +65,26 @@ public class QcTest {
 
     @Column(name = "sweetness", nullable = false)
     private int sweetness;
+
+    /** Nhiệt độ nước pha. Tuỳ chọn — có hôm chỉ chấm cảm quan. */
+    @Column(name = "water_temp_c", precision = 4, scale = 1)
+    private BigDecimal waterTempC;
+
+    /** Độ ẩm môi trường, ảnh hưởng tới mức xay. */
+    @Column(name = "humidity_percent", precision = 4, scale = 1)
+    private BigDecimal humidityPercent;
+
+    /** Kết quả cảm quan. Bắt buộc — đây là lý do bảng này tồn tại. */
+    @Column(name = "passed", nullable = false)
+    private boolean passed;
+
+    /**
+     * Hành động khi không đạt. Bắt buộc có khi {@code passed = false} và phải
+     * null khi đạt — CHECK {@code chk_qc_action_matches_result} ở V8.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fail_action", length = 30)
+    private QcFailAction failAction;
 
     @Column(name = "note")
     private String note;
