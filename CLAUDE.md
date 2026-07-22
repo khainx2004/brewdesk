@@ -292,14 +292,27 @@ pha loãng nhiều nên lưu bằng `g` thay vì `kg`. Hệ thống chặn lúc 
 nếu lượng trừ ra đúng 0, nhưng sai số do làm tròn (ví dụ 0.00075 thành 0.001)
 thì không chặn được — kiểm kê tuần sẽ tự hiệu chỉnh.
 
+### Giảm giá — STAFF tự quyết, KHÔNG cần ADMIN duyệt
+
+Chủ quán đã chốt: nhân viên giảm giá được, không có ngưỡng nào phải xin duyệt.
+Quán nhỏ, khách quen, chờ chủ duyệt từng lần chỉ làm tắc quầy.
+
+Ràng buộc duy nhất là **số tiền giảm không vượt tiền hàng**, validate ở Service.
+
+Chỗ dựa để yên tâm không phải là chặn trước mà là **dấu vết**: mọi đơn có giảm
+giá đều ghi `audit_logs` với hành động `ORDER_DISCOUNT`, kèm người thực hiện và
+số tiền. Đơn thường không ghi audit — chỉ đơn giảm giá và đơn huỷ.
+
+Đừng thêm ngưỡng duyệt trừ khi chủ quán yêu cầu.
+
 ### Đơn hàng
 - KHÔNG có trạng thái trung gian (pending/processing) — đơn chỉ có 2 trạng thái: active hoặc cancelled
 - KHÔNG sửa đơn đã tạo — quy trình: hủy đơn cũ → tạo đơn mới
 - Hủy đơn → hoàn kho tự động trong cùng transaction
 
 ### Phân quyền
-- **ADMIN:** toàn quyền — quản lý menu, kho, nhân viên, xem báo cáo tài chính, duyệt giảm giá lớn, sửa giá vốn
-- **STAFF:** tạo đơn POS, thực hiện checklist, test cafe, xem tồn kho, bàn giao ca
+- **ADMIN:** toàn quyền — quản lý menu, kho, nhân viên, xem báo cáo tài chính, sửa giá vốn
+- **STAFF:** tạo đơn POS, giảm giá, thực hiện checklist, test cafe, xem tồn kho, bàn giao ca
 - STAFF **KHÔNG** được: xem báo cáo tài chính, sửa giá vốn, xóa dữ liệu
 
 ### Xác thực
