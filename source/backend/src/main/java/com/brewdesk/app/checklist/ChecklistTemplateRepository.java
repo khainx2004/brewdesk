@@ -1,7 +1,6 @@
 package com.brewdesk.app.checklist;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,7 +8,12 @@ import org.springframework.data.repository.query.Param;
 
 public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemplate, UUID> {
 
-    Optional<ChecklistTemplate> findByTitleIgnoreCase(String title);
+    /**
+     * Trùng tên được phép nếu khác ca — cùng một việc làm hai lần trong ngày ở
+     * hai ca là chuyện thật của quán. Trả về danh sách để service lọc tiếp theo
+     * ca, cùng cách Phase 3 xử món trùng tên khác danh mục.
+     */
+    List<ChecklistTemplate> findAllByTitleIgnoreCase(String title);
 
     /**
      * Đầu việc phải làm trong một ca: việc gắn đúng ca đó, cộng việc không gắn ca

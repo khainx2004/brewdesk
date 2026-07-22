@@ -2,6 +2,7 @@ package com.brewdesk.app.checklist.dto;
 
 import com.brewdesk.app.checklist.ChecklistFrequency;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -18,6 +19,8 @@ public record ChecklistTaskResponse(
         ChecklistFrequency frequency,
         UUID shiftTypeId,
         String shiftTypeName,
+        /** Số ISO 1–7, rỗng nghĩa là không theo lịch ngày. */
+        List<Integer> scheduledDays,
         int displayOrder,
         boolean done,
         LocalDate periodStart,

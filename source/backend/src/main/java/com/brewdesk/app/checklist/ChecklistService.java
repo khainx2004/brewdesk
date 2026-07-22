@@ -5,7 +5,11 @@ import com.brewdesk.app.checklist.dto.ChecklistCompletionResponse;
 import com.brewdesk.app.checklist.dto.ChecklistTaskResponse;
 import com.brewdesk.app.checklist.dto.ChecklistTemplateRequest;
 import com.brewdesk.app.checklist.dto.ChecklistTemplateResponse;
+import com.brewdesk.app.checklist.dto.ChecklistWeekDayResponse;
+import com.brewdesk.app.checklist.dto.ChecklistWeekResponse;
+import com.brewdesk.app.checklist.dto.ChecklistWeekTaskResponse;
 import com.brewdesk.app.checklist.dto.CompleteChecklistRequest;
+import com.brewdesk.app.checklist.dto.UpdateCompletionNoteRequest;
 import com.brewdesk.app.common.audit.AuditService;
 import com.brewdesk.app.common.dto.PageResponse;
 import com.brewdesk.app.common.exception.AppException;
@@ -16,8 +20,10 @@ import com.brewdesk.app.staff.ShiftType;
 import com.brewdesk.app.staff.User;
 import com.brewdesk.app.staff.UserRepository;
 import com.brewdesk.app.staff.dto.ShiftTypeResponse;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -71,7 +77,7 @@ public class ChecklistService {
 
     @Transactional
     public ChecklistTemplateResponse createTemplate(ChecklistTemplateRequest request) {
-        requireTitleFree(request.title(), null);
+        requireTitleFree(request.title(), request.shiftTypeId(), null);
 
         ChecklistTemplate template =
                 ChecklistTemplate.builder()
@@ -79,6 +85,7 @@ public class ChecklistService {
                         .description(request.description())
                         .frequency(request.frequency())
                         .shiftType(resolveShiftType(request.shiftTypeId()))
+                        .scheduledDays(resolveScheduledDays(request))
                         .displayOrder(request.displayOrderOrZero())
                         .active(true)
                         .build();
@@ -88,12 +95,13 @@ public class ChecklistService {
     @Transactional
     public ChecklistTemplateResponse updateTemplate(UUID id, ChecklistTemplateRequest request) {
         ChecklistTemplate template = findTemplate(id);
-        requireTitleFree(request.title(), id);
+        requireTitleFree(request.title(), request.shiftTypeId(), id);
 
         template.setTitle(request.title().trim());
         template.setDescription(request.description());
         template.setFrequency(request.frequency());
         template.setShiftType(resolveShiftType(request.shiftTypeId()));
+        template.setScheduledDays(resolveScheduledDays(request));
         template.setDisplayOrder(request.displayOrderOrZero());
         return ChecklistTemplateResponse.from(templateRepository.save(template));
     }
@@ -156,8 +164,8 @@ public class ChecklistService {
         List<ChecklistTaskResponse> tasks = new ArrayList<>(templates.size());
         int done = 0;
         for (ChecklistTemplate template : templates) {
-            LocalDate start = template.getFrequency().periodStart(day);
-            LocalDate end = template.getFrequency().periodEnd(day);
+            LocalDate start = template.periodStart(day);
+            LocalDate end = template.periodEnd(day);
 
             Optional<ChecklistCompletion> hit =
                     byTemplate.getOrDefault(template.getId(), List.of()).stream()
@@ -179,6 +187,7 @@ public class ChecklistService {
                             template.getShiftType() != null
                                     ? template.getShiftType().getName()
                                     : null,
+                            ScheduledDays.toIsoDays(template.getScheduledDays()),
                             template.getDisplayOrder(),
                             hit.isPresent(),
                             start,
@@ -210,8 +219,12 @@ public class ChecklistService {
         }
 
         LocalDate day = request.date() != null ? request.date() : shiftService.today();
-        LocalDate start = template.getFrequency().periodStart(day);
-        LocalDate end = template.getFrequency().periodEnd(day);
+        requireNotFuture(day);
+
+        // Việc tuần có khai lịch ngày thì khoảng này thu về đúng một ngày, tức
+        // mỗi buổi trong lịch tick được riêng. Xem ChecklistTemplate.periodStart.
+        LocalDate start = template.periodStart(day);
+        LocalDate end = template.periodEnd(day);
 
         completionRepository
                 .findForTemplatesInRange(List.of(templateId), start, end)
@@ -272,6 +285,138 @@ public class ChecklistService {
         completionRepository.delete(completion);
     }
 
+    /**
+     * Sửa ghi chú của một lượt tick đã có.
+     *
+     * <p>Không ghi audit như {@link #uncomplete}: sửa ghi chú không đổi việc ai
+     * đã làm và làm lúc nào, tức không đụng tới thứ mà audit sinh ra để bảo vệ.
+     */
+    @Transactional
+    public ChecklistCompletionResponse updateNote(
+            UUID completionId, UpdateCompletionNoteRequest request) {
+        ChecklistCompletion completion =
+                completionRepository
+                        .findById(completionId)
+                        .orElseThrow(
+                                () ->
+                                        new AppException(
+                                                ErrorCode.CHECKLIST_COMPLETION_NOT_FOUND));
+
+        String note = request.note();
+        completion.setNote(note == null || note.isBlank() ? null : note.trim());
+        return ChecklistCompletionResponse.from(completionRepository.save(completion));
+    }
+
+    /**
+     * Lưới việc hàng tuần: mỗi việc một hàng, mỗi hàng 7 ô ngày.
+     *
+     * <p>Cố ý <b>không</b> lọc theo ca. Board là ảnh chụp một ngày trong một ca,
+     * còn lưới này trải cả tuần — việc dọn kho thứ 5 vẫn phải hiện khi đang mở ca
+     * sáng, nếu không thì cả tuần không ai thấy nó tới hạn.
+     */
+    @Transactional(readOnly = true)
+    public ChecklistWeekResponse week(LocalDate date) {
+        LocalDate day = date != null ? date : shiftService.today();
+        LocalDate today = shiftService.today();
+        LocalDate weekStart = day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+
+        List<ChecklistTemplate> templates =
+                templateRepository.findActiveForShift(true, NO_ID).stream()
+                        .filter(t -> t.getFrequency() == ChecklistFrequency.WEEKLY)
+                        .toList();
+
+        if (templates.isEmpty()) {
+            return new ChecklistWeekResponse(weekStart, weekEnd, today, 0, 0, List.of());
+        }
+
+        Map<UUID, Map<LocalDate, ChecklistCompletion>> byTemplate =
+                completionRepository
+                        .findForTemplatesInRange(
+                                templates.stream().map(ChecklistTemplate::getId).toList(),
+                                weekStart,
+                                weekEnd)
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        c -> c.getTemplate().getId(),
+                                        Collectors.toMap(
+                                                ChecklistCompletion::getCompletionDate,
+                                                Function.identity(),
+                                                (a, b) -> a)));
+
+        List<ChecklistWeekTaskResponse> tasks = new ArrayList<>(templates.size());
+        int tasksDone = 0;
+        for (ChecklistTemplate template : templates) {
+            Map<LocalDate, ChecklistCompletion> hits =
+                    byTemplate.getOrDefault(template.getId(), Map.of());
+            Integer mask = template.getScheduledDays();
+            boolean daySchedule = template.hasDaySchedule();
+
+            List<ChecklistWeekDayResponse> days = new ArrayList<>(7);
+            int doneCount = 0;
+            int scheduledDone = 0;
+            for (int offset = 0; offset < 7; offset++) {
+                LocalDate cell = weekStart.plusDays(offset);
+                ChecklistCompletion hit = hits.get(cell);
+
+                boolean done = hit != null;
+                boolean scheduled = ScheduledDays.covers(mask, cell);
+                boolean future = cell.isAfter(today);
+                // Hôm nay chưa hết ngày nên chưa tính là quá hạn.
+                boolean overdue = scheduled && !done && cell.isBefore(today);
+
+                if (done) {
+                    doneCount++;
+                    if (scheduled) {
+                        scheduledDone++;
+                    }
+                }
+
+                days.add(
+                        new ChecklistWeekDayResponse(
+                                cell,
+                                cell.getDayOfWeek().getValue(),
+                                scheduled,
+                                done,
+                                overdue,
+                                done && !scheduled,
+                                future,
+                                hit != null ? ChecklistCompletionResponse.from(hit) : null));
+            }
+
+            int scheduledCount =
+                    daySchedule ? Integer.bitCount(template.getScheduledDays()) : 1;
+            boolean done =
+                    daySchedule ? scheduledDone >= scheduledCount : doneCount > 0;
+            if (done) {
+                tasksDone++;
+            }
+
+            tasks.add(
+                    new ChecklistWeekTaskResponse(
+                            template.getId(),
+                            template.getTitle(),
+                            template.getDescription(),
+                            template.getShiftType() != null
+                                    ? template.getShiftType().getId()
+                                    : null,
+                            template.getShiftType() != null
+                                    ? template.getShiftType().getName()
+                                    : null,
+                            template.getDisplayOrder(),
+                            ScheduledDays.toIsoDays(mask),
+                            daySchedule,
+                            done,
+                            doneCount,
+                            scheduledCount,
+                            days));
+        }
+
+        return new ChecklistWeekResponse(
+                weekStart, weekEnd, today, tasks.size(), tasksDone, tasks);
+    }
+
     @Transactional(readOnly = true)
     public PageResponse<ChecklistCompletionResponse> history(
             LocalDate from, LocalDate to, UUID templateId, Pageable pageable) {
@@ -307,14 +452,14 @@ public class ChecklistService {
 
     private LocalDate widestStart(List<ChecklistTemplate> templates, LocalDate day) {
         return templates.stream()
-                .map(t -> t.getFrequency().periodStart(day))
+                .map(t -> t.periodStart(day))
                 .min(Comparator.naturalOrder())
                 .orElse(day);
     }
 
     private LocalDate widestEnd(List<ChecklistTemplate> templates, LocalDate day) {
         return templates.stream()
-                .map(t -> t.getFrequency().periodEnd(day))
+                .map(t -> t.periodEnd(day))
                 .max(Comparator.naturalOrder())
                 .orElse(day);
     }
@@ -350,18 +495,69 @@ public class ChecklistService {
         return staff;
     }
 
+    /**
+     * Lịch ngày chỉ dành cho WEEKLY. Chặn ở đây kèm câu tiếng Việt đọc được thay
+     * vì để CHECK {@code chk_ct_scheduled_days} ở DB bắn ra lỗi ràng buộc thô —
+     * DB là lưới an toàn cuối, không phải chỗ báo lỗi cho người dùng.
+     */
+    private Integer resolveScheduledDays(ChecklistTemplateRequest request) {
+        Integer mask = ScheduledDays.toMask(request.scheduledDays());
+        if (mask != null && request.frequency() != ChecklistFrequency.WEEKLY) {
+            throw new AppException(
+                    ErrorCode.VALIDATION_ERROR,
+                    "Chỉ việc hàng tuần mới khai được lịch ngày trong tuần. Tần suất đang chọn"
+                            + " là "
+                            + request.frequency());
+        }
+        return mask;
+    }
+
+    /**
+     * Không cho tick ngày chưa tới. Tick bù cho ngày đã qua thì hợp lý — ca tối
+     * đóng cửa 21:00 nên có người tick sáng hôm sau — nhưng tick trước cho việc
+     * chưa làm thì checklist không còn phản ánh thực tế, và ô "quá hạn" trên lưới
+     * tuần cũng mất nghĩa theo.
+     */
+    private void requireNotFuture(LocalDate day) {
+        if (day.isAfter(shiftService.today())) {
+            throw new AppException(
+                    ErrorCode.VALIDATION_ERROR,
+                    "Không tick được cho ngày chưa tới (" + day + ")");
+        }
+    }
+
     private ShiftType resolveShiftType(UUID shiftTypeId) {
         return shiftTypeId != null ? shiftService.requireShift(shiftTypeId) : null;
     }
 
-    private void requireTitleFree(String title, UUID selfId) {
-        templateRepository
-                .findByTitleIgnoreCase(title.trim())
+    /**
+     * Chặn trùng tên theo cặp (tên, ca) chứ không chỉ theo tên.
+     *
+     * <p>Quán có việc lặp lại ở nhiều ca — "Check không gian trong, ngoài nhà,
+     * NVS, quầy bar" làm cả ca chiều lẫn ca tối. Chặn theo tên trần thì việc thứ
+     * hai không khai được, mà đổi tên cho khác đi thì chữ trên màn hình lệch với
+     * chữ quán đang dùng. Cùng cách Phase 3 cho phép món trùng tên khác danh mục.
+     */
+    private void requireTitleFree(String title, UUID shiftTypeId, UUID selfId) {
+        templateRepository.findAllByTitleIgnoreCase(title.trim()).stream()
                 .filter(existing -> !existing.getId().equals(selfId))
+                .filter(existing -> java.util.Objects.equals(shiftIdOf(existing), shiftTypeId))
+                .findFirst()
                 .ifPresent(
                         existing -> {
-                            throw new AppException(ErrorCode.CHECKLIST_TITLE_EXISTS);
+                            throw new AppException(
+                                    ErrorCode.CHECKLIST_TITLE_EXISTS,
+                                    "Đã có đầu việc \"%s\" trong %s"
+                                            .formatted(
+                                                    existing.getTitle(),
+                                                    existing.getShiftType() != null
+                                                            ? existing.getShiftType().getName()
+                                                            : "nhóm việc không gắn ca"));
                         });
+    }
+
+    private static UUID shiftIdOf(ChecklistTemplate template) {
+        return template.getShiftType() != null ? template.getShiftType().getId() : null;
     }
 
     private ChecklistTemplate findTemplate(UUID id) {

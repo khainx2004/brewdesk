@@ -2,7 +2,9 @@ package com.brewdesk.app.checklist;
 
 import com.brewdesk.app.checklist.dto.ChecklistBoardResponse;
 import com.brewdesk.app.checklist.dto.ChecklistCompletionResponse;
+import com.brewdesk.app.checklist.dto.ChecklistWeekResponse;
 import com.brewdesk.app.checklist.dto.CompleteChecklistRequest;
+import com.brewdesk.app.checklist.dto.UpdateCompletionNoteRequest;
 import com.brewdesk.app.common.dto.ApiResponse;
 import com.brewdesk.app.common.dto.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,6 +51,19 @@ public class ChecklistController {
         return ResponseEntity.ok(ApiResponse.ok(checklistService.board(date, shiftTypeId)));
     }
 
+    @Operation(
+            summary = "Lưới việc hàng tuần — mỗi việc 7 ô ngày",
+            description =
+                    "Không lọc theo ca, vì việc của thứ 5 vẫn phải thấy được khi đang mở ca sáng."
+                        + " Mỗi ô ngày kèm sẵn cờ scheduled / done / overdue / extra / future để"
+                        + " frontend không phải tự tính 'hôm nay' theo giờ máy.")
+    @GetMapping("/week")
+    public ResponseEntity<ApiResponse<ChecklistWeekResponse>> week(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate date) {
+        return ResponseEntity.ok(ApiResponse.ok(checklistService.week(date)));
+    }
+
     @Operation(summary = "Tick một đầu việc đã làm xong")
     @PostMapping("/{templateId}/complete")
     public ResponseEntity<ApiResponse<ChecklistCompletionResponse>> complete(
@@ -68,6 +84,20 @@ public class ChecklistController {
     public ResponseEntity<ApiResponse<Void>> uncomplete(@PathVariable UUID completionId) {
         checklistService.uncomplete(completionId);
         return ResponseEntity.ok(ApiResponse.ok(null, "Đã bỏ tick"));
+    }
+
+    /**
+     * Cần vì luồng UI đã chốt là "bấm tick trước, gõ ghi chú sau" — lúc gõ thì
+     * lượt tick đã tồn tại nên POST complete không dùng lại được.
+     */
+    @Operation(summary = "Sửa ghi chú của một lượt tick")
+    @PatchMapping("/completions/{completionId}")
+    public ResponseEntity<ApiResponse<ChecklistCompletionResponse>> updateNote(
+            @PathVariable UUID completionId,
+            @Valid @RequestBody UpdateCompletionNoteRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.ok(
+                        checklistService.updateNote(completionId, request), "Đã lưu ghi chú"));
     }
 
     @Operation(summary = "Lịch sử tick")

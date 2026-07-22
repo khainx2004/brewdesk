@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import java.util.UUID;
 
 public record ChecklistTemplateRequest(
@@ -15,6 +16,12 @@ public record ChecklistTemplateRequest(
         @NotNull(message = "Chưa chọn tần suất") ChecklistFrequency frequency,
         /** Null nghĩa là ca nào cũng phải làm. */
         UUID shiftTypeId,
+        /**
+         * Lịch ngày trong tuần dạng số ISO 1–7 (thứ 2 = 1), ví dụ {@code [2,4,6]}.
+         * Chỉ dùng được cho WEEKLY. Null hoặc rỗng = không theo lịch ngày, tức
+         * tick một lần bất kỳ trong tuần là xong cả tuần.
+         */
+        List<Integer> scheduledDays,
         @PositiveOrZero(message = "Thứ tự hiển thị không được âm") Integer displayOrder) {
 
     public int displayOrderOrZero() {
