@@ -105,4 +105,15 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             @Param("throughStart") java.time.LocalTime throughStart,
             @Param("from") OffsetDateTime from,
             @Param("to") OffsetDateTime to);
+    /** Đơn trong một khoảng, kèm ca và người tạo, mới nhất trước — cho panel hôm nay. */
+    @Query("""
+        select o from Order o
+        join fetch o.shiftType
+        join fetch o.createdBy
+        where o.createdAt >= :from and o.createdAt < :to
+        order by o.createdAt desc
+        """)
+    java.util.List<Order> findInRange(
+            @org.springframework.data.repository.query.Param("from") java.time.OffsetDateTime from,
+            @org.springframework.data.repository.query.Param("to") java.time.OffsetDateTime to);
 }

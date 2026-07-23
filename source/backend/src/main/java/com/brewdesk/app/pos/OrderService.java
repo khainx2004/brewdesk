@@ -564,6 +564,28 @@ public class OrderService {
     // ==================================================================
 
     @Transactional(readOnly = true)
+    public java.util.List<com.brewdesk.app.pos.dto.TodayOrderResponse> today() {
+        java.time.LocalDate day = shiftService.today();
+        java.util.List<Order> orders =
+                orderRepository.findInRange(
+                        shiftService.startOfDay(day), shiftService.startOfDay(day.plusDays(1)));
+        if (orders.isEmpty()) {
+            return java.util.List.of();
+        }
+        java.util.Map<UUID, java.util.List<OrderItem>> byOrder =
+                orderItemRepository
+                        .findByOrderIdIn(orders.stream().map(Order::getId).toList())
+                        .stream()
+                        .collect(Collectors.groupingBy(oi -> oi.getOrder().getId()));
+        return orders.stream()
+                .map(
+                        o ->
+                                com.brewdesk.app.pos.dto.TodayOrderResponse.from(
+                                        o, byOrder.getOrDefault(o.getId(), java.util.List.of())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public OrderResponse get(UUID orderId) {
         Order order =
                 orderRepository

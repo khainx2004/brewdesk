@@ -30,7 +30,13 @@ TS=$(body '.data.items[0].createdAt')
 case "$TS" in *Z) ok "createdAt la UTC ($TS) -> FE phai quy doi sang gio VN";; *) no "createdAt phai ket thuc bang Z" "…Z" "$TS";; esac
 
 # --- orderApi.get() : chi tiet moi co dong mon ---
-OID=$(body '.data.items[0].id')
+# Tao don voi mon CO tuy chon (has_options) de dong mon chac chan co sweetness/ice;
+# khong lay don moi nhat bat ky vi mon banh/dong chai (has_options=false) khong co
+# hai truong nay -> assert se sai tuy don nao dang dung dau.
+MIO=$(curl -s "${A[@]}" "$API/menu-items?size=50" | jq -r '[.data.items[]|select(.active and .recipeCount>0 and .hasOptions)][0].id')
+SW=$(curl -s "${A[@]}" "$API/variants/grouped" | jq -r '.data.SWEETNESS_LEVEL[0].id')
+IC=$(curl -s "${A[@]}" "$API/variants/grouped" | jq -r '.data.ICE_LEVEL[0].id')
+OID=$(curl -s -X POST "$API/orders" "${A[@]}" -d "{\"lines\":[{\"menuItemId\":\"$MIO\",\"quantity\":1,\"sweetnessVariantId\":\"$SW\",\"iceVariantId\":\"$IC\"}],\"paymentMethod\":\"CASH\"}" | jq -r '.data.id')
 c=$(req GET "/orders/$OID")
 eq "GET /orders/{id}" 200 "$c"
 has "  chi tiet co .items" '.data.items'
@@ -43,6 +49,22 @@ has "  co .shiftName" '.data.shiftName'
 c=$(req PATCH "/orders/$OID/cancel" '{}')
 eq "Huy khong co ly do -> 400" 400 "$c"
 echo "     msg: $(body '.message')"
+
+
+echo "--- /orders/today: panel Don hom nay ---"
+# tao 1 don hom nay de kiem chung format panel doc
+MI=$(curl -s "${A[@]}" "$API/menu-items?size=50" | jq -r '[.data.items[]|select(.active and .recipeCount>0)][0].id')
+OTD=$(curl -s -X POST "$API/orders" "${A[@]}" -d "{\"lines\":[{\"menuItemId\":\"$MI\",\"quantity\":2}],\"paymentMethod\":\"CASH\"}" | jq -r '.data.id')
+c=$(req GET "/orders/today")
+eq "GET /orders/today" 200 "$c"
+has "  don co .createdByName" '.data[0].createdByName'
+has "  don co .shiftCode" '.data[0].shiftCode'
+has "  don co .cancelled" '.data[0].cancelled'
+has "  don co .items (kem mon)" '.data[0].items'
+has "  mon co .itemName/.quantity" '.data[0].items[0].itemName'
+eq "  createdAt la UTC (FE quy doi gio VN)" Z "$(body '.data[0].createdAt' | grep -o 'Z$')"
+# huy + xoa don thu
+curl -s -X PATCH "$API/orders/$OTD/cancel" "${A[@]}" -d '{"reason":"test today"}' >/dev/null
 
 echo "=== PASS $PASS / FAIL $FAIL ==="
 [ "$FAIL" -eq 0 ]

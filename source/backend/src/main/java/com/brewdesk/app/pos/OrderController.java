@@ -64,6 +64,13 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.ok(orderService.cancel(id, request), "Đã huỷ đơn"));
     }
 
+    @Operation(summary = "Đơn hôm nay kèm món — cho panel Đơn hôm nay ở POS")
+    @GetMapping("/today")
+    public ResponseEntity<ApiResponse<java.util.List<com.brewdesk.app.pos.dto.TodayOrderResponse>>>
+            today() {
+        return ResponseEntity.ok(ApiResponse.ok(orderService.today()));
+    }
+
     @Operation(summary = "Chi tiết đơn hàng")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> get(@PathVariable UUID id) {

@@ -15,5 +15,6 @@ export const orderApi = {
   create: (body) => api.post('/orders', body).then(unwrap),
   list: (params) => api.get('/orders', { params }).then(unwrap),
   get: (id) => api.get(`/orders/${id}`).then(unwrap),
+  today: () => api.get("/orders/today").then(unwrap),
   cancel: (id, reason) => api.patch(`/orders/${id}/cancel`, { reason }).then(unwrap),
 };
