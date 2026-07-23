@@ -6,6 +6,7 @@ import { isAdminOnlyPath } from './components/layout/navigation';
 import LoginPage from './features/auth/LoginPage';
 import ChangePasswordPage from './features/auth/ChangePasswordPage';
 import ForbiddenPage from './features/ForbiddenPage';
+import ErrorBoundary from './components/ErrorBoundary';
 import HomePage from './features/HomePage';
 import MenuPage from './features/menu/MenuPage';
 import ChecklistPage from './features/checklist/ChecklistPage';
@@ -97,7 +98,9 @@ export default function App() {
         path="/ban-giao-ca"
         element={
           <RequireAuth>
-            <ReconciliationPage />
+            <ErrorBoundary>
+              <ReconciliationPage />
+            </ErrorBoundary>
           </RequireAuth>
         }
       />
