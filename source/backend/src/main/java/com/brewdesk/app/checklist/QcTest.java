@@ -66,9 +66,9 @@ public class QcTest {
     @Column(name = "sweetness", nullable = false)
     private int sweetness;
 
-    /** Nhiệt độ nước pha. Tuỳ chọn — có hôm chỉ chấm cảm quan. */
-    @Column(name = "water_temp_c", precision = 4, scale = 1)
-    private BigDecimal waterTempC;
+    /** Nhiệt độ nồi hơi máy pha (tới ~150°C). Tuỳ chọn. */
+    @Column(name = "boiler_temp_c", precision = 4, scale = 1)
+    private BigDecimal boilerTempC;
 
     /** Độ ẩm môi trường, ảnh hưởng tới mức xay. */
     @Column(name = "humidity_percent", precision = 4, scale = 1)

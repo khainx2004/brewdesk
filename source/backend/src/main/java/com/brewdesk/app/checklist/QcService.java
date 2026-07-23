@@ -1,5 +1,6 @@
 package com.brewdesk.app.checklist;
 
+import com.brewdesk.app.checklist.dto.QcProfileCellResponse;
 import com.brewdesk.app.checklist.dto.QcSessionRequest;
 import com.brewdesk.app.checklist.dto.QcSessionResponse;
 import com.brewdesk.app.checklist.dto.QcTestRequest;
@@ -71,7 +72,7 @@ public class QcService {
                             .yieldGram(qty(line.yieldGram()))
                             .extractionSeconds(line.extractionSeconds())
                             .grindSetting(line.grindSetting())
-                            .waterTempC(oneDecimal(line.waterTempC()))
+                            .boilerTempC(oneDecimal(line.boilerTempC()))
                             .humidityPercent(oneDecimal(line.humidityPercent()))
                             .passed(line.passedOrFalse())
                             .failAction(requireActionMatchesResult(line))
@@ -93,6 +94,62 @@ public class QcService {
                         .findById(id)
                         .orElseThrow(() -> new AppException(ErrorCode.QC_SESSION_NOT_FOUND));
         return QcSessionResponse.from(session, testsOf(List.of(id)).getOrDefault(id, List.of()));
+    }
+
+    /**
+     * "Profile pha hôm nay": thông số lần test đã đạt gần nhất cho mỗi ô. Suy từ
+     * chính các lần test đạt, không lưu ở đâu — xem QcTestRepository.
+     */
+    @Transactional(readOnly = true)
+    public List<QcProfileCellResponse> profile() {
+        return testRepository.findLatestPassedProfile().stream()
+                .map(
+                        r ->
+                                QcProfileCellResponse.of(
+                                        str(r[0]),
+                                        str(r[1]),
+                                        str(r[2]),
+                                        str(r[3]),
+                                        dec(r[4]),
+                                        dec(r[5]),
+                                        r[6] != null ? ((Number) r[6]).intValue() : null,
+                                        dec(r[7]),
+                                        date(r[8]),
+                                        str(r[9]),
+                                        uuid(r[10])))
+                .toList();
+    }
+
+    // Native query trả kiểu tuỳ driver/Hibernate — map phòng thủ thay vì ép cứng.
+    private static String str(Object o) {
+        return o != null ? o.toString() : null;
+    }
+
+    private static BigDecimal dec(Object o) {
+        if (o == null) {
+            return null;
+        }
+        return o instanceof BigDecimal b ? b : new BigDecimal(o.toString());
+    }
+
+    private static LocalDate date(Object o) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof LocalDate d) {
+            return d;
+        }
+        if (o instanceof java.sql.Date d) {
+            return d.toLocalDate();
+        }
+        return LocalDate.parse(o.toString());
+    }
+
+    private static UUID uuid(Object o) {
+        if (o == null) {
+            return null;
+        }
+        return o instanceof UUID u ? u : UUID.fromString(o.toString());
     }
 
     /**

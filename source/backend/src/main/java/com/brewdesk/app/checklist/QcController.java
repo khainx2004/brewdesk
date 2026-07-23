@@ -1,5 +1,6 @@
 package com.brewdesk.app.checklist;
 
+import com.brewdesk.app.checklist.dto.QcProfileCellResponse;
 import com.brewdesk.app.checklist.dto.QcSessionRequest;
 import com.brewdesk.app.checklist.dto.QcSessionResponse;
 import com.brewdesk.app.common.dto.ApiResponse;
@@ -42,6 +43,16 @@ public class QcController {
             @Valid @RequestBody QcSessionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(qcService.create(request), "Đã lưu phiên test"));
+    }
+
+    @Operation(
+            summary = "Profile pha hôm nay",
+            description =
+                    "Thông số lần test đã đạt gần nhất cho mỗi ô ca × loại hạt × liều. Suy từ"
+                        + " chính các lần test đạt, loại hạt lấy từ lô cà phê.")
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<java.util.List<QcProfileCellResponse>>> profile() {
+        return ResponseEntity.ok(ApiResponse.ok(qcService.profile()));
     }
 
     @Operation(summary = "Chi tiết một phiên test")

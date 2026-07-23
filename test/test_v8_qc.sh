@@ -22,11 +22,11 @@ echo
 echo "--- 1. Phien test day du truong ---"
 c=$(req POST /qc-tests "{\"sessionDate\":\"$D\",\"shiftTypeId\":\"$P1\",\"doseType\":\"DOUBLE\",\"tests\":[
   {\"doseGram\":18,\"yieldGram\":36,\"extractionSeconds\":28,\"grindSetting\":\"4.5\",
-   \"waterTempC\":93,\"humidityPercent\":62,\"acidity\":4,\"body\":3,\"sweetness\":4,
+   \"boilerTempC\":93,\"humidityPercent\":62,\"acidity\":4,\"body\":3,\"sweetness\":4,
    \"passed\":true,\"note\":\"chua thanh, hau ngot vua\"}]}")
 S1=$(body '.data.id')
 eq "Tao phien test" 201 "$c"
-eq "  nhiet do luu dung" 93.0 "$(body '.data.tests[0].waterTempC')"
+eq "  nhiet do noi hoi luu dung" 93.0 "$(body '.data.tests[0].boilerTempC')"
 eq "  do am luu dung" 62.0 "$(body '.data.tests[0].humidityPercent')"
 eq "  ket qua dat" true "$(body '.data.tests[0].passed')"
 eq "  khong co hanh dong khi dat" null "$(body '.data.tests[0].failAction')"
@@ -66,8 +66,11 @@ echo "     msg: $(body '.message')"
 echo
 echo "--- 5. Gia tri ngoai khoang ---"
 c=$(req POST /qc-tests "{\"sessionDate\":\"$D\",\"shiftTypeId\":\"$P1\",\"doseType\":\"SINGLE\",\"tests\":[
-  {\"acidity\":3,\"body\":3,\"sweetness\":3,\"passed\":true,\"waterTempC\":150}]}")
-eq "Nhiet do 150 -> 400" 400 "$c"
+  {\"acidity\":3,\"body\":3,\"sweetness\":3,\"passed\":true,\"boilerTempC\":150}]}")
+eq "Nhiet do noi hoi 150 -> chap nhan (noi hoi len 150 duoc)" 201 "$c"
+c=$(req POST /qc-tests "{\"sessionDate\":\"$D\",\"shiftTypeId\":\"$P1\",\"doseType\":\"SINGLE\",\"tests\":[
+  {\"acidity\":3,\"body\":3,\"sweetness\":3,\"passed\":true,\"boilerTempC\":250}]}")
+eq "Nhiet do 250 -> 400 (typo)" 400 "$c"
 c=$(req POST /qc-tests "{\"sessionDate\":\"$D\",\"shiftTypeId\":\"$P1\",\"doseType\":\"SINGLE\",\"tests\":[
   {\"acidity\":3,\"body\":3,\"sweetness\":3,\"passed\":true,\"humidityPercent\":-5}]}")
 eq "Do am -5 -> 400" 400 "$c"

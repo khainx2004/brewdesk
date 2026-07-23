@@ -23,10 +23,10 @@ public record QcTestRequest(
         @Positive(message = "Lượng nước chiết ra phải lớn hơn 0") BigDecimal yieldGram,
         @Positive(message = "Thời gian chiết phải lớn hơn 0") Integer extractionSeconds,
         @Size(max = 50, message = "Mức xay tối đa 50 ký tự") String grindSetting,
-        /** Nhiệt độ nước pha, °C. Tuỳ chọn — có hôm chỉ chấm cảm quan. */
-        @DecimalMin(value = "0", message = "Nhiệt độ từ 0 đến 100")
-                @DecimalMax(value = "100", message = "Nhiệt độ từ 0 đến 100")
-                BigDecimal waterTempC,
+        /** Nhiệt độ nồi hơi máy pha, °C. Tới ~150°C. Tuỳ chọn. */
+        @DecimalMin(value = "0", message = "Nhiệt độ từ 0 đến 200")
+                @DecimalMax(value = "200", message = "Nhiệt độ từ 0 đến 200")
+                BigDecimal boilerTempC,
         /** Độ ẩm môi trường, %. Ảnh hưởng tới mức xay nên đáng ghi lại. */
         @DecimalMin(value = "0", message = "Độ ẩm từ 0 đến 100")
                 @DecimalMax(value = "100", message = "Độ ẩm từ 0 đến 100")
