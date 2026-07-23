@@ -12,6 +12,7 @@ import MenuPage from './features/menu/MenuPage';
 import ChecklistPage from './features/checklist/ChecklistPage';
 import ReconciliationPage from './features/reconciliation/ReconciliationPage';
 import QcPage from './features/qc/QcPage';
+import StatsPage from './features/reports/StatsPage';
 import PosPage from './features/pos/PosPage';
 
 /**
@@ -111,6 +112,16 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <QcPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/thong-ke"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <StatsPage />
             </ErrorBoundary>
           </RequireAuth>
         }

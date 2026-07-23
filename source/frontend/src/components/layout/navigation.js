@@ -85,7 +85,7 @@ export const NAV_SECTIONS = [
         to: '/thong-ke',
         label: 'Thống kê',
         icon: BarChart3,
-        ready: false,
+        ready: true,
         adminOnly: true,
         description: 'Doanh thu, món bán chạy và hao hụt.',
       },

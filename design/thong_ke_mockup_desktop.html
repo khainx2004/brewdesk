@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Thống kê · BrewDesk Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C1510;--cocoa:#442D1C;--cocoa-lt:#5C3D22;
+  --rogue:#3A3D2E;--rogue-dk:#272A1F;
+  --caramel:#84592B;--olive:#9D9167;--olive-mute:#C4BAA0;
+  --batter:#EDE3CE;--batter-lt:#F5EDD8;--batter-warm:#E2D4B7;
+  --wine:#743014;--green:#3C6E2E;--cream:#FAF6EE;
+  --serif:'DM Serif Display',Georgia,serif;
+  --ui:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --r:10px;--rl:16px;--rxl:22px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--batter);color:var(--ink);min-width:1180px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;background:linear-gradient(120deg,var(--ink) 0%,#2E1E12 60%,var(--cocoa-lt) 100%);box-shadow:0 1px 0 rgba(157,145,103,.2),0 4px 20px rgba(28,21,16,.45);z-index:10;position:relative}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-name{font-family:var(--serif);font-style:italic;font-size:21px;color:var(--batter-lt);letter-spacing:.015em}
+.brand-tag{font-size:9.5px;font-weight:700;letter-spacing:.2em;color:var(--olive);text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.tb-staff-chip{display:flex;align-items:center;gap:9px;padding:5px 10px 5px 5px;border-radius:999px;background:rgba(255,255,255,.05)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#9A6B38,var(--caramel));color:var(--cream);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-staff-info{display:flex;flex-direction:column;line-height:1.25}
+.tb-staff-name{font-size:12.5px;font-weight:600;color:var(--batter-lt)}
+.tb-staff-role{font-size:10px;color:var(--olive);letter-spacing:.03em}
+.app-wrap{display:flex;height:calc(100vh - 60px)}
+.sidebar{width:220px;flex-shrink:0;background:linear-gradient(to bottom,#211710,#1C1510);display:flex;flex-direction:column;padding:20px 12px;gap:4px}
+.sidebar-section{font-size:9.5px;font-weight:700;letter-spacing:.12em;color:rgba(157,145,103,.5);text-transform:uppercase;padding:12px 10px 6px;margin-top:8px}
+.sidebar-section:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:rgba(196,186,160,.65);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--olive-mute)}
+.nav-item.active{background:rgba(58,61,46,.5);color:var(--batter-lt)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+.page-title{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink)}
+.page-subtitle{font-size:12.5px;color:var(--olive);margin-top:2px}
+.content-wrap{padding:16px 28px 28px;flex:1;display:flex;flex-direction:column;gap:18px}
+
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 28px 0;flex-wrap:wrap}
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.cat-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-family:var(--ui);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.cat-tab:hover{border-color:var(--rogue);color:var(--rogue)}
+.cat-tab.active{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+.range-chips{display:flex;gap:6px;margin-left:auto}
+.range-chip{padding:6px 12px;border-radius:999px;border:1px solid var(--olive-mute);background:var(--cream);color:var(--olive);font-size:11.5px;font-weight:500;cursor:pointer}
+.range-chip.active{background:var(--ink);border-color:var(--ink);color:var(--batter-lt)}
+
+.section-box{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);box-shadow:0 1px 3px rgba(28,21,16,.05),0 4px 10px rgba(28,21,16,.04);padding:18px 20px}
+.section-title{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.section-hint{font-size:11.5px;color:var(--olive);margin-bottom:14px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi-card{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);padding:16px 18px;box-shadow:0 1px 3px rgba(28,21,16,.05)}
+.kpi-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--olive)}
+.kpi-value{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--ink);margin-top:5px}
+.kpi-delta{font-size:11px;margin-top:4px;font-weight:600}
+.kpi-delta.up{color:var(--green)}
+.kpi-delta.down{color:var(--wine)}
+.kpi-card.warn .kpi-value{color:var(--wine)}
+
+/* bar chart */
+.chart-wrap{display:flex;align-items:flex-end;gap:14px;height:180px;padding:0 6px 4px;border-bottom:1px solid rgba(196,186,160,.4)}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
+.bar{width:100%;max-width:36px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--rogue),var(--rogue-dk));transition:height .4s ease}
+.bar-label{font-size:10.5px;color:var(--olive);margin-top:6px}
+.bar-value{font-size:10.5px;font-weight:700;color:var(--ink)}
+
+/* two column layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(196,186,160,.35)}
+.rank-row:last-child{border-bottom:none}
+.rank-num{width:20px;height:20px;border-radius:50%;background:var(--batter-warm);color:var(--cocoa);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rank-name{flex:1;font-size:12.5px;font-weight:500;color:var(--ink)}
+.rank-value{font-size:12px;font-weight:700;color:var(--olive)}
+.rank-track{flex:1;height:6px;background:var(--batter-warm);border-radius:99px;overflow:hidden;margin:0 8px}
+.rank-fill{height:100%;background:linear-gradient(90deg,var(--rogue),var(--rogue-dk));border-radius:99px}
+
+/* tables */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive);text-align:left;padding:8px 10px;border-bottom:1px solid rgba(196,186,160,.5)}
+.data-table td{font-size:12.5px;padding:9px 10px;border-bottom:1px solid rgba(196,186,160,.3);color:var(--ink)}
+.data-table tr:last-child td{border-bottom:none}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.03em}
+.tag.low{background:rgba(132,89,43,.15);color:var(--caramel)}
+.tag.crit{background:rgba(116,48,20,.12);color:var(--wine)}
+.tag.ok{background:rgba(60,110,46,.14);color:var(--green)}
+.neg{color:var(--wine);font-weight:700}
+
+.filter-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.mini-select{height:30px;font-size:11.5px;border-radius:7px;border:1px solid var(--olive-mute);padding:0 8px;background:var(--cream)}
+.hist-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(196,186,160,.35);font-size:12.5px}
+.hist-row:last-child{border-bottom:none}
+.dot-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-name">BrewDesk</span><span class="brand-tag">Admin</span></div>
+  <div class="topbar-right">
+    <div class="tb-staff-chip">
+      <span class="tb-avatar">AD</span>
+      <div class="tb-staff-info"><span class="tb-staff-name">Admin</span><span class="tb-staff-role">Quản lý</span></div>
+    </div>
+  </div>
+</header>
+<div class="app-wrap">
+  <nav class="sidebar">
+    <div class="sidebar-section">Vận hành</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>POS Bán hàng</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Checklist</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>Test cafe</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Bàn giao ca</button>
+    <div class="sidebar-section">Quản lý</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h18l-2 7H5L3 2z"/><path d="M5 9l-1 13h16l-1-13"/><path d="M10 13h4"/></svg>Menu</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Kho nguyên liệu</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Nhân viên</button>
+    <div class="sidebar-section">Báo cáo</div>
+    <button class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Thống kê</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Kiểm kê kho</button>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Thống kê & Báo cáo</div>
+        <div class="page-subtitle" id="pageSub">Doanh thu · 7 ngày gần nhất</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="cat-tabs" id="mainTabs"></div>
+      <div class="range-chips" id="rangeChips"></div>
+    </div>
+
+    <!-- DOANH THU -->
+    <div id="paneRevenue">
+      <div class="content-wrap">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Doanh thu</div><div class="kpi-value">18,4tr</div><div class="kpi-delta up">▲ 12% so với kỳ trước</div></div>
+          <div class="kpi-card"><div class="kpi-label">Số đơn</div><div class="kpi-value">184</div><div class="kpi-delta up">▲ 6%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Giá trị TB / đơn</div><div class="kpi-value">100k</div><div class="kpi-delta down">▼ 3%</div></div>
+          <div class="kpi-card warn"><div class="kpi-label">Tỷ lệ huỷ đơn</div><div class="kpi-value">4.3%</div><div class="kpi-delta down" style="color:var(--olive)">8 đơn / 184</div></div>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title">Doanh thu theo ngày</div>
+          <div class="section-hint">7 ngày gần nhất</div>
+          <div class="chart-wrap" id="revChart"></div>
+        </div>
+
+        <div class="two-col">
+          <div class="section-box">
+            <div class="section-title">Top món bán chạy</div>
+            <div class="section-hint">Theo số lượng bán</div>
+            <div id="topItems"></div>
+          </div>
+          <div class="section-box">
+            <div class="section-title">Doanh thu theo ca</div>
+            <div class="section-hint">Tỷ trọng trong tổng doanh thu</div>
+            <div id="shiftRevenue"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHO & HAO HỤT -->
+    <div id="paneInventory" style="display:none">
+      <div class="content-wrap">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Giá trị tồn kho</div><div class="kpi-value">42,1tr</div></div>
+          <div class="kpi-card warn"><div class="kpi-label">NL sắp hết</div><div class="kpi-value">3</div></div>
+          <div class="kpi-card warn"><div class="kpi-label">Giá trị hao hụt tháng</div><div class="kpi-value">640k</div></div>
+          <div class="kpi-card"><div class="kpi-label">Lần kiểm kê gần nhất</div><div class="kpi-value" style="font-size:18px">15/7</div></div>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title">Cảnh báo sắp hết hàng</div>
+          <div class="section-hint">Nguyên liệu dưới ngưỡng tồn kho tối thiểu</div>
+          <table class="data-table">
+            <thead><tr><th>Nguyên liệu</th><th>Tồn hiện tại</th><th>Ngưỡng cảnh báo</th><th>Trạng thái</th></tr></thead>
+            <tbody id="lowStockBody"></tbody>
+          </table>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title">Báo cáo hao hụt</div>
+          <div class="section-hint">So sánh tồn kho lý thuyết (từ giao dịch) và tồn kho thực tế (kiểm kê ngày 15/7)</div>
+          <table class="data-table">
+            <thead><tr><th>Nguyên liệu</th><th>Tồn lý thuyết</th><th>Tồn thực tế</th><th>Chênh lệch</th><th>Giá trị hao hụt</th></tr></thead>
+            <tbody id="wasteBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEST CAFE -->
+    <div id="paneQc" style="display:none">
+      <div class="content-wrap">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Tổng lần test</div><div class="kpi-value">42</div></div>
+          <div class="kpi-card"><div class="kpi-label">Tỷ lệ đạt</div><div class="kpi-value">90%</div></div>
+          <div class="kpi-card warn"><div class="kpi-label">Không đạt</div><div class="kpi-value">4</div></div>
+          <div class="kpi-card"><div class="kpi-label">Nhân viên test nhiều nhất</div><div class="kpi-value" style="font-size:18px">Choi</div></div>
+        </div>
+        <div class="section-box">
+          <div class="section-title">Lịch sử test cafe</div>
+          <div class="section-hint">Lọc theo ngày / ca / nhân viên / kết quả</div>
+          <div class="filter-row">
+            <select class="mini-select" id="fShift"><option value="">Tất cả ca</option><option value="sang">Sáng</option><option value="chieu">Chiều</option></select>
+            <select class="mini-select" id="fResult"><option value="">Tất cả kết quả</option><option value="pass">Đạt</option><option value="fail">Không đạt</option></select>
+            <select class="mini-select" id="fStaff"><option value="">Tất cả nhân viên</option><option>Choi</option><option>Lam</option><option>Uyên</option></select>
+          </div>
+          <div id="histList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let mainTab='revenue';
+function renderMainTabs(){
+  const el=document.getElementById('mainTabs');
+  const tabs=[['revenue','Doanh thu'],['inventory','Kho & Hao hụt'],['qc','Test cafe']];
+  el.innerHTML='';
+  tabs.forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(mainTab===k?' active':'');
+    b.textContent=label;
+    b.onclick=()=>{
+      mainTab=k; renderMainTabs();
+      document.getElementById('paneRevenue').style.display=k==='revenue'?'':'none';
+      document.getElementById('paneInventory').style.display=k==='inventory'?'':'none';
+      document.getElementById('paneQc').style.display=k==='qc'?'':'none';
+      document.getElementById('rangeChips').style.display=k==='revenue'?'flex':'none';
+      updateSub();
+    };
+    el.appendChild(b);
+  });
+}
+let curRange='7d';
+function renderRangeChips(){
+  const el=document.getElementById('rangeChips');
+  const ranges=[['today','Hôm nay'],['7d','7 ngày'],['month','Tháng này'],['custom','Tuỳ chỉnh']];
+  el.innerHTML='';
+  ranges.forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.className='range-chip'+(curRange===k?' active':'');
+    b.textContent=label;
+    b.onclick=()=>{curRange=k;renderRangeChips();updateSub();};
+    el.appendChild(b);
+  });
+}
+function updateSub(){
+  const sub=document.getElementById('pageSub');
+  const rangeLabel={today:'Hôm nay',['7d']:'7 ngày gần nhất',month:'Tháng này',custom:'Khoảng tuỳ chỉnh'}[curRange];
+  if(mainTab==='revenue') sub.textContent='Doanh thu · '+rangeLabel;
+  else if(mainTab==='inventory') sub.textContent='Kho nguyên liệu & hao hụt';
+  else sub.textContent='Lịch sử test cafe';
+}
+renderMainTabs();
+renderRangeChips();
+updateSub();
+
+const revData=[
+  {d:'17/7',v:2.1},{d:'18/7',v:2.8},{d:'19/7',v:3.4},{d:'20/7',v:2.6},
+  {d:'21/7',v:3.0},{d:'22/7',v:2.9},{d:'23/7',v:3.6}
+];
+function renderChart(){
+  const max=Math.max(...revData.map(x=>x.v));
+  const wrap=document.getElementById('revChart');
+  wrap.innerHTML='';
+  revData.forEach(x=>{
+    const col=document.createElement('div');
+    col.className='bar-col';
+    const h=Math.round((x.v/max)*140);
+    col.innerHTML='<div class="bar-value">'+x.v+'tr</div><div class="bar" style="height:'+h+'px"></div><div class="bar-label">'+x.d+'</div>';
+    wrap.appendChild(col);
+  });
+}
+renderChart();
+
+const topItems=[
+  {name:'Đen đá',qty:86},{name:'Latte',qty:64},{name:'Cold brew',qty:51},{name:'Thị Hồng',qty:38},{name:'Bánh quy',qty:29}
+];
+function renderTopItems(){
+  const max=Math.max(...topItems.map(x=>x.qty));
+  const box=document.getElementById('topItems');
+  box.innerHTML='';
+  topItems.forEach((x,i)=>{
+    const row=document.createElement('div');
+    row.className='rank-row';
+    row.innerHTML='<span class="rank-num">'+(i+1)+'</span><span class="rank-name">'+x.name+'</span>'+
+      '<div class="rank-track"><div class="rank-fill" style="width:'+Math.round(x.qty/max*100)+'%"></div></div>'+
+      '<span class="rank-value">'+x.qty+'</span>';
+    box.appendChild(row);
+  });
+}
+renderTopItems();
+
+const shiftRev=[{name:'P1 · Sáng',pct:38},{name:'P2 · Giữa ca',pct:22},{name:'P3 · Tối',pct:40}];
+function renderShiftRev(){
+  const box=document.getElementById('shiftRevenue');
+  box.innerHTML='';
+  shiftRev.forEach(x=>{
+    const row=document.createElement('div');
+    row.className='rank-row';
+    row.innerHTML='<span class="rank-name">'+x.name+'</span>'+
+      '<div class="rank-track"><div class="rank-fill" style="width:'+x.pct+'%"></div></div>'+
+      '<span class="rank-value">'+x.pct+'%</span>';
+    box.appendChild(row);
+  });
+}
+renderShiftRev();
+
+const lowStock=[
+  {name:'Sữa tươi',cur:'4 lít',min:'8 lít',status:'crit'},
+  {name:'Syrup vani',cur:'2 chai',min:'3 chai',status:'low'},
+  {name:'Hạt Robusta',cur:'3.2kg',min:'5kg',status:'low'}
+];
+function renderLowStock(){
+  const body=document.getElementById('lowStockBody');
+  body.innerHTML='';
+  lowStock.forEach(x=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+x.name+'</td><td>'+x.cur+'</td><td>'+x.min+'</td><td><span class="tag '+x.status+'">'+(x.status==='crit'?'Rất thấp':'Sắp hết')+'</span></td>';
+    body.appendChild(tr);
+  });
+}
+renderLowStock();
+
+const waste=[
+  {name:'Sữa tươi',theory:'42 lít',actual:'39.5 lít',diff:'-2.5 lít',value:'87.500đ'},
+  {name:'Hạt Arabica',theory:'18kg',actual:'17.6kg',diff:'-0.4kg',value:'120.000đ'},
+  {name:'Syrup caramel',theory:'9 chai',actual:'8.5 chai',diff:'-0.5 chai',value:'75.000đ'}
+];
+function renderWaste(){
+  const body=document.getElementById('wasteBody');
+  body.innerHTML='';
+  waste.forEach(x=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+x.name+'</td><td>'+x.theory+'</td><td>'+x.actual+'</td><td class="neg">'+x.diff+'</td><td class="neg">'+x.value+'</td>';
+    body.appendChild(tr);
+  });
+}
+renderWaste();
+
+const hist=[
+{shift:'sang',staff:'Choi',time:'Hôm qua 07:58',result:'pass',note:'Cân bằng, hậu ngọt tốt'},
+{shift:'chieu',staff:'Lam',time:'Hôm qua 13:40',result:'fail',note:'Chua gắt — đã báo quản lý'},
+{shift:'sang',staff:'Uyên',time:'20/7 08:05',result:'pass',note:'Ổn định'},
+{shift:'chieu',staff:'Choi',time:'19/7 14:02',result:'pass',note:'Hơi đắng nhẹ, vẫn đạt'}
+];
+function renderHist(){
+  const fs=document.getElementById('fShift').value;
+  const fr=document.getElementById('fResult').value;
+  const fst=document.getElementById('fStaff').value;
+  const list=document.getElementById('histList');
+  list.innerHTML='';
+  hist.filter(h=>(!fs||h.shift===fs)&&(!fr||h.result===fr)&&(!fst||h.staff===fst)).forEach(h=>{
+    const row=document.createElement('div');
+    row.className='hist-row';
+    row.innerHTML='<span class="dot-status" style="background:'+(h.result==='pass'?'var(--green)':'var(--wine)')+'"></span>'+
+      '<span style="width:52px;color:var(--olive)">'+(h.shift==='sang'?'Sáng':'Chiều')+'</span>'+
+      '<span style="width:50px;font-weight:600">'+h.staff+'</span>'+
+      '<span style="flex:1;color:var(--ink)">'+h.note+'</span>'+
+      '<span style="color:var(--olive)">'+h.time+'</span>';
+    list.appendChild(row);
+  });
+}
+['fShift','fResult','fStaff'].forEach(id=>document.getElementById(id).addEventListener('change',renderHist));
+renderHist();
+</script>
+</body>
+</html>
