@@ -22,6 +22,9 @@
     --r: 10px;
     --r-lg: 16px;
     --r-xl: 22px;
+
+    /* Font serif cho tiêu đề / số nổi bật — như mockup dùng var(--serif). */
+    --serif: 'DM Serif Display', Georgia, serif;
   }
 
   body {
