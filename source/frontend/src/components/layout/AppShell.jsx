@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LogOut, PanelLeft } from 'lucide-react';
+import { Clock, LogOut, PanelLeft } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { useShift } from '../../hooks/useShift';
 import { visibleSections } from './navigation';
 
 const COLLAPSE_KEY = 'brewdesk_sidebar_collapsed';
@@ -29,6 +30,7 @@ export default function AppShell({ children, topbarExtra, showSidebar = true }) 
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isAdmin = user?.role === 'ADMIN';
+  const { shift, label: shiftLabel, clock } = useShift();
 
   // Nhớ lựa chọn gập/mở giữa các lần vào: nhân viên quen dùng POS rộng hết cỡ
   // thì không phải gập lại mỗi ca.
@@ -72,21 +74,33 @@ export default function AppShell({ children, topbarExtra, showSidebar = true }) 
           </NavLink>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="topbar-right">
           {topbarExtra}
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-caramel to-[#9A6B38] text-[11px] font-bold text-cream">
-              {initials(user?.fullName)}
+          {topbarExtra && <div className="tb-divider" />}
+
+          <div className="tb-shift-chip">
+            <span className="tb-shift-dot" />
+            <span className="tb-shift-label">{shift ? shift.name : shiftLabel || '…'}</span>
+            {shift && <span className="tb-shift-sub">· {shift.code}</span>}
+            <span className="tb-shift-sep" />
+            <span className="tb-shift-time">
+              <Clock size={11} strokeWidth={2} />
+              {clock}
             </span>
-            <span className="text-[13px] font-medium text-olive-mute">{user?.fullName}</span>
           </div>
-          <button
-            onClick={logout}
-            aria-label="Đăng xuất"
-            title="Đăng xuất"
-            className="grid h-8 w-8 place-items-center rounded-lg text-olive transition hover:bg-white/5 hover:text-batter-lt"
-          >
-            <LogOut size={16} strokeWidth={1.5} />
+
+          <div className="tb-divider" />
+
+          <div className="tb-staff-chip">
+            <span className="tb-avatar">{initials(user?.fullName)}</span>
+            <div className="tb-staff-info">
+              <span className="tb-staff-name">{user?.fullName}</span>
+              <span className="tb-staff-role">{isAdmin ? 'Quản lý' : 'Nhân viên'}</span>
+            </div>
+          </div>
+
+          <button className="tb-logout-btn" title="Đăng xuất" onClick={logout}>
+            <LogOut size={15} strokeWidth={2} />
           </button>
         </div>
       </header>
@@ -100,8 +114,8 @@ export default function AppShell({ children, topbarExtra, showSidebar = true }) 
             }`}
           >
             {sections.map((section) => (
-              <div key={section.title} className="w-[200px]">
-                <div className="px-2.5 pb-1.5 pt-3 text-[9.5px] font-bold uppercase tracking-[0.12em] text-olive/60 first:pt-0">
+              <div key={section.title} className="flex w-[200px] flex-col gap-1">
+                <div className="px-2.5 pb-0.5 pt-2.5 text-[9.5px] font-bold uppercase tracking-[0.12em] text-[rgba(157,145,103,0.5)] first:pt-0">
                   {section.title}
                 </div>
                 {section.items.map((item) => (
@@ -119,24 +133,32 @@ export default function AppShell({ children, topbarExtra, showSidebar = true }) 
 }
 
 /**
- * Trạng thái mặc định phải đọc được ngay, không phải rê chuột vào mới thấy —
- * nhân viên cần nhìn lướt là biết có những màn hình nào.
+ * Đúng y `.nav-item` / `.active` / `:hover` trong mockup, KHÔNG viền:
  *
- * Trang đang mở được đánh dấu bằng ba tín hiệu cùng lúc: nền accent, chữ đậm,
- * và vạch sáng bên trái. Chỉ đổi màu chữ thì trên nền tối rất khó nhận ra.
+ * <ul>
+ *   <li>Mục thường: chữ rgba(196,186,160,.65) — mờ nhẹ, vẫn đọc rõ. Không nền,
+ *       không viền, không bo góc.
+ *   <li>Hover: nền rgba(255,255,255,.05), chữ sáng lên olive-mute.
+ *   <li>Mục đang mở: nền đặc rgba(58,61,46,.5) bo góc 10px + chữ sáng batter-lt.
+ *       Là một khối nền phẳng, KHÔNG phải khung outline.
+ * </ul>
+ *
+ * Cố ý dùng thẳng rgba của mockup thay vì bộ chỉnh opacity của Tailwind
+ * (`text-olive-mute/65`): color-mix trên một số trình duyệt kéo màu về đen làm
+ * chữ 65% thành gần như mất. rgba trực tiếp thì hoà alpha chuẩn, hiện đúng.
  */
 function NavItem({ item, tabbable }) {
   const Icon = item.icon;
   const base =
-    'relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[13px] transition';
+    'flex w-full items-center gap-2.5 rounded px-3 py-[9px] text-left text-[13px] font-medium leading-tight transition';
 
   if (!item.ready) {
     return (
       <div
         title="Màn hình này chưa được dựng"
-        className={`${base} cursor-not-allowed font-medium text-olive-mute/35`}
+        className={`${base} cursor-not-allowed text-[rgba(196,186,160,0.3)]`}
       >
-        <Icon size={16} strokeWidth={1.5} className="shrink-0" />
+        <Icon size={16} strokeWidth={1.5} className="shrink-0 opacity-80" />
         {item.label}
       </div>
     );
@@ -149,17 +171,13 @@ function NavItem({ item, tabbable }) {
       className={({ isActive }) =>
         `${base} ${
           isActive
-            ? 'bg-rogue font-bold text-batter-lt shadow-[inset_3px_0_0_var(--olive)]'
-            : 'font-medium text-olive-mute hover:bg-white/[0.07] hover:text-batter-lt'
+            ? 'bg-[rgba(58,61,46,0.5)] text-batter-lt'
+            : 'text-[rgba(196,186,160,0.65)] hover:bg-[rgba(255,255,255,0.05)] hover:text-olive-mute'
         }`
       }
     >
-      {({ isActive }) => (
-        <>
-          <Icon size={16} strokeWidth={isActive ? 2 : 1.5} className="shrink-0" />
-          {item.label}
-        </>
-      )}
+      <Icon size={16} strokeWidth={1.5} className="shrink-0 opacity-80" />
+      {item.label}
     </NavLink>
   );
 }

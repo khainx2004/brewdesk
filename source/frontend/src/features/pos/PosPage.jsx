@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Coffee, CupSoda, ReceiptText, Search, Snowflake, Cookie } from 'lucide-react';
+import { Coffee, CupSoda, FileText, Search, Snowflake, Cookie } from 'lucide-react';
 import { categoryApi, menuItemApi, variantApi } from '../../services/menuApi';
 import { orderApi } from '../../services/posApi';
 import AppShell from '../../components/layout/AppShell';
 import { errorMessage } from '../../services/api';
 import { useCartStore } from '../../stores/cartStore';
-import { useShift } from '../../hooks/useShift';
 import { formatVnd } from '../../utils/fmt';
 import VariantModal from './VariantModal';
 import CartPanel from './CartPanel';
@@ -22,8 +21,6 @@ function iconFor(categoryName = '') {
 }
 
 export default function PosPage() {
-  const { label: shiftLabel, shift, isOpen, clock } = useShift();
-
   const [activeCategory, setActiveCategory] = useState(null);
   const [search, setSearch] = useState('');
   const [pendingItem, setPendingItem] = useState(null);
@@ -129,32 +126,19 @@ export default function PosPage() {
 
   const loading = menuQuery.isLoading || categoriesQuery.isLoading;
 
-  // Badge ca và đồng hồ chèn vào topbar chung, không dựng topbar riêng nữa —
-  // thanh bên gập được đã lo phần không gian cho lưới món.
+  // Nút mở panel đơn hôm nay. Ca + giờ đã nằm chung ở topbar AppShell nên đây chỉ
+  // còn nút này. Đặt trên topbar vì người cần huỷ đơn là người vừa gõ nhầm, đang
+  // có khách đứng đợi — không thể bắt họ rời màn.
   const topbarExtra = (
-    <>
-      {/* Nút mở panel đơn hôm nay. Đặt ngay trên topbar POS vì người cần huỷ đơn
-          là người vừa gõ nhầm, đang có khách đứng đợi — không thể bắt họ rời màn. */}
-      <button
-        type="button"
-        onClick={() => setOrdersOpen(true)}
-        title="Xem và huỷ đơn hôm nay"
-        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-olive/30 px-3 text-[12.5px] font-medium text-olive-mute transition hover:border-olive hover:bg-white/5 hover:text-batter-lt"
-      >
-        <ReceiptText size={14} strokeWidth={1.75} />
-        Đơn hôm nay
-      </button>
-      <span
-        className={`rounded-full border px-3.5 py-1 text-xs font-semibold tracking-wide transition ${
-          isOpen
-            ? 'border-olive/30 bg-olive/15 text-olive-mute'
-            : 'border-wine/40 bg-wine/25 text-batter-warm'
-        }`}
-      >
-        {shift ? `${shift.name} · ${shift.code}` : shiftLabel || '...'}
-      </span>
-      <span className="text-[12.5px] tabular-nums tracking-wider text-olive/70">{clock}</span>
-    </>
+    <button
+      type="button"
+      className="tb-order-btn"
+      onClick={() => setOrdersOpen(true)}
+      title="Xem và huỷ đơn hôm nay"
+    >
+      <FileText size={14} strokeWidth={1.8} />
+      Đơn hôm nay
+    </button>
   );
 
   return (
