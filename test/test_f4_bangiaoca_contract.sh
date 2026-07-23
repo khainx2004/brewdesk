@@ -100,7 +100,7 @@ eq "  luu dung 2.000.000" 2000000 "$(body '.data.openingAmount')"
 # --- loi nghiep vu phai doc duoc ---
 c=$(req POST /shift-reconciliations "{\"date\":\"$D\",\"shiftTypeId\":\"$P1\",\"actualAmount\":100}")
 eq "Chot lai ca da chot -> 409" 409 "$c"
-M=$(body '.message'); case "$M" in *"đã có phiếu"*) ok "  message tieng Viet doc duoc";; *) no "  message tieng Viet" "co 'da co phieu'" "$M";; esac
+M=$(body '.message'); case "$M" in *"đã chốt rồi"*) ok "  message tieng Viet doc duoc";; *) no "  message tieng Viet" "co "da chot roi"" "$M";; esac
 
 echo "=== PASS $PASS / FAIL $FAIL ==="
 [ "$FAIL" -eq 0 ]

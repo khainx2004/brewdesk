@@ -333,7 +333,7 @@ function PosDrifted({ saved }) {
       <p className="mt-0.5">
         Lúc bàn giao POS là {formatVnd(saved.posAmount)}, tính lại bây giờ là{' '}
         {formatVnd(now)} ({diff > 0 ? '+' : ''}
-        {formatVnd(diff)}). Phiếu giữ nguyên số cũ — bấm "Lưu thay đổi" nếu muốn
+        {formatVnd(diff)}). Số đã chốt giữ nguyên — bấm "Lưu thay đổi" nếu muốn
         chốt lại theo số mới.
       </p>
     </div>

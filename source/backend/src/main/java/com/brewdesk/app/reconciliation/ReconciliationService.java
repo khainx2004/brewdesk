@@ -79,7 +79,7 @@ public class ReconciliationService {
         if (reconciliationRepository.existsByReconciliationDateAndShiftTypeId(day, shift.getId())) {
             throw new AppException(
                     ErrorCode.RECONCILIATION_EXISTS,
-                    "Ngày %s ca %s đã có phiếu bàn giao".formatted(day, shift.getName()));
+                    "Ngày %s ca %s đã chốt rồi".formatted(day, shift.getName()));
         }
 
         User handedOverBy =

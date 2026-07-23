@@ -58,7 +58,7 @@ public class ReconciliationController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         ApiResponse.ok(
-                                reconciliationService.create(request), "Đã lập phiếu bàn giao"));
+                                reconciliationService.create(request), "Đã chốt ca"));
     }
 
     @Operation(summary = "Sửa phiếu (người lập hoặc ADMIN)")
@@ -66,7 +66,7 @@ public class ReconciliationController {
     public ResponseEntity<ApiResponse<ReconciliationResponse>> update(
             @PathVariable UUID id, @Valid @RequestBody ReconciliationRequest request) {
         return ResponseEntity.ok(
-                ApiResponse.ok(reconciliationService.update(id, request), "Đã cập nhật phiếu"));
+                ApiResponse.ok(reconciliationService.update(id, request), "Đã cập nhật"));
     }
 
     @Operation(summary = "Chi tiết phiếu bàn giao")

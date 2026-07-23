@@ -86,8 +86,8 @@ public enum ErrorCode {
             "Đang ngoài giờ hoạt động nên không tự xác định được ca, cần chọn ca"),
 
     // Bàn giao ca
-    RECONCILIATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phiếu bàn giao ca"),
-    RECONCILIATION_EXISTS(HttpStatus.CONFLICT, "Ca này trong ngày đã có phiếu bàn giao"),
+    RECONCILIATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bàn giao ca này"),
+    RECONCILIATION_EXISTS(HttpStatus.CONFLICT, "Ca này trong ngày đã chốt rồi"),
 
     // Chung
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Dữ liệu gửi lên không hợp lệ"),
