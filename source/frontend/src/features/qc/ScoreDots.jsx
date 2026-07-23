@@ -18,10 +18,10 @@ export default function ScoreDots({ label, value, onChange }) {
             onClick={() => onChange(n)}
             aria-label={`${label} ${n}`}
             aria-pressed={value === n}
-            className={`grid h-5 w-5 place-items-center rounded-full border text-[10px] font-semibold transition ${
+            className={`grid h-5 w-5 place-items-center rounded-full border-[1.5px] text-[10px] font-semibold transition ${
               value >= n
                 ? 'border-rogue bg-rogue text-batter-lt'
-                : 'border-olive-mute text-olive-mute hover:border-rogue'
+                : 'border-olive-mute bg-cream text-olive-mute hover:border-rogue'
             }`}
           >
             {n}

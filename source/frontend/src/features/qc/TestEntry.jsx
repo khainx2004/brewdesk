@@ -136,7 +136,7 @@ export default function TestEntry({ index, entry, stockImports, onChange, onRemo
         />
       </label>
 
-      <div className="mt-3 flex flex-wrap gap-6 rounded-lg border border-olive-mute/40 bg-batter-warm/40 px-3 py-2.5">
+      <div className="mt-3 flex flex-wrap gap-7 rounded-[9px] border border-[rgba(157,145,103,0.35)] bg-batter-warm px-3 py-2.5">
         <ScoreDots
           label="Acidity"
           value={entry.acidity}
