@@ -356,6 +356,16 @@ biết do ai.
 **`POS` không bao giờ nhập tay** — sửa được thì người đếm thiếu chỉ cần chỉnh cho
 khớp là hết chênh lệch, và toàn bộ việc đối soát mất ý nghĩa.
 
+**Tiền mặt tính theo từng ca, chuyển khoản cộng dồn cả ngày.** Hai loại tiền đi
+hai đường khác nhau: tiền mặt nằm trong két được trao tay mỗi ca nên đếm theo ca
+(với tiền đầu ca kế thừa từ ca trước); chuyển khoản dồn vào một tài khoản nên chủ
+quán đọc số cộng dồn từ app ngân hàng. Ví dụ ca sáng nhận 800k chuyển khoản, ca
+chiều nhận thêm 150k thì app hiện 950k, nên POS chuyển khoản của ca chiều phải là
+950k để khớp — không phải 150k. `POS chuyển khoản của ca X = tổng đơn TRANSFER từ
+đầu ngày tới hết ca X` (các ca có giờ bắt đầu ≤ ca X). Chênh lệch chuyển khoản =
+thực nhận − POS, không có tiền đầu ca vì chuyển khoản không đi qua két và số cộng
+dồn đã tự bao gồm phần ca trước.
+
 **Tiền đầu ca thì sửa được**, dù mặc định vẫn lấy từ ca trước. Khoá cứng nghe có
 vẻ chặt hơn nhưng tự nhốt mình ở ba chỗ có thật: ca đầu tiên của quán chưa có gì
 để kế thừa (chênh lệch sẽ hiện bằng đúng toàn bộ tiền trong két), bỏ sót một ca

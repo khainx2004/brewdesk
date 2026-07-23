@@ -62,6 +62,7 @@ c=$(req POST /shift-reconciliations "{\"date\":\"$D\",\"shiftTypeId\":\"$P2\",\"
 R2=$(body '.data.id')
 eq "POST chot ca chieu" 201 "$c"
 eq "*** chenh lech = 1.100.000 (dung so cua quan)" 1100000 "$(body '.data.difference')"
+eq "  POS chuyen khoan ca chieu = cong don (ngay khong don nen 0)" 0 "$(body '.data.posBankAmount')"
 eq "  chenh lech chuyen khoan = 450.000" 450000 "$(body '.data.bankDifference')"
 eq "  ghi chu khoan chi luu dung" "mua hoa, mua da" "$(body '.data.lines[] | select(.lineType=="CHI") | .note')"
 

@@ -123,16 +123,19 @@ export default function ReconciliationPage() {
   };
 
   const saved = Object.values(savedByShift);
+  // Ca chốt sau cùng trong ngày. Cả tiền mặt cuối ngày lẫn chuyển khoản đều lấy
+  // từ đây chứ không cộng ba ca: tiền mặt vì ca sau kế thừa két của ca trước,
+  // chuyển khoản vì POS chuyển khoản đã là số cộng dồn cả ngày — cộng lại đều
+  // là tính đôi.
+  const lastShift = saved.length
+    ? saved
+        .slice()
+        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
+        .at(-1)
+    : null;
   const daily = {
-    // Tiền mặt còn lại cuối ngày = số thực đếm của ca chốt sau cùng, không phải
-    // tổng ba ca — cộng lại là tính đôi vì ca sau kế thừa két của ca trước.
-    cashLeft: saved.length
-      ? saved
-          .slice()
-          .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
-          .at(-1).actualAmount
-      : 0,
-    bank: saved.reduce((sum, r) => sum + Number(r.posBankAmount ?? 0), 0),
+    cashLeft: lastShift?.actualAmount ?? 0,
+    bank: lastShift?.posBankAmount ?? 0,
     spent: saved.reduce((sum, r) => sum + Number(r.spentAmount ?? 0), 0),
     withdrawn: saved.reduce((sum, r) => sum + Number(r.withdrawnAmount ?? 0), 0),
   };
@@ -211,7 +214,7 @@ export default function ReconciliationPage() {
               value={daily.cashLeft}
               hint="Số thực đếm của ca chốt sau cùng"
             />
-            <DailyCard label="Chuyển khoản" value={daily.bank} hint="Máy ghi nhận cả ngày" />
+            <DailyCard label="Chuyển khoản" value={daily.bank} hint="Cộng dồn cả ngày" />
             <DailyCard label="Tổng chi" value={daily.spent} />
             <DailyCard label="Đã rút tiền mặt" value={daily.withdrawn} />
           </div>
@@ -230,7 +233,7 @@ function DailyCard({ label, value, hint }) {
       <div className="mt-1 font-display text-[22px] italic text-ink-deep">
         {formatVnd(value)}
       </div>
-      {hint && <p className="mt-0.5 text-[10.5px] text-olive/80">{hint}</p>}
+      {hint && <p className="mt-0.5 text-[10px] text-olive/55">{hint}</p>}
     </div>
   );
 }

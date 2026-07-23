@@ -79,4 +79,30 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             @Param("shiftTypeId") UUID shiftTypeId,
             @Param("from") OffsetDateTime from,
             @Param("to") OffsetDateTime to);
+
+    /**
+     * Tổng cộng dồn từ đầu ngày tới hết ca này — dùng cho phần chuyển khoản của
+     * bàn giao ca.
+     *
+     * <p>Tiền mặt bàn giao theo từng ca vì két được trao tay mỗi ca, nhưng
+     * chuyển khoản dồn vào một tài khoản nên chủ quán đọc số cộng dồn cả ngày:
+     * ca sáng nhận 800k, ca chiều nhận thêm 150k thì app ngân hàng hiện 950k, và
+     * POS phải hiện 950k để khớp. Cộng theo các ca có giờ bắt đầu ≤ ca này.
+     *
+     * <p>Đơn đã huỷ không tính.
+     */
+    @Query("""
+        select new com.brewdesk.app.pos.dto.CashSummary(sum(o.total), count(o))
+        from Order o
+        where o.cancelled = false
+          and o.paymentMethod = :method
+          and o.createdAt >= :from
+          and o.createdAt < :to
+          and o.shiftType.startTime <= :throughStart
+        """)
+    CashSummary sumThroughShift(
+            @Param("method") PaymentMethod method,
+            @Param("throughStart") java.time.LocalTime throughStart,
+            @Param("from") OffsetDateTime from,
+            @Param("to") OffsetDateTime to);
 }

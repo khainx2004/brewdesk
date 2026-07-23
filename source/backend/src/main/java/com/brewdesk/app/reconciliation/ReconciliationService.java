@@ -61,7 +61,7 @@ public class ReconciliationService {
                 shift.getName(),
                 openingFor(day, shift),
                 summary.totalOrZero(),
-                bankOf(day, shift.getId()).totalOrZero(),
+                bankOf(day, shift).totalOrZero(),
                 summary.orderCount(),
                 reconciliationRepository.existsByReconciliationDateAndShiftTypeId(
                         day, shift.getId()));
@@ -102,7 +102,7 @@ public class ReconciliationService {
         reconciliationRepository.save(reconciliation);
 
         BigDecimal posAmount = cashOf(day, shift.getId()).totalOrZero();
-        BigDecimal posBank = bankOf(day, shift.getId()).totalOrZero();
+        BigDecimal posBank = bankOf(day, shift).totalOrZero();
         List<ShiftCashLine> lines =
                 List.of(
                         line(reconciliation, CashLineType.POS, posAmount, posBank, null),
@@ -153,9 +153,7 @@ public class ReconciliationService {
                         .collect(Collectors.toMap(ShiftCashLine::getLineType, line -> line));
 
         BigDecimal posBank =
-                bankOf(
-                                reconciliation.getReconciliationDate(),
-                                reconciliation.getShiftType().getId())
+                bankOf(reconciliation.getReconciliationDate(), reconciliation.getShiftType())
                         .totalOrZero();
 
         // Sửa phiếu mà không gửi tiền đầu ca thì GIỮ NGUYÊN số cũ, không tính
@@ -349,11 +347,17 @@ public class ReconciliationService {
         return value.setScale(0);
     }
 
-    /** Tổng đơn chuyển khoản của ca, dùng cho phần bank của dòng POS. */
-    private CashSummary bankOf(LocalDate day, UUID shiftTypeId) {
-        return orderRepository.sumByShift(
+    /**
+     * Chuyển khoản cộng dồn từ đầu ngày tới hết ca này.
+     *
+     * <p>Khác dòng POS tiền mặt (theo từng ca): chuyển khoản dồn vào một tài
+     * khoản nên số thực nhận chủ quán đọc được là số cộng dồn cả ngày, POS phải
+     * cộng dồn theo để khớp. Xem OrderRepository.sumThroughShift.
+     */
+    private CashSummary bankOf(LocalDate day, ShiftType shift) {
+        return orderRepository.sumThroughShift(
                 PaymentMethod.TRANSFER,
-                shiftTypeId,
+                shift.getStartTime(),
                 shiftService.startOfDay(day),
                 shiftService.startOfDay(day.plusDays(1)));
     }

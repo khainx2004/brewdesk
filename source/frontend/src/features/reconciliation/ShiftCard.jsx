@@ -231,7 +231,7 @@ export default function ShiftCard({ shift, saved, suggestion, staff, saving, onS
             <td className="border-b border-olive-mute/30 px-1 py-1.5">
               <ReadOnlyMoney
                 amount={posBank}
-                title="Hệ thống cộng từ đơn chuyển khoản của ca"
+                title="Chuyển khoản cộng dồn từ đầu ngày tới hết ca này"
               />
             </td>
           </tr>
