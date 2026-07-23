@@ -27,6 +27,9 @@ eq "  don huy tach rieng: 1 don 65k" "1 65000" "$(body '.data | "\(.cancelledCou
 eq "  byDay co 2 ngay" 2 "$(body '.data.byDay | length')"
 has "  byDay item co .date/.revenue/.orderCount" '.data.byDay[0].date'
 eq "  avg = 369000/4 lam tron" 92250 "$(body '.data.avgOrderValue')"
+has "  byShift co (doanh thu theo ca)" '.data.byShift'
+has "  byShift item co .shiftCode/.revenue" '.data.byShift[0].shiftCode'
+
 
 echo "--- 2. Mon ban chay ---"
 c=$(req "/reports/top-items?from=2026-07-22&to=2026-07-23&limit=5" a)
@@ -40,6 +43,7 @@ echo "--- 3. Ton kho ---"
 c=$(req /reports/inventory a)
 eq "GET /reports/inventory" 200 "$c"
 for f in totalStockValue lowStockCount items; do has "  co .$f" ".data.$f"; done
+# lastStockTakeDate: null thi bi cau hinh non_null bo di (dung) — chi hien khi co kiem ke
 has "  dong ton co .stockValue/.lowStock/.costPrice" '.data.items[0].stockValue'
 # gia tri ton = ton x gia von cho dong dau
 SV=$(body '.data.items[0] | (.stockQty|tonumber) * (.costPrice|tonumber)')
@@ -51,11 +55,17 @@ c=$(req /reports/stock-variance a)
 eq "GET /reports/stock-variance" 200 "$c"
 has "  tra ve mang" '.data'
 
+echo "--- 4b. Thong ke QC ---"
+c=$(req "/reports/qc-summary?from=2026-01-01&to=2026-12-31" a)
+eq "GET /reports/qc-summary" 200 "$c"
+for f in totalTests passCount failCount passRate topTesterName; do has "  co .$f" ".data.$f"; done
+
 echo "--- 5. Phan quyen: STAFF khong xem duoc bao cao tai chinh ---"
 eq "STAFF revenue -> 403" 403 "$(req /reports/revenue s)"
 eq "STAFF inventory -> 403" 403 "$(req /reports/inventory s)"
 eq "STAFF top-items -> 403" 403 "$(req /reports/top-items s)"
 eq "STAFF stock-variance -> 403" 403 "$(req /reports/stock-variance s)"
+eq "STAFF qc-summary -> 403" 403 "$(req /reports/qc-summary s)"
 
 echo "=== PASS $PASS / FAIL $FAIL ==="
 [ "$FAIL" -eq 0 ]

@@ -104,4 +104,55 @@ public interface ReportRepository extends JpaRepository<Order, UUID> {
             nativeQuery = true)
     List<Object[]> stockVariance(
             @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+    /** Doanh thu theo ca (đơn không huỷ), xếp theo giờ bắt đầu ca. */
+    @Query(
+            value =
+                    """
+                    select st.code, st.name, coalesce(sum(o.total), 0), count(*)
+                    from orders o
+                    join shift_types st on st.id = o.shift_type_id
+                    where not o.is_cancelled and o.created_at >= :from and o.created_at < :to
+                    group by st.code, st.name, st.start_time
+                    order by st.start_time
+                    """,
+            nativeQuery = true)
+    List<Object[]> revenueByShift(
+            @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to);
+
+    /** Ngày kiểm kê đã chốt gần nhất, null nếu chưa có phiếu nào chốt. */
+    @Query(
+            value = "select max(session_date) from stock_take_sessions where status = 'COMPLETED'",
+            nativeQuery = true)
+    LocalDate lastStockTakeDate();
+
+    /** Tổng / đạt / không đạt của test cafe theo khoảng session_date. */
+    @Query(
+            value =
+                    """
+                    select count(*),
+                           count(*) filter (where t.passed),
+                           count(*) filter (where not t.passed)
+                    from qc_tests t
+                    join qc_test_sessions s on s.id = t.session_id
+                    where s.session_date >= :fromDate and s.session_date <= :toDate
+                    """,
+            nativeQuery = true)
+    Object[] qcCounts(
+            @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+
+    /** Người test nhiều nhất trong khoảng, null nếu chưa có test. */
+    @Query(
+            value =
+                    """
+                    select u.full_name
+                    from qc_tests t
+                    join qc_test_sessions s on s.id = t.session_id
+                    join users u on u.id = s.performed_by
+                    where s.session_date >= :fromDate and s.session_date <= :toDate
+                    group by u.full_name
+                    order by count(*) desc
+                    limit 1
+                    """,
+            nativeQuery = true)
+    String topTester(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
 }

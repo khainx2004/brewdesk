@@ -21,4 +21,5 @@ public record RevenueSummaryResponse(
         long cancelledCount,
         BigDecimal cancelledAmount,
         BigDecimal avgOrderValue,
-        List<RevenueDayResponse> byDay) {}
+        List<RevenueDayResponse> byDay,
+        List<RevenueShiftResponse> byShift) {}

@@ -3,6 +3,8 @@ package com.brewdesk.app.reporting;
 import com.brewdesk.app.reporting.dto.InventoryItemResponse;
 import com.brewdesk.app.reporting.dto.InventoryReportResponse;
 import com.brewdesk.app.reporting.dto.RevenueDayResponse;
+import com.brewdesk.app.reporting.dto.QcSummaryResponse;
+import com.brewdesk.app.reporting.dto.RevenueShiftResponse;
 import com.brewdesk.app.reporting.dto.RevenueSummaryResponse;
 import com.brewdesk.app.reporting.dto.StockVarianceResponse;
 import com.brewdesk.app.reporting.dto.TopItemResponse;
@@ -52,6 +54,14 @@ public class ReportService {
                         .map(d -> new RevenueDayResponse(date(d[0]), dec(d[1]), lng(d[2])))
                         .toList();
 
+        List<RevenueShiftResponse> byShift =
+                reportRepository.revenueByShift(fromTs, toTs).stream()
+                        .map(
+                                v ->
+                                        new RevenueShiftResponse(
+                                                str(v[0]), str(v[1]), dec(v[2]), lng(v[3])))
+                        .toList();
+
         BigDecimal avg =
                 orderCount == 0
                         ? BigDecimal.ZERO.setScale(0)
@@ -68,7 +78,8 @@ public class ReportService {
                 lng(r[5]),
                 dec(r[6]),
                 avg,
-                byDay);
+                byDay,
+                byShift);
     }
 
     @Transactional(readOnly = true)
@@ -111,7 +122,8 @@ public class ReportService {
                         .setScale(0);
         long lowCount = items.stream().filter(InventoryItemResponse::lowStock).count();
 
-        return new InventoryReportResponse(total, lowCount, items);
+        return new InventoryReportResponse(
+                total, lowCount, reportRepository.lastStockTakeDate(), items);
     }
 
     @Transactional(readOnly = true)
@@ -130,6 +142,26 @@ public class ReportService {
                                         dec(r[4]),
                                         date(r[5])))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public QcSummaryResponse qcSummary(LocalDate from, LocalDate to) {
+        LocalDate start = from != null ? from : shiftService.today().minusDays(6);
+        LocalDate end = to != null ? to : shiftService.today();
+
+        Object[] c = reportRepository.qcCounts(start, end);
+        Object[] r = c.length == 1 && c[0] instanceof Object[] inner ? inner : c;
+        long total = lng(r[0]);
+        long pass = lng(r[1]);
+        long fail = lng(r[2]);
+        BigDecimal rate =
+                total == 0
+                        ? null
+                        : BigDecimal.valueOf(pass * 100)
+                                .divide(BigDecimal.valueOf(total), 0, RoundingMode.HALF_UP);
+
+        return new QcSummaryResponse(
+                total, pass, fail, rate, reportRepository.topTester(start, end));
     }
 
     // Native trả kiểu tuỳ driver/Hibernate — map phòng thủ (bài học ở QC/V9).

@@ -2,6 +2,7 @@ package com.brewdesk.app.reporting;
 
 import com.brewdesk.app.common.dto.ApiResponse;
 import com.brewdesk.app.reporting.dto.InventoryReportResponse;
+import com.brewdesk.app.reporting.dto.QcSummaryResponse;
 import com.brewdesk.app.reporting.dto.RevenueSummaryResponse;
 import com.brewdesk.app.reporting.dto.StockVarianceResponse;
 import com.brewdesk.app.reporting.dto.TopItemResponse;
@@ -56,6 +57,16 @@ public class ReportController {
     @GetMapping("/inventory")
     public ResponseEntity<ApiResponse<InventoryReportResponse>> inventory() {
         return ResponseEntity.ok(ApiResponse.ok(reportService.inventory()));
+    }
+
+    @Operation(summary = "Thống kê test cafe (tổng, tỷ lệ đạt, người test nhiều nhất)")
+    @GetMapping("/qc-summary")
+    public ResponseEntity<ApiResponse<QcSummaryResponse>> qcSummary(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate to) {
+        return ResponseEntity.ok(ApiResponse.ok(reportService.qcSummary(from, to)));
     }
 
     @Operation(summary = "Hao hụt từ phiếu kiểm kê đã chốt")
