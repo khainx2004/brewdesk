@@ -39,7 +39,7 @@ export const NAV_SECTIONS = [
         to: '/qc',
         label: 'Test cafe',
         icon: Coffee,
-        ready: false,
+        ready: true,
         description: 'Chấm điểm chua, đậm, ngọt theo từng ca.',
       },
       {

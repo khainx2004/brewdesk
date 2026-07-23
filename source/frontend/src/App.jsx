@@ -11,6 +11,7 @@ import HomePage from './features/HomePage';
 import MenuPage from './features/menu/MenuPage';
 import ChecklistPage from './features/checklist/ChecklistPage';
 import ReconciliationPage from './features/reconciliation/ReconciliationPage';
+import QcPage from './features/qc/QcPage';
 import PosPage from './features/pos/PosPage';
 
 /**
@@ -100,6 +101,16 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <ReconciliationPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/qc"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <QcPage />
             </ErrorBoundary>
           </RequireAuth>
         }
