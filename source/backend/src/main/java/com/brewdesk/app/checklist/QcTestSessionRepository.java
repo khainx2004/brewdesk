@@ -28,4 +28,8 @@ public interface QcTestSessionRepository extends JpaRepository<QcTestSession, UU
             @Param("allShifts") boolean allShifts,
             @Param("shiftTypeId") UUID shiftTypeId,
             Pageable pageable);
+
+    /** Ngày có phiên test gần nhất trước {@code today}; null nếu chưa từng test. */
+    @Query("select max(s.sessionDate) from QcTestSession s where s.sessionDate < :today")
+    LocalDate findMaxSessionDateBefore(@Param("today") LocalDate today);
 }

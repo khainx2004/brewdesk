@@ -1,4 +1,4 @@
-import { formatDayMonth } from '../../utils/fmt';
+import { formatDayMonth, formatTime } from '../../utils/fmt';
 
 /** Bỏ số 0 thừa: 11.500 -> "11.5", 23.000 -> "23". */
 function trimNum(v) {
@@ -18,14 +18,10 @@ function Cell({ cell }) {
     <div className="px-1.5 py-1.5 text-center" title={`${cell.performedByName ?? ''} · ${cell.sessionDate ?? ''}`}>
       <div className="text-[12px] font-semibold text-ink-deep">
         {trimNum(cell.doseGram)} → {trimNum(cell.yieldGram)}
-        {cell.extractionSeconds ? (
-          <span className="font-normal text-olive"> ({cell.extractionSeconds}s)</span>
-        ) : null}
       </div>
-      <div className="mt-0.5 text-[10px] text-olive">
-        {cell.grindSetting ? `cối ${cell.grindSetting}` : ''}
-        {cell.boilerTempC ? `${cell.grindSetting ? ' · ' : ''}${trimNum(cell.boilerTempC)}°C` : ''}
-      </div>
+      {cell.createdAt ? (
+        <div className="mt-0.5 text-[10px] text-olive">{formatTime(cell.createdAt)}</div>
+      ) : null}
     </div>
   );
 }
@@ -68,7 +64,7 @@ export default function ProfileBlock({ cells }) {
         <div>
           <h2 className="text-sm font-bold text-ink-deep">Profile pha hôm nay</h2>
           <p className="text-[11.5px] text-olive">
-            Thông số lần test đạt gần nhất — bột → nước (giây), cối, nhiệt độ
+            Thông số lần test đạt gần nhất — bột → nước, kèm giờ test
           </p>
         </div>
         {latest && (

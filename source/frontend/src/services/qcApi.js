@@ -6,8 +6,11 @@ export const qcApi = {
 
   list: (params) => api.get('/qc-tests', { params }).then(unwrap),
 
-  /** Profile pha hôm nay — thông số lần test đã đạt gần nhất mỗi ô. */
+  /** Profile pha hôm nay — thông số lần test đã đạt gần nhất mỗi ô, chỉ tính hôm nay. */
   profile: () => api.get('/qc-tests/profile').then(unwrap),
+
+  /** Lịch sử — phiên test của ngày gần nhất trước hôm nay. */
+  previousDay: () => api.get('/qc-tests/previous-day').then(unwrap),
   get: (id) => api.get(`/qc-tests/${id}`).then(unwrap),
 
   /**

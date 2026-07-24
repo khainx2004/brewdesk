@@ -43,7 +43,7 @@ public interface QcTestRepository extends JpaRepository<QcTest, UUID> {
                              when lower(i.name) like '%robusta%' then 'ROBUSTA' end as bean,
                         s.dose_type, t.grind_setting, t.dose_gram, t.yield_gram,
                         t.extraction_seconds, t.boiler_temp_c, s.session_date,
-                        u.full_name, t.id
+                        u.full_name, t.id, t.created_at
                     from qc_tests t
                     join qc_test_sessions s on s.id = t.session_id
                     join shift_types st on st.id = s.shift_type_id
@@ -51,6 +51,7 @@ public interface QcTestRepository extends JpaRepository<QcTest, UUID> {
                     join stock_imports si on si.id = t.stock_import_id
                     join ingredients i on i.id = si.ingredient_id
                     where t.passed = true
+                      and s.session_date = :today
                       and (lower(i.name) like '%arabica%' or lower(i.name) like '%robusta%')
                     order by
                         case when st.code = 'P1' then 'SANG' else 'CHIEU' end,
@@ -59,5 +60,5 @@ public interface QcTestRepository extends JpaRepository<QcTest, UUID> {
                         s.dose_type, s.session_date desc, s.created_at desc
                     """,
             nativeQuery = true)
-    List<Object[]> findLatestPassedProfile();
+    List<Object[]> findLatestPassedProfile(@Param("today") java.time.LocalDate today);
 }

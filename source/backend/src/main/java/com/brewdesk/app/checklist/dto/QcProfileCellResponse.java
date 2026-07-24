@@ -3,6 +3,7 @@ package com.brewdesk.app.checklist.dto;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -28,7 +29,9 @@ public record QcProfileCellResponse(
         BigDecimal boilerTempC,
         LocalDate sessionDate,
         String performedByName,
-        UUID testId) {
+        UUID testId,
+        /** Giờ ghi lần test này — màn hiển thị "profile chốt lúc mấy giờ". */
+        OffsetDateTime createdAt) {
 
     public static QcProfileCellResponse of(
             String shiftPeriod,
@@ -41,7 +44,8 @@ public record QcProfileCellResponse(
             BigDecimal boilerTempC,
             LocalDate sessionDate,
             String performedByName,
-            UUID testId) {
+            UUID testId,
+            OffsetDateTime createdAt) {
         return new QcProfileCellResponse(
                 shiftPeriod,
                 beanType,
@@ -54,7 +58,8 @@ public record QcProfileCellResponse(
                 boilerTempC,
                 sessionDate,
                 performedByName,
-                testId);
+                testId,
+                createdAt);
     }
 
     private static BigDecimal ratio(BigDecimal dose, BigDecimal yield) {

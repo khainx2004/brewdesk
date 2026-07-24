@@ -86,11 +86,13 @@ export default function QcPage() {
 
   const profileQuery = useQuery({ queryKey: ['qc-profile'], queryFn: qcApi.profile });
 
+  // Lịch sử chỉ soi ngày gần nhất trước hôm nay — test hôm nay nằm ở Profile
+  // hôm nay và phiên đang ghi, không trộn vào lịch sử.
   const historyQuery = useQuery({
-    queryKey: ['qc-history'],
-    queryFn: () => qcApi.list({ size: 20 }),
+    queryKey: ['qc-history-prev'],
+    queryFn: qcApi.previousDay,
   });
-  const sessions = useMemo(() => historyQuery.data?.items ?? [], [historyQuery.data]);
+  const sessions = useMemo(() => historyQuery.data ?? [], [historyQuery.data]);
 
   const save = useMutation({
     mutationFn: () =>
@@ -106,7 +108,8 @@ export default function QcPage() {
       setEntries([]);
       setNote('');
       setError(null);
-      queryClient.invalidateQueries({ queryKey: ['qc-history'] });
+      // Test mới là của hôm nay: cập nhật Profile hôm nay; lịch sử (ngày trước)
+      // không đổi nên không cần nạp lại.
       queryClient.invalidateQueries({ queryKey: ['qc-profile'] });
     },
     onError: (err) => setError(errorMessage(err)),
@@ -125,10 +128,12 @@ export default function QcPage() {
     setEntries((list) => list.map((e) => (e.key === key ? next : e)));
   const removeEntry = (key) => setEntries((list) => list.filter((e) => e.key !== key));
 
-  const todayCount = useMemo(
+  // Số lần test của ngày lịch sử (ngày gần nhất trước hôm nay).
+  const histCount = useMemo(
     () => sessions.reduce((sum, s) => sum + (s.testCount ?? 0), 0),
     [sessions],
   );
+  const histDate = sessions[0]?.sessionDate;
 
   return (
     <AppShell>
@@ -136,7 +141,7 @@ export default function QcPage() {
         <div>
           <h1 className="font-display text-2xl italic text-ink-deep">Test cà phê (QC)</h1>
           <p className="mt-0.5 text-[12.5px] text-olive">
-            {shiftLabel || '…'} · {todayCount} lần test gần đây
+            {shiftLabel || '…'} · Profile pha hôm nay reset mỗi ngày
           </p>
         </div>
 
@@ -227,10 +232,20 @@ export default function QcPage() {
 
         {/* Lịch sử */}
         <div className="mt-5 rounded-2xl border border-olive-mute/60 bg-cream p-5 shadow-card">
-          <h2 className="mb-3 text-sm font-bold text-ink-deep">Lịch sử test cafe</h2>
+          <div className="mb-3">
+            <h2 className="text-sm font-bold text-ink-deep">
+              Lịch sử test cafe
+              {histDate ? ` — ngày ${formatDayMonth(histDate)}` : ''}
+            </h2>
+            <p className="text-[11.5px] text-olive">
+              Ngày gần nhất trước hôm nay{histCount ? ` · ${histCount} lần test` : ''}
+            </p>
+          </div>
           {historyQuery.isLoading && <p className="text-[12.5px] text-olive">Đang tải…</p>}
           {!historyQuery.isLoading && sessions.length === 0 && (
-            <p className="text-[12.5px] text-olive">Chưa có phiên test nào.</p>
+            <p className="text-[12.5px] text-olive">
+              Không có phiên test nào ở ngày trước.
+            </p>
           )}
           <div className="flex flex-col gap-2">
             {sessions.map((s) => (

@@ -55,6 +55,16 @@ public class QcController {
         return ResponseEntity.ok(ApiResponse.ok(qcService.profile()));
     }
 
+    @Operation(
+            summary = "Lịch sử — phiên test của ngày gần nhất trước hôm nay",
+            description =
+                    "Màn Test cafe tách test hôm nay (Profile hôm nay + phiên đang ghi) khỏi lịch"
+                        + " sử; lịch sử chỉ soi lại ngày liền trước có test.")
+    @GetMapping("/previous-day")
+    public ResponseEntity<ApiResponse<java.util.List<QcSessionResponse>>> previousDay() {
+        return ResponseEntity.ok(ApiResponse.ok(qcService.previousDay()));
+    }
+
     @Operation(summary = "Chi tiết một phiên test")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<QcSessionResponse>> get(@PathVariable UUID id) {

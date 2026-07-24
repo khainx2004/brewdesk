@@ -23,7 +23,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,7 +104,7 @@ public class QcService {
      */
     @Transactional(readOnly = true)
     public List<QcProfileCellResponse> profile() {
-        return testRepository.findLatestPassedProfile().stream()
+        return testRepository.findLatestPassedProfile(shiftService.today()).stream()
                 .map(
                         r ->
                                 QcProfileCellResponse.of(
@@ -116,8 +118,25 @@ public class QcService {
                                         dec(r[7]),
                                         date(r[8]),
                                         str(r[9]),
-                                        uuid(r[10])))
+                                        uuid(r[10]),
+                                        odt(r[11])))
                 .toList();
+    }
+
+    /**
+     * Phiên test của ngày gần nhất TRƯỚC hôm nay (theo giờ Việt Nam). Màn Test
+     * cafe tách bạch: test hôm nay dồn vào "Profile hôm nay" và phiên đang ghi,
+     * còn lịch sử chỉ soi lại ngày liền trước có test. Rỗng nếu chưa từng test
+     * ngày nào trước hôm nay.
+     */
+    @Transactional(readOnly = true)
+    public List<QcSessionResponse> previousDay() {
+        LocalDate prev = sessionRepository.findMaxSessionDateBefore(shiftService.today());
+        if (prev == null) {
+            return List.of();
+        }
+        return list(prev, prev, null, PageRequest.of(0, 100, Sort.by(Sort.Direction.ASC, "createdAt")))
+                .items();
     }
 
     // Native query trả kiểu tuỳ driver/Hibernate — map phòng thủ thay vì ép cứng.
@@ -150,6 +169,22 @@ public class QcService {
             return null;
         }
         return o instanceof UUID u ? u : UUID.fromString(o.toString());
+    }
+
+    private static java.time.OffsetDateTime odt(Object o) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof java.time.OffsetDateTime x) {
+            return x;
+        }
+        if (o instanceof java.time.Instant i) {
+            return i.atOffset(java.time.ZoneOffset.UTC);
+        }
+        if (o instanceof java.sql.Timestamp ts) {
+            return ts.toInstant().atOffset(java.time.ZoneOffset.UTC);
+        }
+        return java.time.OffsetDateTime.parse(o.toString());
     }
 
     /**
