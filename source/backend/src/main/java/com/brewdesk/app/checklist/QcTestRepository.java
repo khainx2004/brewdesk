@@ -43,7 +43,7 @@ public interface QcTestRepository extends JpaRepository<QcTest, UUID> {
                              when lower(i.name) like '%robusta%' then 'ROBUSTA' end as bean,
                         s.dose_type, t.grind_setting, t.dose_gram, t.yield_gram,
                         t.extraction_seconds, t.boiler_temp_c, s.session_date,
-                        u.full_name, t.id, t.created_at
+                        u.full_name, t.id
                     from qc_tests t
                     join qc_test_sessions s on s.id = t.session_id
                     join shift_types st on st.id = s.shift_type_id

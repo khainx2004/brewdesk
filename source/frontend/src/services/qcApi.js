@@ -9,8 +9,8 @@ export const qcApi = {
   /** Profile pha hôm nay — thông số lần test đã đạt gần nhất mỗi ô, chỉ tính hôm nay. */
   profile: () => api.get('/qc-tests/profile').then(unwrap),
 
-  /** Lịch sử — phiên test của ngày gần nhất trước hôm nay. */
-  previousDay: () => api.get('/qc-tests/previous-day').then(unwrap),
+  /** Lịch sử — phiên test hôm nay và ngày test gần nhất trước đó. */
+  recent: () => api.get('/qc-tests/recent').then(unwrap),
   get: (id) => api.get(`/qc-tests/${id}`).then(unwrap),
 
   /**

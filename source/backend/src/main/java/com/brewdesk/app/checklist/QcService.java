@@ -118,24 +118,23 @@ public class QcService {
                                         dec(r[7]),
                                         date(r[8]),
                                         str(r[9]),
-                                        uuid(r[10]),
-                                        odt(r[11])))
+                                        uuid(r[10])))
                 .toList();
     }
 
     /**
-     * Phiên test của ngày gần nhất TRƯỚC hôm nay (theo giờ Việt Nam). Màn Test
-     * cafe tách bạch: test hôm nay dồn vào "Profile hôm nay" và phiên đang ghi,
-     * còn lịch sử chỉ soi lại ngày liền trước có test. Rỗng nếu chưa từng test
-     * ngày nào trước hôm nay.
+     * Lịch sử màn Test cafe: phiên của HÔM NAY và của ngày test gần nhất TRƯỚC
+     * hôm nay (theo giờ Việt Nam) — đúng hai ngày để đối chiếu, không kéo cả các
+     * ngày cũ hơn. Vì ngày-trước-gần-nhất là ngày lớn nhất còn nhỏ hơn hôm nay,
+     * khoảng [prev … hôm nay] rơi đúng vào hai ngày đó. Chưa có ngày trước thì
+     * chỉ trả hôm nay.
      */
     @Transactional(readOnly = true)
-    public List<QcSessionResponse> previousDay() {
-        LocalDate prev = sessionRepository.findMaxSessionDateBefore(shiftService.today());
-        if (prev == null) {
-            return List.of();
-        }
-        return list(prev, prev, null, PageRequest.of(0, 100, Sort.by(Sort.Direction.ASC, "createdAt")))
+    public List<QcSessionResponse> recentHistory() {
+        LocalDate today = shiftService.today();
+        LocalDate prev = sessionRepository.findMaxSessionDateBefore(today);
+        LocalDate from = prev != null ? prev : today;
+        return list(from, today, null, PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt")))
                 .items();
     }
 
@@ -169,22 +168,6 @@ public class QcService {
             return null;
         }
         return o instanceof UUID u ? u : UUID.fromString(o.toString());
-    }
-
-    private static java.time.OffsetDateTime odt(Object o) {
-        if (o == null) {
-            return null;
-        }
-        if (o instanceof java.time.OffsetDateTime x) {
-            return x;
-        }
-        if (o instanceof java.time.Instant i) {
-            return i.atOffset(java.time.ZoneOffset.UTC);
-        }
-        if (o instanceof java.sql.Timestamp ts) {
-            return ts.toInstant().atOffset(java.time.ZoneOffset.UTC);
-        }
-        return java.time.OffsetDateTime.parse(o.toString());
     }
 
     /**

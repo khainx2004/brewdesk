@@ -86,11 +86,11 @@ export default function QcPage() {
 
   const profileQuery = useQuery({ queryKey: ['qc-profile'], queryFn: qcApi.profile });
 
-  // Lịch sử chỉ soi ngày gần nhất trước hôm nay — test hôm nay nằm ở Profile
-  // hôm nay và phiên đang ghi, không trộn vào lịch sử.
+  // Lịch sử gồm hôm nay và ngày test gần nhất trước đó — đủ hai ngày để đối
+  // chiếu, không kéo các ngày cũ hơn.
   const historyQuery = useQuery({
-    queryKey: ['qc-history-prev'],
-    queryFn: qcApi.previousDay,
+    queryKey: ['qc-history-recent'],
+    queryFn: qcApi.recent,
   });
   const sessions = useMemo(() => historyQuery.data ?? [], [historyQuery.data]);
 
@@ -108,9 +108,9 @@ export default function QcPage() {
       setEntries([]);
       setNote('');
       setError(null);
-      // Test mới là của hôm nay: cập nhật Profile hôm nay; lịch sử (ngày trước)
-      // không đổi nên không cần nạp lại.
+      // Test mới của hôm nay vào cả Profile hôm nay lẫn lịch sử (lịch sử có hôm nay).
       queryClient.invalidateQueries({ queryKey: ['qc-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['qc-history-recent'] });
     },
     onError: (err) => setError(errorMessage(err)),
   });
@@ -128,12 +128,11 @@ export default function QcPage() {
     setEntries((list) => list.map((e) => (e.key === key ? next : e)));
   const removeEntry = (key) => setEntries((list) => list.filter((e) => e.key !== key));
 
-  // Số lần test của ngày lịch sử (ngày gần nhất trước hôm nay).
+  // Tổng số lần test trong lịch sử (hôm nay + ngày trước gần nhất).
   const histCount = useMemo(
     () => sessions.reduce((sum, s) => sum + (s.testCount ?? 0), 0),
     [sessions],
   );
-  const histDate = sessions[0]?.sessionDate;
 
   return (
     <AppShell>
@@ -233,19 +232,15 @@ export default function QcPage() {
         {/* Lịch sử */}
         <div className="mt-5 rounded-2xl border border-olive-mute/60 bg-cream p-5 shadow-card">
           <div className="mb-3">
-            <h2 className="text-sm font-bold text-ink-deep">
-              Lịch sử test cafe
-              {histDate ? ` — ngày ${formatDayMonth(histDate)}` : ''}
-            </h2>
+            <h2 className="text-sm font-bold text-ink-deep">Lịch sử test cafe</h2>
             <p className="text-[11.5px] text-olive">
-              Ngày gần nhất trước hôm nay{histCount ? ` · ${histCount} lần test` : ''}
+              Hôm nay và ngày test gần nhất trước đó
+              {histCount ? ` · ${histCount} lần test` : ''}
             </p>
           </div>
           {historyQuery.isLoading && <p className="text-[12.5px] text-olive">Đang tải…</p>}
           {!historyQuery.isLoading && sessions.length === 0 && (
-            <p className="text-[12.5px] text-olive">
-              Không có phiên test nào ở ngày trước.
-            </p>
+            <p className="text-[12.5px] text-olive">Chưa có phiên test nào.</p>
           )}
           <div className="flex flex-col gap-2">
             {sessions.map((s) => (

@@ -1,4 +1,4 @@
-import { formatDayMonth, formatTime } from '../../utils/fmt';
+import { formatDayMonth } from '../../utils/fmt';
 
 /** Bỏ số 0 thừa: 11.500 -> "11.5", 23.000 -> "23". */
 function trimNum(v) {
@@ -19,8 +19,8 @@ function Cell({ cell }) {
       <div className="text-[12px] font-semibold text-ink-deep">
         {trimNum(cell.doseGram)} → {trimNum(cell.yieldGram)}
       </div>
-      {cell.createdAt ? (
-        <div className="mt-0.5 text-[10px] text-olive">{formatTime(cell.createdAt)}</div>
+      {cell.extractionSeconds ? (
+        <div className="mt-0.5 text-[10px] text-olive">{cell.extractionSeconds}s</div>
       ) : null}
     </div>
   );
@@ -64,7 +64,7 @@ export default function ProfileBlock({ cells }) {
         <div>
           <h2 className="text-sm font-bold text-ink-deep">Profile pha hôm nay</h2>
           <p className="text-[11.5px] text-olive">
-            Thông số lần test đạt gần nhất — bột → nước, kèm giờ test
+            Thông số lần test đạt gần nhất — bột → nước · thời gian chiết
           </p>
         </div>
         {latest && (
