@@ -4,8 +4,12 @@ import com.brewdesk.app.auth.dto.UserResponse;
 import com.brewdesk.app.common.audit.Auditable;
 import com.brewdesk.app.common.exception.AppException;
 import com.brewdesk.app.common.exception.ErrorCode;
+import com.brewdesk.app.common.security.CurrentUser;
 import com.brewdesk.app.staff.dto.CreateStaffRequest;
+import com.brewdesk.app.staff.dto.ResetStaffPasswordRequest;
+import com.brewdesk.app.staff.dto.UpdateStaffRequest;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,88 @@ public class StaffService {
         return userRepository.findByActiveTrueOrderByFullNameAsc().stream()
                 .map(UserResponse::from)
                 .toList();
+    }
+
+    /**
+     * Danh sách cho màn Quản lý nhân viên. {@code includeInactive = true} kèm cả
+     * người đã khoá để ADMIN thấy và mở lại; mặc định chỉ người đang hoạt động.
+     */
+    @Transactional(readOnly = true)
+    public List<UserResponse> list(boolean includeInactive) {
+        List<User> users =
+                includeInactive
+                        ? userRepository.findAllByOrderByFullNameAsc()
+                        : userRepository.findByActiveTrueOrderByFullNameAsc();
+        return users.stream().map(UserResponse::from).toList();
+    }
+
+    /**
+     * Khoá tài khoản (nghỉ việc). Hai chốt chặn để không tự nhốt mình ra ngoài:
+     * không tự khoá chính mình, và không khoá người quản lý cuối cùng còn hoạt
+     * động — nếu không sẽ chẳng còn ai vào được phần quản trị.
+     */
+    @Transactional
+    @Auditable(action = "DEACTIVATE_STAFF", entityType = "users")
+    public UserResponse deactivate(UUID id) {
+        User user = require(id);
+        if (id.equals(CurrentUser.require().getId())) {
+            throw new AppException(ErrorCode.CANNOT_DEACTIVATE_SELF);
+        }
+        if (user.getRole() == Role.ADMIN && user.isActive() && lastActiveAdmin()) {
+            throw new AppException(ErrorCode.LAST_ADMIN);
+        }
+        user.setActive(false);
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    @Transactional
+    @Auditable(action = "ACTIVATE_STAFF", entityType = "users")
+    public UserResponse activate(UUID id) {
+        User user = require(id);
+        user.setActive(true);
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    /** ADMIN cấp mật khẩu tạm; nhân viên buộc đổi ở lần đăng nhập kế tiếp. */
+    @Transactional
+    @Auditable(action = "RESET_STAFF_PASSWORD", entityType = "users")
+    public UserResponse resetPassword(UUID id, ResetStaffPasswordRequest request) {
+        User user = require(id);
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setMustChangePassword(true);
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    /**
+     * Sửa họ tên và vai trò. Không cho tự đổi vai trò của chính mình, và không
+     * hạ vai trò người quản lý cuối cùng — cùng lý do chống tự nhốt như khi khoá.
+     */
+    @Transactional
+    @Auditable(action = "UPDATE_STAFF", entityType = "users")
+    public UserResponse update(UUID id, UpdateStaffRequest request) {
+        User user = require(id);
+        boolean demotingFromAdmin = user.getRole() == Role.ADMIN && request.role() != Role.ADMIN;
+        if (demotingFromAdmin) {
+            if (id.equals(CurrentUser.require().getId())) {
+                throw new AppException(ErrorCode.CANNOT_CHANGE_OWN_ROLE);
+            }
+            if (user.isActive() && lastActiveAdmin()) {
+                throw new AppException(ErrorCode.LAST_ADMIN);
+            }
+        }
+        user.setFullName(request.fullName());
+        user.setRole(request.role());
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    private User require(UUID id) {
+        return userRepository
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private boolean lastActiveAdmin() {
+        return userRepository.countByRoleAndActiveTrue(Role.ADMIN) <= 1;
     }
 
     @Transactional

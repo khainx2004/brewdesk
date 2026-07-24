@@ -23,6 +23,10 @@ public enum ErrorCode {
 
     // Tài khoản
     USERNAME_EXISTS(HttpStatus.CONFLICT, "Tên đăng nhập đã tồn tại"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"),
+    CANNOT_DEACTIVATE_SELF(HttpStatus.BAD_REQUEST, "Không thể tự khoá tài khoản của chính mình"),
+    CANNOT_CHANGE_OWN_ROLE(HttpStatus.BAD_REQUEST, "Không thể tự đổi vai trò của chính mình"),
+    LAST_ADMIN(HttpStatus.BAD_REQUEST, "Phải còn ít nhất một quản lý đang hoạt động"),
 
     // Menu
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục"),

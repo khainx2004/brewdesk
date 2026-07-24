@@ -11,5 +11,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByActiveTrueOrderByFullNameAsc();
 
+    List<User> findAllByOrderByFullNameAsc();
+
+    long countByRoleAndActiveTrue(Role role);
+
     boolean existsByUsername(String username);
 }
