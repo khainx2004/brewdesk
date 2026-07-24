@@ -10,6 +10,25 @@ export const ingredientCategoryApi = {
 
 export const ingredientApi = {
   list: (params) => api.get('/ingredients', { params }).then(unwrap),
+  create: (body) => api.post('/ingredients', body).then(unwrap),
+  update: (id, body) => api.put(`/ingredients/${id}`, body).then(unwrap),
+  deactivate: (id) => api.patch(`/ingredients/${id}/deactivate`).then(unwrap),
+  activate: (id) => api.patch(`/ingredients/${id}/activate`).then(unwrap),
+};
+
+/** Nhà cung cấp. list mở cho mọi role; thêm/sửa/khoá chỉ ADMIN. */
+export const supplierApi = {
+  list: (params) => api.get('/suppliers', { params }).then(unwrap),
+  create: (body) => api.post('/suppliers', body).then(unwrap),
+  update: (id, body) => api.put(`/suppliers/${id}`, body).then(unwrap),
+  deactivate: (id) => api.patch(`/suppliers/${id}/deactivate`).then(unwrap),
+  activate: (id) => api.patch(`/suppliers/${id}/activate`).then(unwrap),
+};
+
+/** Nhập kho — POST cộng thẳng vào tồn (chỉ ADMIN). */
+export const stockImportApi = {
+  list: (params) => api.get('/stock-imports', { params }).then(unwrap),
+  create: (body) => api.post('/stock-imports', body).then(unwrap),
 };
 
 export const recipeApi = {

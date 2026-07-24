@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Kho nguyên liệu · BrewDesk Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C1510;--cocoa:#442D1C;--cocoa-lt:#5C3D22;
+  --rogue:#3A3D2E;--rogue-dk:#272A1F;
+  --caramel:#84592B;--olive:#9D9167;--olive-mute:#C4BAA0;
+  --batter:#EDE3CE;--batter-lt:#F5EDD8;--batter-warm:#E2D4B7;
+  --wine:#743014;--green:#3C6E2E;--cream:#FAF6EE;
+  --serif:'DM Serif Display',Georgia,serif;
+  --ui:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --r:10px;--rl:16px;--rxl:22px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--batter);color:var(--ink);min-width:1180px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;background:linear-gradient(120deg,var(--ink) 0%,#2E1E12 60%,var(--cocoa-lt) 100%);box-shadow:0 1px 0 rgba(157,145,103,.2),0 4px 20px rgba(28,21,16,.45);z-index:10;position:relative}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-name{font-family:var(--serif);font-style:italic;font-size:21px;color:var(--batter-lt);letter-spacing:.015em}
+.brand-tag{font-size:9.5px;font-weight:700;letter-spacing:.2em;color:var(--olive);text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.role-toggle{display:flex;gap:3px;background:rgba(255,255,255,.06);border-radius:999px;padding:3px}
+.role-btn{padding:5px 12px;border-radius:999px;border:none;background:transparent;color:rgba(196,186,160,.6);font-family:var(--ui);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .15s}
+.role-btn.active{background:var(--caramel);color:var(--cream)}
+.tb-staff-chip{display:flex;align-items:center;gap:9px;padding:5px 10px 5px 5px;border-radius:999px;background:rgba(255,255,255,.05)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#9A6B38,var(--caramel));color:var(--cream);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-staff-info{display:flex;flex-direction:column;line-height:1.25}
+.tb-staff-name{font-size:12.5px;font-weight:600;color:var(--batter-lt)}
+.tb-staff-role{font-size:10px;color:var(--olive);letter-spacing:.03em}
+.app-wrap{display:flex;height:calc(100vh - 60px)}
+.sidebar{width:220px;flex-shrink:0;background:linear-gradient(to bottom,#211710,#1C1510);display:flex;flex-direction:column;padding:20px 12px;gap:4px}
+.sidebar-section{font-size:9.5px;font-weight:700;letter-spacing:.12em;color:rgba(157,145,103,.5);text-transform:uppercase;padding:12px 10px 6px;margin-top:8px}
+.sidebar-section:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:rgba(196,186,160,.65);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--olive-mute)}
+.nav-item.active{background:rgba(58,61,46,.5);color:var(--batter-lt)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+.page-title{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink)}
+.page-subtitle{font-size:12.5px;color:var(--olive);margin-top:2px}
+.btn-primary{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:999px;border:none;background:var(--rogue);color:var(--batter-lt);font-family:var(--ui);font-size:13px;font-weight:700;cursor:pointer}
+.btn-primary:hover{background:var(--rogue-dk)}
+.btn-primary svg{width:14px;height:14px}
+
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 28px 0;flex-wrap:wrap}
+.cat-tabs{display:flex;gap:6px}
+.cat-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-family:var(--ui);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.cat-tab:hover{border-color:var(--rogue);color:var(--rogue)}
+.cat-tab.active{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+
+.content-wrap{padding:16px 28px 28px;flex:1}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.kpi-card{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);padding:14px 18px}
+.kpi-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--olive)}
+.kpi-value{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink);margin-top:4px}
+.kpi-card.warn .kpi-value{color:var(--wine)}
+.kpi-card.locked{background:repeating-linear-gradient(135deg,var(--cream),var(--cream) 8px,var(--batter-warm) 8px,var(--batter-warm) 9px)}
+
+.toolbar-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{width:100%;height:38px;border-radius:999px;border:1px solid var(--olive-mute);background:var(--cream);padding:0 16px 0 36px;font-family:var(--ui);font-size:13px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--olive)}
+.mini-select{height:38px;font-size:12.5px;border-radius:8px;border:1px solid var(--olive-mute);padding:0 10px;background:var(--cream)}
+.toggle-inline{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--olive);cursor:pointer;user-select:none}
+.toggle-track{width:34px;height:19px;border-radius:99px;background:var(--olive-mute);position:relative;transition:background .2s}
+.toggle-track.on{background:var(--rogue)}
+.toggle-knob{width:15px;height:15px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .2s}
+.toggle-track.on .toggle-knob{transform:translateX(15px)}
+
+.category-box{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);overflow:hidden;margin-bottom:14px}
+.category-head{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--batter-warm)}
+.category-name{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cocoa)}
+.category-count{font-size:11px;color:var(--olive)}
+.ing-head-row{display:grid;gap:14px;padding:9px 18px;background:rgba(196,186,160,.12)}
+.ing-head-row.admin{grid-template-columns:minmax(160px,1fr) 100px 140px 110px 110px 72px}
+.ing-head-row.staff{grid-template-columns:minmax(160px,1fr) 100px 140px 110px}
+.ing-head-cell{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive)}
+.ing-row{display:grid;gap:14px;padding:16px 18px;border-bottom:1px solid rgba(196,186,160,.3);align-items:center}
+.ing-row.admin{grid-template-columns:minmax(160px,1fr) 100px 140px 110px 110px 72px}
+.ing-row.staff{grid-template-columns:minmax(160px,1fr) 100px 140px 110px}
+.ing-row:last-child{border-bottom:none}
+.ing-name-cell{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ing-name{font-weight:500;color:var(--ink);font-size:13px}
+.ing-yield-note{font-size:10.5px;color:var(--caramel)}
+.ing-stock{font-weight:700;color:var(--ink)}
+.ing-unit{font-size:11px;color:var(--olive);font-weight:500}
+.ing-threshold{font-size:11.5px;color:var(--olive)}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.02em}
+.badge.low{background:rgba(116,48,20,.12);color:var(--wine)}
+.badge.ok{background:rgba(60,110,46,.14);color:var(--green)}
+.badge.inactive{background:rgba(157,145,103,.18);color:var(--olive)}
+.ing-cost{color:var(--olive);font-size:12.5px}
+.row-actions{display:flex;gap:4px;justify-content:flex-end}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:none;background:transparent;color:var(--olive-mute);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s}
+.icon-btn:hover{color:var(--rogue);background:rgba(58,61,46,.08)}
+.icon-btn svg{width:14px;height:14px}
+
+/* Nhập kho */
+.import-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-field{margin-bottom:2px}
+.form-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive);display:block;margin-bottom:5px}
+.form-input,.form-select{width:100%;height:38px;border-radius:8px;border:1px solid var(--olive-mute);background:#fff;padding:0 12px;font-family:var(--ui);font-size:13px}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--rogue)}
+.form-input[readonly]{background:var(--batter-lt);color:var(--olive)}
+.import-total{grid-column:1/3;background:var(--batter-warm);border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.import-total-label{font-size:12px;color:var(--olive);font-weight:600}
+.import-total-value{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink)}
+
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive);text-align:left;padding:10px 14px;border-bottom:1px solid rgba(196,186,160,.5);background:var(--batter-warm)}
+.hist-table td{padding:10px 14px;font-size:12.5px;border-bottom:1px solid rgba(196,186,160,.3)}
+.hist-table tr:last-child td{border-bottom:none}
+
+/* Nhà cung cấp */
+.supplier-card{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid rgba(196,186,160,.35)}
+.supplier-card:last-child{border-bottom:none}
+.supplier-avatar{width:38px;height:38px;border-radius:10px;background:var(--batter-warm);color:var(--cocoa);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.supplier-name{font-weight:600;font-size:13.5px}
+.supplier-meta{font-size:11.5px;color:var(--olive);margin-top:2px}
+
+/* modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(28,21,16,.4);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:50}
+.modal-backdrop.open{display:flex}
+.modal-box{width:460px;max-height:88vh;overflow-y:auto;background:var(--cream);border-radius:var(--rxl);box-shadow:0 20px 60px rgba(28,21,16,.3);padding:24px}
+.modal-title{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--ink);margin-bottom:4px}
+.modal-hint{font-size:12px;color:var(--olive);margin-bottom:16px}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);margin:14px 0}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.btn-secondary{flex:1;padding:11px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-weight:600;font-size:13px;cursor:pointer}
+.btn-confirm{flex:1;padding:11px;border-radius:999px;border:none;background:var(--rogue);color:var(--batter-lt);font-weight:700;font-size:13px;cursor:pointer}
+.btn-confirm.danger{background:var(--wine)}
+.yield-box{background:var(--batter-lt);border-radius:10px;padding:12px 14px;margin:12px 0;display:none}
+.yield-box.show{display:block}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-name">BrewDesk</span><span class="brand-tag">Admin</span></div>
+  <div class="topbar-right">
+    <div class="role-toggle" id="roleToggle">
+      <button class="role-btn active" data-role="admin">Xem như Admin</button>
+      <button class="role-btn" data-role="staff">Xem như Staff</button>
+    </div>
+    <div class="tb-staff-chip">
+      <span class="tb-avatar" id="topAvatar">AD</span>
+      <div class="tb-staff-info"><span class="tb-staff-name" id="topName">Admin</span><span class="tb-staff-role" id="topRole">Quản lý</span></div>
+    </div>
+  </div>
+</header>
+<div class="app-wrap">
+  <nav class="sidebar">
+    <div class="sidebar-section">Vận hành</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>POS Bán hàng</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Checklist</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>Test cafe</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Bàn giao ca</button>
+    <div class="sidebar-section">Quản lý</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h18l-2 7H5L3 2z"/><path d="M5 9l-1 13h16l-1-13"/><path d="M10 13h4"/></svg>Menu</button>
+    <button class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Kho nguyên liệu</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Nhân viên</button>
+    <div class="sidebar-section">Báo cáo</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Thống kê</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Kiểm kê kho</button>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Kho nguyên liệu</div>
+        <div class="page-subtitle" id="pageSub">Tồn kho · cập nhật vừa xong</div>
+      </div>
+      <button class="btn-primary" id="btnAddIngredient" onclick="openIngredientModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Thêm nguyên liệu
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="cat-tabs" id="mainTabs"></div>
+    </div>
+
+    <!-- TAB: TỒN KHO -->
+    <div id="paneStock">
+      <div class="content-wrap">
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <div class="toolbar-row">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="searchBox" placeholder="Tìm nguyên liệu..."/>
+          </div>
+          <select class="mini-select" id="fCat"><option value="">Tất cả nhóm</option></select>
+          <label class="toggle-inline" id="toggleInactive">
+            <span class="toggle-track"><span class="toggle-knob"></span></span>
+            Hiện cả nguyên liệu đã ngừng dùng
+          </label>
+        </div>
+
+        <div id="categoryList"></div>
+      </div>
+    </div>
+
+    <!-- TAB: NHẬP KHO -->
+    <div id="paneImport" style="display:none">
+      <div class="content-wrap">
+        <div class="category-box" style="padding:18px 20px;margin-bottom:16px">
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:2px">Lập phiếu nhập kho</div>
+          <div style="font-size:11.5px;color:var(--olive);margin-bottom:14px">Số lượng sẽ được cộng thẳng vào tồn kho sau khi lưu</div>
+          <div class="import-form">
+            <div class="form-field"><label class="form-label">Nguyên liệu</label><select class="form-select" id="impIngredient"></select></div>
+            <div class="form-field"><label class="form-label">Nhà cung cấp</label><select class="form-select" id="impSupplier"></select></div>
+            <div class="form-field"><label class="form-label">Số lượng</label><input class="form-input" type="number" id="impQty" placeholder="0"/></div>
+            <div class="form-field"><label class="form-label">Đơn giá (đ)</label><input class="form-input" type="number" id="impPrice" placeholder="0"/></div>
+            <div class="form-field"><label class="form-label">Mã lô</label><input class="form-input" id="impBatch" placeholder="vd: AR-2607"/></div>
+            <div class="form-field"><label class="form-label">Hạn dùng</label><input class="form-input" type="date" id="impExpiry"/></div>
+            <div class="form-field" style="grid-column:1/3"><label class="form-label">Ghi chú</label><input class="form-input" id="impNote" placeholder="Không bắt buộc"/></div>
+            <div class="import-total">
+              <span class="import-total-label">Thành tiền</span>
+              <span class="import-total-value" id="impTotal">0đ</span>
+            </div>
+          </div>
+          <button class="btn-primary" style="margin-top:14px;width:100%;justify-content:center" onclick="saveImport()">Lưu phiếu nhập</button>
+        </div>
+
+        <div class="section-title" style="font-size:13.5px;font-weight:700;margin-bottom:8px">Lịch sử nhập kho</div>
+        <div class="toolbar-row" style="margin-bottom:10px">
+          <select class="mini-select" id="fImportIngredient"><option value="">Tất cả nguyên liệu</option></select>
+        </div>
+        <div class="category-box">
+          <table class="hist-table">
+            <thead><tr><th>Ngày</th><th>Nguyên liệu</th><th>Lô</th><th>SL</th><th>Đơn giá</th><th>NCC</th><th>Người nhập</th></tr></thead>
+            <tbody id="importHistBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: NHÀ CUNG CẤP -->
+    <div id="paneSupplier" style="display:none">
+      <div class="content-wrap">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn-primary" onclick="openSupplierModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Thêm nhà cung cấp
+          </button>
+        </div>
+        <div class="category-box" id="supplierList"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: Thêm/Sửa nguyên liệu -->
+<div class="modal-backdrop" id="ingredientModal">
+  <div class="modal-box">
+    <div class="modal-title" id="ingModalTitle">Thêm nguyên liệu</div>
+    <div class="modal-hint" id="ingModalHint">Tồn kho bắt đầu ở mức 0 — nhập kho để cộng số lượng vào</div>
+    <div class="form-field"><label class="form-label">Tên nguyên liệu</label><input class="form-input" id="ingName"/></div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Nhóm</label>
+      <select class="form-select" id="ingCat"></select>
+    </div>
+    <div class="import-form" style="margin-top:10px">
+      <div class="form-field"><label class="form-label">Đơn vị lưu kho</label><input class="form-input" id="ingUnit" placeholder="vd: g, ml, kg"/></div>
+      <div class="form-field"><label class="form-label">Ngưỡng cảnh báo</label><input class="form-input" type="number" id="ingThreshold" placeholder="vd: 500"/></div>
+    </div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Giá vốn / đơn vị (đ)</label><input class="form-input" type="number" id="ingCost" placeholder="Chỉ Admin thấy mục này"/></div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="ingHasYield"/>
+      <label for="ingHasYield">Có thành phẩm pha chế (vd: trà ủ, cold brew, siro)</label>
+    </div>
+    <div class="yield-box" id="yieldBox">
+      <div class="modal-hint" style="margin-bottom:8px">1 đơn vị lưu kho pha ra bao nhiêu đơn vị thành phẩm — đơn vị thành phẩm phải khác hệ đo với đơn vị lưu kho.</div>
+      <div class="import-form">
+        <div class="form-field"><label class="form-label">Đơn vị thành phẩm</label><input class="form-input" id="ingYieldUnit" placeholder="vd: ly, lít"/></div>
+        <div class="form-field"><label class="form-label">Số lượng thành phẩm / 1 đơn vị lưu kho</label><input class="form-input" type="number" id="ingYieldQty" placeholder="vd: 4"/></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('ingredientModal')">Huỷ</button>
+      <button class="btn-confirm" onclick="saveIngredient()">Lưu nguyên liệu</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Thêm/Sửa nhà cung cấp -->
+<div class="modal-backdrop" id="supplierModal">
+  <div class="modal-box">
+    <div class="modal-title" id="supModalTitle">Thêm nhà cung cấp</div>
+    <div class="form-field"><label class="form-label">Tên nhà cung cấp</label><input class="form-input" id="supName"/></div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Số điện thoại</label><input class="form-input" id="supPhone"/></div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Ghi chú</label><input class="form-input" id="supNote" placeholder="vd: chuyên cà phê Arabica"/></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('supplierModal')">Huỷ</button>
+      <button class="btn-confirm" onclick="saveSupplier()">Lưu nhà cung cấp</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Xác nhận ngừng dùng / dùng lại -->
+<div class="modal-backdrop" id="statusModal">
+  <div class="modal-box">
+    <div class="modal-title" id="statusModalTitle">Ngừng dùng nguyên liệu</div>
+    <div class="modal-hint" id="statusModalHint">Không xoá dữ liệu, chỉ ẩn khỏi các form chọn nguyên liệu mới.</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('statusModal')">Huỷ</button>
+      <button class="btn-confirm danger" id="statusConfirmBtn" onclick="confirmStatusChange()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRole='admin';
+const CATS=['Coffee','Powder','Tea','Sweet','Milk & Rượu','Syrup','Homemade','Topping','Cleaning','Pour <3'];
+
+let INGREDIENTS=[
+  {id:1,name:'Arabica',cat:'Coffee',unit:'kg',stock:6,threshold:5,cost:220000,status:'active',hasYield:false},
+  {id:2,name:'Robusta',cat:'Coffee',unit:'kg',stock:3,threshold:5,cost:180000,status:'active',hasYield:false},
+  {id:3,name:'Coldbrew (ủ sẵn)',cat:'Coffee',unit:'kg',stock:3,threshold:2,cost:220000,status:'active',hasYield:true,yieldUnit:'ly',yieldQty:8},
+  {id:4,name:'Matcha',cat:'Powder',unit:'kg',stock:0.4,threshold:0.5,cost:850000,status:'active',hasYield:false},
+  {id:5,name:'Cacao',cat:'Powder',unit:'kg',stock:0.4,threshold:0.3,cost:180000,status:'active',hasYield:false},
+  {id:6,name:'Jasmine',cat:'Tea',unit:'kg',stock:0.7,threshold:0.3,cost:320000,status:'active',hasYield:true,yieldUnit:'lít',yieldQty:40},
+  {id:7,name:'Sữa tươi',cat:'Milk & Rượu',unit:'lít',stock:4,threshold:8,cost:32000,status:'active',hasYield:false},
+  {id:8,name:'Syrup Vani',cat:'Syrup',unit:'chai',stock:2,threshold:3,cost:95000,status:'active',hasYield:false},
+  {id:9,name:'Đường vàng',cat:'Sweet',unit:'kg',stock:7,threshold:3,cost:28000,status:'active',hasYield:false},
+  {id:10,name:'Sữa đặc (cũ, ngừng dùng)',cat:'Sweet',unit:'chai',stock:0,threshold:2,cost:22000,status:'inactive',hasYield:false}
+];
+
+let SUPPLIERS=[
+  {id:1,name:'Anh Tuấn Coffee',phone:'0908 123 456',note:'Chuyên Arabica, Robusta',status:'active'},
+  {id:2,name:'Chị Hoa Sữa Tươi',phone:'0912 555 888',note:'Giao sữa hàng ngày',status:'active'},
+  {id:3,name:'Vật tư Thành Đạt',phone:'0977 222 333',note:'Đồ vệ sinh, giấy gói',status:'active'}
+];
+
+let IMPORTS=[
+  {date:'20/7/2026',ing:'Arabica',batch:'AR-2607',qty:'5 kg',price:'220.000đ',supplier:'Anh Tuấn Coffee',by:'Admin'},
+  {date:'18/7/2026',ing:'Sữa tươi',batch:'—',qty:'20 lít',price:'32.000đ',supplier:'Chị Hoa Sữa Tươi',by:'Admin'},
+  {date:'15/7/2026',ing:'Syrup Vani',batch:'—',qty:'6 chai',price:'95.000đ',supplier:'Vật tư Thành Đạt',by:'Admin'}
+];
+
+/* ---------- Role ---------- */
+function setRole(role){
+  currentRole=role;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.toggle('active',b.dataset.role===role));
+  document.getElementById('topAvatar').textContent=role==='admin'?'AD':'CH';
+  document.getElementById('topName').textContent=role==='admin'?'Admin':'Choi';
+  document.getElementById('topRole').textContent=role==='admin'?'Quản lý':'Nhân viên';
+  document.getElementById('btnAddIngredient').style.display=role==='admin'?'flex':'none';
+  renderMainTabs();
+  renderKpi();
+  renderCategories();
+}
+document.querySelectorAll('.role-btn').forEach(b=>b.addEventListener('click',()=>setRole(b.dataset.role)));
+
+/* ---------- Tabs ---------- */
+let mainTab='stock';
+function renderMainTabs(){
+  const el=document.getElementById('mainTabs');
+  const tabs=[['stock','Tồn kho']];
+  if(currentRole==='admin'){ tabs.push(['import','Nhập kho']); tabs.push(['supplier','Nhà cung cấp']); }
+  if(mainTab!=='stock' && currentRole!=='admin') mainTab='stock';
+  el.innerHTML='';
+  tabs.forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(mainTab===k?' active':'');
+    b.textContent=label;
+    b.onclick=()=>{
+      mainTab=k; renderMainTabs();
+      document.getElementById('paneStock').style.display=k==='stock'?'':'none';
+      document.getElementById('paneImport').style.display=k==='import'?'':'none';
+      document.getElementById('paneSupplier').style.display=k==='supplier'?'':'none';
+      if(k==='import') renderImportTab();
+      if(k==='supplier') renderSuppliers();
+    };
+    el.appendChild(b);
+  });
+  document.getElementById('paneStock').style.display=mainTab==='stock'?'':'none';
+  document.getElementById('paneImport').style.display=mainTab==='import'?'':'none';
+  document.getElementById('paneSupplier').style.display=mainTab==='supplier'?'':'none';
+}
+
+/* populate cat filter + select once */
+const fCatSel=document.getElementById('fCat');
+CATS.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; fCatSel.appendChild(o); });
+const ingCatSel=document.getElementById('ingCat');
+CATS.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; ingCatSel.appendChild(o); });
+
+/* ---------- KPI ---------- */
+function renderKpi(){
+  const grid=document.getElementById('kpiGrid');
+  const total=INGREDIENTS.filter(i=>i.status==='active').length;
+  const low=INGREDIENTS.filter(i=>i.status==='active' && i.stock<i.threshold).length;
+  grid.style.gridTemplateColumns=currentRole==='admin'?'repeat(3,1fr)':'repeat(2,1fr)';
+  let html=
+    '<div class="kpi-card"><div class="kpi-label">Tổng nguyên liệu</div><div class="kpi-value">'+total+'</div></div>'+
+    '<div class="kpi-card warn"><div class="kpi-label">Sắp hết hàng</div><div class="kpi-value">'+low+'</div></div>';
+  if(currentRole==='admin'){
+    const value=INGREDIENTS.filter(i=>i.status==='active').reduce((s,i)=>s+i.stock*i.cost,0);
+    html+='<div class="kpi-card"><div class="kpi-label">Giá trị tồn kho</div><div class="kpi-value">'+(value/1000000).toFixed(1)+'tr</div></div>';
+  }
+  grid.innerHTML=html;
+}
+
+/* ---------- Tồn kho list ---------- */
+function renderCategories(){
+  const search=document.getElementById('searchBox').value.toLowerCase();
+  const fCat=document.getElementById('fCat').value;
+  const showInactive=document.getElementById('toggleInactive').querySelector('.toggle-track').classList.contains('on');
+  const wrap=document.getElementById('categoryList');
+  wrap.innerHTML='';
+  const roleClass=currentRole==='admin'?'admin':'staff';
+  CATS.forEach(cat=>{
+    if(fCat && fCat!==cat) return;
+    const items=INGREDIENTS.filter(i=>i.cat===cat && (showInactive||i.status==='active') && (!search||i.name.toLowerCase().includes(search)));
+    if(items.length===0) return;
+    const box=document.createElement('div');
+    box.className='category-box';
+    let rows='';
+    items.forEach(it=>{
+      const low = it.status==='active' && it.stock<it.threshold;
+      const statusBadge = it.status==='inactive' ? '<span class="badge inactive">Ngừng dùng</span>' : (low?'<span class="badge low">Sắp hết</span>':'<span class="badge ok">Đủ hàng</span>');
+      rows+='<div class="ing-row '+roleClass+'">'+
+        '<div class="ing-name-cell"><span class="ing-name">'+it.name+'</span>'+(it.hasYield?'<span class="ing-yield-note">Yield: '+it.yieldQty+' '+it.yieldUnit+' / '+it.unit+'</span>':'')+'</div>'+
+        '<div><span class="ing-stock">'+it.stock+'</span> <span class="ing-unit">'+it.unit+'</span></div>'+
+        '<div class="ing-threshold">Ngưỡng: '+it.threshold+' '+it.unit+'</div>'+
+        '<div>'+statusBadge+'</div>'+
+        (currentRole==='admin' ? '<div class="ing-cost">'+it.cost.toLocaleString('vi-VN')+'đ</div>' : '')+
+        (currentRole==='admin' ? '<div class="row-actions">'+
+          '<button class="icon-btn" title="Sửa" onclick="openIngredientModal('+it.id+')">'+EDIT_ICON+'</button>'+
+          '<button class="icon-btn" title="'+(it.status==='active'?'Ngừng dùng':'Dùng lại')+'" onclick="openStatusModal('+it.id+')">'+(it.status==='active'?POWER_OFF_ICON:POWER_ON_ICON)+'</button>'+
+        '</div>' : '')+
+      '</div>';
+    });
+    const headCells=currentRole==='admin'
+      ? '<div class="ing-head-cell">Tên nguyên liệu</div><div class="ing-head-cell">Tồn kho</div><div class="ing-head-cell">Ngưỡng</div><div class="ing-head-cell">Trạng thái</div><div class="ing-head-cell">Giá vốn</div><div class="ing-head-cell"></div>'
+      : '<div class="ing-head-cell">Tên nguyên liệu</div><div class="ing-head-cell">Tồn kho</div><div class="ing-head-cell">Ngưỡng</div><div class="ing-head-cell">Trạng thái</div>';
+    box.innerHTML='<div class="category-head"><span class="category-name">'+cat+'</span><span class="category-count">'+items.length+' mục</span></div>'+
+      '<div class="ing-head-row '+roleClass+'">'+headCells+'</div>'+
+      rows;
+    wrap.appendChild(box);
+  });
+}
+const EDIT_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+const POWER_OFF_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>';
+const POWER_ON_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"/><circle cx="12" cy="15" r="6"/></svg>';
+
+document.getElementById('searchBox').addEventListener('input',renderCategories);
+document.getElementById('fCat').addEventListener('change',renderCategories);
+document.getElementById('toggleInactive').addEventListener('click',e=>{
+  document.getElementById('toggleInactive').querySelector('.toggle-track').classList.toggle('on');
+  renderCategories();
+});
+
+/* ---------- Modal: thêm/sửa nguyên liệu ---------- */
+let editingIngredientId=null;
+function openIngredientModal(id){
+  editingIngredientId=id||null;
+  const isEdit=!!id;
+  document.getElementById('ingModalTitle').textContent=isEdit?'Sửa nguyên liệu':'Thêm nguyên liệu';
+  document.getElementById('ingModalHint').style.display=isEdit?'none':'block';
+  if(isEdit){
+    const it=INGREDIENTS.find(x=>x.id===id);
+    document.getElementById('ingName').value=it.name;
+    document.getElementById('ingCat').value=it.cat;
+    document.getElementById('ingUnit').value=it.unit;
+    document.getElementById('ingThreshold').value=it.threshold;
+    document.getElementById('ingCost').value=it.cost;
+    document.getElementById('ingHasYield').checked=it.hasYield;
+    document.getElementById('ingYieldUnit').value=it.yieldUnit||'';
+    document.getElementById('ingYieldQty').value=it.yieldQty||'';
+  } else {
+    ['ingName','ingUnit','ingThreshold','ingCost','ingYieldUnit','ingYieldQty'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ingCat').value=CATS[0];
+    document.getElementById('ingHasYield').checked=false;
+  }
+  document.getElementById('yieldBox').classList.toggle('show',document.getElementById('ingHasYield').checked);
+  document.getElementById('ingredientModal').classList.add('open');
+}
+document.getElementById('ingHasYield').addEventListener('change',e=>{
+  document.getElementById('yieldBox').classList.toggle('show',e.target.checked);
+});
+function saveIngredient(){
+  const name=document.getElementById('ingName').value.trim();
+  if(!name){ alert('Vui lòng nhập tên nguyên liệu'); return; }
+  const data={
+    name, cat:document.getElementById('ingCat').value,
+    unit:document.getElementById('ingUnit').value||'đơn vị',
+    threshold:parseFloat(document.getElementById('ingThreshold').value)||0,
+    cost:parseFloat(document.getElementById('ingCost').value)||0,
+    hasYield:document.getElementById('ingHasYield').checked,
+    yieldUnit:document.getElementById('ingYieldUnit').value,
+    yieldQty:parseFloat(document.getElementById('ingYieldQty').value)||0
+  };
+  if(editingIngredientId){
+    const it=INGREDIENTS.find(x=>x.id===editingIngredientId);
+    Object.assign(it,data);
+  } else {
+    INGREDIENTS.push(Object.assign({id:Date.now(),stock:0,status:'active'},data));
+  }
+  closeModal('ingredientModal');
+  renderKpi(); renderCategories();
+}
+
+/* ---------- Modal: ngừng dùng / dùng lại ---------- */
+let statusTargetId=null;
+function openStatusModal(id){
+  statusTargetId=id;
+  const it=INGREDIENTS.find(x=>x.id===id);
+  const activating=it.status==='inactive';
+  document.getElementById('statusModalTitle').textContent=(activating?'Dùng lại: ':'Ngừng dùng: ')+it.name;
+  document.getElementById('statusModalHint').textContent=activating
+    ? 'Nguyên liệu sẽ xuất hiện lại trong các form chọn nguyên liệu mới.'
+    : 'Không xoá dữ liệu — chỉ ẩn khỏi form Menu/Nhập kho mới, lịch sử vẫn giữ nguyên.';
+  const btn=document.getElementById('statusConfirmBtn');
+  btn.textContent=activating?'Xác nhận dùng lại':'Xác nhận ngừng dùng';
+  btn.classList.toggle('danger',!activating);
+  document.getElementById('statusModal').classList.add('open');
+}
+function confirmStatusChange(){
+  const it=INGREDIENTS.find(x=>x.id===statusTargetId);
+  it.status = it.status==='active' ? 'inactive' : 'active';
+  closeModal('statusModal');
+  renderKpi(); renderCategories();
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ---------- Nhập kho ---------- */
+function renderImportTab(){
+  const ingSel=document.getElementById('impIngredient');
+  const filterSel=document.getElementById('fImportIngredient');
+  ingSel.innerHTML=''; filterSel.innerHTML='<option value="">Tất cả nguyên liệu</option>';
+  INGREDIENTS.filter(i=>i.status==='active').forEach(i=>{
+    ingSel.innerHTML+='<option value="'+i.id+'">'+i.name+' ('+i.unit+')</option>';
+    filterSel.innerHTML+='<option>'+i.name+'</option>';
+  });
+  const supSel=document.getElementById('impSupplier');
+  supSel.innerHTML='';
+  SUPPLIERS.filter(s=>s.status==='active').forEach(s=>{ supSel.innerHTML+='<option>'+s.name+'</option>'; });
+  renderImportHistory();
+}
+function calcImportTotal(){
+  const qty=parseFloat(document.getElementById('impQty').value)||0;
+  const price=parseFloat(document.getElementById('impPrice').value)||0;
+  document.getElementById('impTotal').textContent=(qty*price).toLocaleString('vi-VN')+'đ';
+}
+document.getElementById('impQty').addEventListener('input',calcImportTotal);
+document.getElementById('impPrice').addEventListener('input',calcImportTotal);
+function saveImport(){
+  const ingId=document.getElementById('impIngredient').value;
+  const ing=INGREDIENTS.find(i=>i.id==ingId);
+  const qty=parseFloat(document.getElementById('impQty').value);
+  if(!ing || !qty){ alert('Vui lòng chọn nguyên liệu và nhập số lượng'); return; }
+  ing.stock += qty;
+  IMPORTS.unshift({
+    date:new Date().toLocaleDateString('vi-VN'),
+    ing:ing.name,
+    batch:document.getElementById('impBatch').value||'—',
+    qty:qty+' '+ing.unit,
+    price:(parseFloat(document.getElementById('impPrice').value)||0).toLocaleString('vi-VN')+'đ',
+    supplier:document.getElementById('impSupplier').value,
+    by: currentRole==='admin'?'Admin':'Choi'
+  });
+  ['impQty','impPrice','impBatch','impExpiry','impNote'].forEach(id=>document.getElementById(id).value='');
+  calcImportTotal();
+  renderImportHistory();
+  renderKpi(); renderCategories();
+  alert('Đã lưu phiếu nhập kho, tồn kho đã được cộng thêm.');
+}
+function renderImportHistory(){
+  const filter=document.getElementById('fImportIngredient').value;
+  const body=document.getElementById('importHistBody');
+  body.innerHTML='';
+  IMPORTS.filter(x=>!filter||x.ing===filter).forEach(x=>{
+    body.innerHTML+='<tr><td>'+x.date+'</td><td>'+x.ing+'</td><td>'+x.batch+'</td><td>'+x.qty+'</td><td>'+x.price+'</td><td>'+x.supplier+'</td><td>'+x.by+'</td></tr>';
+  });
+}
+document.getElementById('fImportIngredient').addEventListener('change',renderImportHistory);
+
+/* ---------- Nhà cung cấp ---------- */
+function renderSuppliers(){
+  const wrap=document.getElementById('supplierList');
+  wrap.innerHTML='';
+  SUPPLIERS.forEach(s=>{
+    const row=document.createElement('div');
+    row.className='supplier-card';
+    row.innerHTML=
+      '<div class="supplier-avatar">'+s.name.slice(0,2).toUpperCase()+'</div>'+
+      '<div style="flex:1"><div class="supplier-name">'+s.name+(s.status==='inactive'?' <span class="badge inactive">Ngừng dùng</span>':'')+'</div><div class="supplier-meta">'+s.phone+' · '+s.note+'</div></div>'+
+      '<div class="row-actions">'+
+        '<button class="icon-btn" title="Sửa" onclick="openSupplierModal('+s.id+')">'+EDIT_ICON+'</button>'+
+        '<button class="icon-btn" title="'+(s.status==='active'?'Ngừng dùng':'Dùng lại')+'" onclick="toggleSupplierStatus('+s.id+')">'+(s.status==='active'?POWER_OFF_ICON:POWER_ON_ICON)+'</button>'+
+      '</div>';
+    wrap.appendChild(row);
+  });
+}
+let editingSupplierId=null;
+function openSupplierModal(id){
+  editingSupplierId=id||null;
+  document.getElementById('supModalTitle').textContent=id?'Sửa nhà cung cấp':'Thêm nhà cung cấp';
+  if(id){
+    const s=SUPPLIERS.find(x=>x.id===id);
+    document.getElementById('supName').value=s.name;
+    document.getElementById('supPhone').value=s.phone;
+    document.getElementById('supNote').value=s.note;
+  } else {
+    document.getElementById('supName').value='';
+    document.getElementById('supPhone').value='';
+    document.getElementById('supNote').value='';
+  }
+  document.getElementById('supplierModal').classList.add('open');
+}
+function saveSupplier(){
+  const name=document.getElementById('supName').value.trim();
+  if(!name){ alert('Vui lòng nhập tên nhà cung cấp'); return; }
+  const data={name,phone:document.getElementById('supPhone').value,note:document.getElementById('supNote').value};
+  if(editingSupplierId){
+    Object.assign(SUPPLIERS.find(x=>x.id===editingSupplierId),data);
+  } else {
+    SUPPLIERS.push(Object.assign({id:Date.now(),status:'active'},data));
+  }
+  closeModal('supplierModal');
+  renderSuppliers();
+}
+function toggleSupplierStatus(id){
+  const s=SUPPLIERS.find(x=>x.id===id);
+  s.status = s.status==='active'?'inactive':'active';
+  renderSuppliers();
+}
+
+/* ---------- init ---------- */
+renderMainTabs();
+renderKpi();
+renderCategories();
+</script>
+</body>
+</html>

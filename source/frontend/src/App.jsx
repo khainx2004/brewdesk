@@ -14,6 +14,7 @@ import ReconciliationPage from './features/reconciliation/ReconciliationPage';
 import QcPage from './features/qc/QcPage';
 import StatsPage from './features/reports/StatsPage';
 import StockTakePage from './features/inventory/StockTakePage';
+import WarehousePage from './features/inventory/WarehousePage';
 import StaffPage from './features/staff/StaffPage';
 import PosPage from './features/pos/PosPage';
 
@@ -152,6 +153,16 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <StaffPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/kho"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <WarehousePage />
             </ErrorBoundary>
           </RequireAuth>
         }

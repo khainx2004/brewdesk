@@ -65,7 +65,7 @@ export const NAV_SECTIONS = [
         to: '/kho',
         label: 'Kho nguyên liệu',
         icon: Boxes,
-        ready: false,
+        ready: true,
         description: 'Tồn kho, nhập hàng và nhà cung cấp.',
       },
       {

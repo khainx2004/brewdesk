@@ -301,3 +301,51 @@
 .btn-confirm{flex:1;padding:11px;border-radius:999px;border:none;background:var(--rogue);color:var(--batter-lt);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}
 .btn-confirm.danger{background:var(--wine)}
 .btn-confirm:disabled,.btn-secondary:disabled{opacity:.55;cursor:not-allowed}
+
+/* ===== Kho nguyên liệu (kho_nguyen_lieu_mockup_desktop) ===== */
+.kpi-card.warn .kpi-value{color:var(--wine)}
+.badge.low{background:rgba(116,48,20,.12);color:var(--wine)}
+.badge.ok{background:rgba(60,110,46,.14);color:var(--green,#3C6E2E)}
+.badge.inactive{background:rgba(157,145,103,.18);color:var(--olive)}
+.form-input[readonly]{background:var(--batter-lt);color:var(--olive)}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-deep);margin:14px 0}
+.modal-box.modal-lg{width:460px}
+
+.toggle-inline{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--olive);cursor:pointer;user-select:none}
+.toggle-track{width:34px;height:19px;border-radius:99px;background:var(--olive-mute);position:relative;transition:background .2s;flex-shrink:0}
+.toggle-track.on{background:var(--rogue)}
+.toggle-knob{width:15px;height:15px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .2s}
+.toggle-track.on .toggle-knob{transform:translateX(15px)}
+
+.ing-head-row{display:grid;gap:14px;padding:9px 18px;background:rgba(196,186,160,.12)}
+.ing-head-row.admin{grid-template-columns:minmax(160px,1fr) 100px 140px 110px 110px 72px}
+.ing-head-row.staff{grid-template-columns:minmax(160px,1fr) 100px 140px 110px}
+.ing-head-cell{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive)}
+.ing-row{display:grid;gap:14px;padding:16px 18px;border-bottom:1px solid rgba(196,186,160,.3);align-items:center}
+.ing-row.admin{grid-template-columns:minmax(160px,1fr) 100px 140px 110px 110px 72px}
+.ing-row.staff{grid-template-columns:minmax(160px,1fr) 100px 140px 110px}
+.ing-row:last-child{border-bottom:none}
+.ing-name-cell{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ing-name{font-weight:500;color:var(--ink-deep);font-size:13px}
+.ing-yield-note{font-size:10.5px;color:var(--caramel)}
+.ing-stock{font-weight:700;color:var(--ink-deep)}
+.ing-unit{font-size:11px;color:var(--olive);font-weight:500}
+.ing-threshold{font-size:11.5px;color:var(--olive)}
+.ing-cost{color:var(--olive);font-size:12.5px}
+
+.import-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.import-total{grid-column:1/3;background:var(--batter-warm);border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.import-total-label{font-size:12px;color:var(--olive);font-weight:600}
+.import-total-value{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink-deep)}
+.yield-box{background:var(--batter-lt);border-radius:10px;padding:12px 14px;margin:12px 0}
+
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive);text-align:left;padding:10px 14px;border-bottom:1px solid rgba(196,186,160,.5);background:var(--batter-warm)}
+.hist-table td{padding:10px 14px;font-size:12.5px;color:var(--ink-deep);border-bottom:1px solid rgba(196,186,160,.3)}
+.hist-table tr:last-child td{border-bottom:none}
+
+.supplier-card{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid rgba(196,186,160,.35)}
+.supplier-card:last-child{border-bottom:none}
+.supplier-avatar{width:38px;height:38px;border-radius:10px;background:var(--batter-warm);color:var(--cocoa);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.supplier-name{font-weight:600;font-size:13.5px;color:var(--ink-deep)}
+.supplier-meta{font-size:11.5px;color:var(--olive);margin-top:2px}
