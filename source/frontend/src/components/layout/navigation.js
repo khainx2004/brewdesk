@@ -72,7 +72,7 @@ export const NAV_SECTIONS = [
         to: '/nhan-vien',
         label: 'Nhân viên',
         icon: UsersRound,
-        ready: false,
+        ready: true,
         adminOnly: true,
         description: 'Tạo tài khoản và phân quyền.',
       },

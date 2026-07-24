@@ -256,3 +256,48 @@
 .kk-complete-btn{margin-top:12px;padding:8px 14px;border-radius:8px;border:1px solid var(--rogue);background:var(--rogue);color:var(--batter-lt);font-size:12px;font-weight:700;cursor:pointer}
 .kk-complete-btn:hover{background:var(--rogue-dk)}
 .kk-complete-btn:disabled{opacity:.55;cursor:not-allowed}
+
+/* ===== Quản lý nhân viên (nhan_vien_mockup_desktop) ===== */
+.btn-primary{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:999px;border:none;background:var(--rogue);color:var(--batter-lt);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.btn-primary:hover{background:var(--rogue-dk)}
+.btn-primary svg{width:14px;height:14px}
+.toolbar-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.nv-select{height:38px;font-size:12.5px;border-radius:8px;border:1px solid var(--olive-mute);padding:0 10px;background:var(--cream);font-family:inherit;color:var(--ink-deep)}
+.nv-table-box{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--r-lg);overflow:hidden}
+.staff-table{width:100%;border-collapse:collapse}
+.staff-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive);text-align:left;padding:12px 16px;border-bottom:1px solid rgba(196,186,160,.5);background:var(--batter-warm)}
+.staff-table td{padding:12px 16px;font-size:13px;color:var(--ink-deep);border-bottom:1px solid rgba(196,186,160,.3);vertical-align:middle}
+.staff-table tr:last-child td{border-bottom:none}
+.staff-name-cell{display:flex;align-items:center;gap:10px}
+.row-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#9A6B38,var(--caramel));color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.02em}
+.badge.admin{background:rgba(132,89,43,.15);color:var(--caramel)}
+.badge.staff{background:rgba(58,61,46,.12);color:var(--rogue)}
+.badge.active{background:rgba(60,110,46,.14);color:var(--green,#3C6E2E)}
+.badge.locked{background:rgba(116,48,20,.12);color:var(--wine)}
+.row-actions{display:flex;gap:4px;justify-content:flex-end}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:none;background:transparent;color:var(--olive-mute);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s}
+.icon-btn:hover{color:var(--rogue);background:rgba(58,61,46,.08)}
+.icon-btn.danger:hover{color:var(--wine);background:rgba(116,48,20,.08)}
+.icon-btn svg{width:15px;height:15px}
+.icon-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(28,21,16,.4);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal-box{width:420px;max-width:calc(100vw - 32px);background:var(--cream);border-radius:var(--r-xl);box-shadow:0 20px 60px rgba(28,21,16,.3);padding:24px}
+.modal-title{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--ink-deep);margin-bottom:4px}
+.modal-hint{font-size:12px;color:var(--olive);margin-bottom:16px}
+.form-field{margin-bottom:12px}
+.form-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--olive);display:block;margin-bottom:5px}
+.form-input,.form-select{width:100%;height:38px;border-radius:8px;border:1px solid var(--olive-mute);background:#fff;padding:0 12px;font-family:inherit;font-size:13px;color:var(--ink-deep)}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--rogue)}
+.role-toggle-form{display:flex;gap:8px}
+.role-opt{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--olive-mute);text-align:center;font-size:12.5px;font-weight:600;color:var(--olive);cursor:pointer}
+.role-opt.on{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+.temp-pass-box{background:var(--batter-warm);border-radius:10px;padding:14px;text-align:center;margin:14px 0}
+.temp-pass-value{font-family:monospace;font-size:20px;font-weight:700;letter-spacing:.1em;color:var(--ink-deep)}
+.temp-pass-copy{font-size:11px;color:var(--caramel);cursor:pointer;margin-top:6px;display:inline-block}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.btn-secondary{flex:1;padding:11px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-confirm{flex:1;padding:11px;border-radius:999px;border:none;background:var(--rogue);color:var(--batter-lt);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}
+.btn-confirm.danger{background:var(--wine)}
+.btn-confirm:disabled,.btn-secondary:disabled{opacity:.55;cursor:not-allowed}

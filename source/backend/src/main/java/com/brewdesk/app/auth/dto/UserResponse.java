@@ -2,6 +2,7 @@ package com.brewdesk.app.auth.dto;
 
 import com.brewdesk.app.staff.Role;
 import com.brewdesk.app.staff.User;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /** Thông tin tài khoản trả ra ngoài — không bao giờ chứa password_hash. */
@@ -11,7 +12,8 @@ public record UserResponse(
         String fullName,
         Role role,
         boolean active,
-        boolean mustChangePassword) {
+        boolean mustChangePassword,
+        OffsetDateTime createdAt) {
 
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -20,6 +22,7 @@ public record UserResponse(
                 user.getFullName(),
                 user.getRole(),
                 user.isActive(),
-                user.isMustChangePassword());
+                user.isMustChangePassword(),
+                user.getCreatedAt());
     }
 }
