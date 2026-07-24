@@ -53,12 +53,8 @@ export default function AppShell({ children, topbarExtra, showSidebar = true }) 
               onClick={() => setCollapsed((c) => !c)}
               aria-label={collapsed ? 'Hiện thanh bên' : 'Ẩn thanh bên'}
               aria-expanded={!collapsed}
-              title={collapsed ? 'Hiện thanh bên' : 'Ẩn thanh bên'}
-              className={`grid h-9 w-9 place-items-center rounded-lg border transition ${
-                collapsed
-                  ? 'border-olive/25 text-olive-mute hover:border-olive hover:bg-white/5 hover:text-batter-lt'
-                  : 'border-olive/40 bg-white/10 text-batter-lt hover:bg-white/15'
-              }`}
+              title="Thu gọn/mở sidebar"
+              className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-white/[0.07] text-batter transition-colors duration-150 hover:bg-white/[0.13]"
             >
               <PanelLeft size={17} strokeWidth={1.75} />
             </button>
@@ -109,20 +105,24 @@ export default function AppShell({ children, topbarExtra, showSidebar = true }) 
         {showSidebar && (
           <nav
             aria-hidden={collapsed}
-            className={`flex shrink-0 flex-col gap-1 overflow-hidden bg-gradient-to-b from-[#211710] to-ink-deep transition-[width,padding] duration-200 ${
-              collapsed ? 'w-0 px-0 py-5' : 'w-56 px-3 py-5'
+            className={`shrink-0 overflow-hidden bg-gradient-to-b from-[#211710] to-ink-deep transition-[width] duration-[350ms] ease-[cubic-bezier(.34,1.2,.64,1)] ${
+              collapsed ? 'w-0' : 'w-56'
             }`}
           >
-            {sections.map((section) => (
-              <div key={section.title} className="flex w-[200px] flex-col gap-1">
-                <div className="px-2.5 pb-0.5 pt-2.5 text-[9.5px] font-bold uppercase tracking-[0.12em] text-[rgba(157,145,103,0.5)] first:pt-0">
-                  {section.title}
+            {/* Lớp trong giữ bề rộng cố định + padding; nav ngoài co width về 0
+                thật (không kẹt ở padding) và overflow-hidden cắt lớp này mượt. */}
+            <div className="flex w-56 flex-col gap-1 px-3 py-5">
+              {sections.map((section) => (
+                <div key={section.title} className="flex flex-col gap-1">
+                  <div className="px-2.5 pb-0.5 pt-2.5 text-[9.5px] font-bold uppercase tracking-[0.12em] text-[rgba(157,145,103,0.5)] first:pt-0">
+                    {section.title}
+                  </div>
+                  {section.items.map((item) => (
+                    <NavItem key={item.to} item={item} tabbable={!collapsed} />
+                  ))}
                 </div>
-                {section.items.map((item) => (
-                  <NavItem key={item.to} item={item} tabbable={!collapsed} />
-                ))}
-              </div>
-            ))}
+              ))}
+            </div>
           </nav>
         )}
 
