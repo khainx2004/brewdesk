@@ -13,6 +13,7 @@ import ChecklistPage from './features/checklist/ChecklistPage';
 import ReconciliationPage from './features/reconciliation/ReconciliationPage';
 import QcPage from './features/qc/QcPage';
 import StatsPage from './features/reports/StatsPage';
+import StockTakePage from './features/inventory/StockTakePage';
 import PosPage from './features/pos/PosPage';
 
 /**
@@ -131,6 +132,16 @@ export default function App() {
         element={
           <RequireAuth>
             <MenuPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/kiem-ke"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <StockTakePage />
+            </ErrorBoundary>
           </RequireAuth>
         }
       />

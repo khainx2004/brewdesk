@@ -93,7 +93,7 @@ export const NAV_SECTIONS = [
         to: '/kiem-ke',
         label: 'Kiểm kê kho',
         icon: FileText,
-        ready: false,
+        ready: true,
         description: 'Phiếu kiểm kê hàng tuần.',
       },
     ],

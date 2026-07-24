@@ -17,3 +17,13 @@ export const recipeApi = {
   replace: (menuItemId, lines) =>
     api.put(`/menu-items/${menuItemId}/recipes`, lines).then(unwrap),
 };
+
+/** Kiểm kê kho hàng tuần. */
+export const stockTakeApi = {
+  list: (params) => api.get('/stock-takes', { params }).then(unwrap),
+  get: (id) => api.get(`/stock-takes/${id}`).then(unwrap),
+  create: (body) => api.post('/stock-takes', body).then(unwrap),
+  addLine: (id, body) => api.post(`/stock-takes/${id}/lines`, body).then(unwrap),
+  /** Chốt phiếu — chỉ ADMIN, ghi thực đếm đè lên tồn hệ thống. */
+  complete: (id) => api.patch(`/stock-takes/${id}/complete`).then(unwrap),
+};

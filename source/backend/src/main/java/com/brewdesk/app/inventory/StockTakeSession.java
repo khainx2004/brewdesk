@@ -53,6 +53,10 @@ public class StockTakeSession {
     @Column(name = "note")
     private String note;
 
+    /** "Lời nhắn cho cả nhà" — lời nhắn nội bộ cho ca sau, tách khỏi ghi chú đặt hàng. */
+    @Column(name = "team_message")
+    private String teamMessage;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

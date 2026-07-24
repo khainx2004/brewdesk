@@ -62,6 +62,7 @@ public class StockTakeService {
                         .performedBy(performer)
                         .status(StockTakeStatus.DRAFT)
                         .note(request.note())
+                        .teamMessage(request.teamMessage())
                         .build();
         return StockTakeSessionResponse.from(sessionRepository.save(session));
     }

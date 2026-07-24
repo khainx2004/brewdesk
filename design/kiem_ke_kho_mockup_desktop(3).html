@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Kiểm kê kho · BrewDesk Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C1510;--cocoa:#442D1C;--cocoa-lt:#5C3D22;
+  --rogue:#3A3D2E;--rogue-dk:#272A1F;
+  --caramel:#84592B;--olive:#9D9167;--olive-mute:#C4BAA0;
+  --batter:#EDE3CE;--batter-lt:#F5EDD8;--batter-warm:#E2D4B7;
+  --wine:#743014;--green:#3C6E2E;--cream:#FAF6EE;
+  --serif:'DM Serif Display',Georgia,serif;
+  --ui:'Plus Jakarta Sans',-apple-system,sans-serif;
+  --r:10px;--rl:16px;--rxl:22px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:var(--batter);color:var(--ink);min-width:1180px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;background:linear-gradient(120deg,var(--ink) 0%,#2E1E12 60%,var(--cocoa-lt) 100%);box-shadow:0 1px 0 rgba(157,145,103,.2),0 4px 20px rgba(28,21,16,.45);z-index:10;position:relative}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-name{font-family:var(--serif);font-style:italic;font-size:21px;color:var(--batter-lt);letter-spacing:.015em}
+.brand-tag{font-size:9.5px;font-weight:700;letter-spacing:.2em;color:var(--olive);text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.tb-staff-chip{display:flex;align-items:center;gap:9px;padding:5px 10px 5px 5px;border-radius:999px;background:rgba(255,255,255,.05)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#9A6B38,var(--caramel));color:var(--cream);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-staff-info{display:flex;flex-direction:column;line-height:1.25}
+.tb-staff-name{font-size:12.5px;font-weight:600;color:var(--batter-lt)}
+.tb-staff-role{font-size:10px;color:var(--olive);letter-spacing:.03em}
+.app-wrap{display:flex;height:calc(100vh - 60px)}
+.sidebar{width:220px;flex-shrink:0;background:linear-gradient(to bottom,#211710,#1C1510);display:flex;flex-direction:column;padding:20px 12px;gap:4px}
+.sidebar-section{font-size:9.5px;font-weight:700;letter-spacing:.12em;color:rgba(157,145,103,.5);text-transform:uppercase;padding:12px 10px 6px;margin-top:8px}
+.sidebar-section:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:rgba(196,186,160,.65);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--olive-mute)}
+.nav-item.active{background:rgba(58,61,46,.5);color:var(--batter-lt)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+.page-title{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--ink)}
+.page-subtitle{font-size:12.5px;color:var(--olive);margin-top:2px}
+.content-wrap{padding:16px 28px 28px;flex:1;display:flex;gap:18px;align-items:flex-start}
+
+.left-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+.right-col{width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;position:sticky;top:16px}
+
+.meta-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.meta-field{display:flex;flex-direction:column;gap:4px}
+.meta-label{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--olive)}
+.meta-value{font-size:13px;font-weight:600;color:var(--ink);background:var(--cream);border:1px solid var(--olive-mute);border-radius:8px;padding:7px 12px}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{width:100%;height:38px;border-radius:999px;border:1px solid var(--olive-mute);background:var(--cream);padding:0 16px 0 36px;font-family:var(--ui);font-size:13px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--olive)}
+
+.progress-wrap{display:flex;align-items:center;gap:10px}
+.progress-track{flex:1;height:7px;background:var(--batter-warm);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--rogue),var(--rogue-dk));border-radius:99px;transition:width .2s}
+.progress-text{font-size:12px;color:var(--olive);font-weight:600;min-width:56px;text-align:right}
+
+.category-box{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);overflow:hidden;margin-bottom:14px}
+.category-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;background:var(--batter-warm)}
+.category-name{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cocoa)}
+.category-count{font-size:11px;color:var(--olive)}
+.category-body{padding:6px 18px 8px}
+.item-row{display:grid;grid-template-columns:1fr 90px 60px;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid rgba(196,186,160,.35)}
+.item-row:last-child{border-bottom:none}
+.item-name{font-size:13px;font-weight:500;color:var(--ink)}
+.item-input{height:32px;border-radius:8px;border:1.5px solid var(--olive-mute);background:#fff;padding:0 10px;font-size:12.5px;text-align:right}
+.item-input:focus{outline:none;border-color:var(--rogue)}
+.item-unit{font-size:11px;color:var(--olive);text-transform:uppercase;font-weight:600}
+
+.cat-tabs{display:flex;gap:6px}
+.cat-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--olive-mute);background:transparent;color:var(--olive);font-family:var(--ui);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.cat-tab:hover{border-color:var(--rogue);color:var(--rogue)}
+.cat-tab.active{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+
+.hist-session{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);margin-bottom:12px;overflow:hidden}
+.hist-session-head{display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer}
+.hist-session-head:hover{background:rgba(58,61,46,.03)}
+.hist-date{font-size:13.5px;font-weight:700;color:var(--ink);min-width:90px}
+.hist-by{font-size:12px;color:var(--olive);min-width:110px}
+.hist-count{font-size:11.5px;color:var(--olive)}
+.hist-order-preview{flex:1;font-size:11.5px;color:var(--caramel);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-chevron{color:var(--olive-mute);font-size:12px;transition:transform .2s}
+.hist-session.open .hist-chevron{transform:rotate(90deg)}
+.hist-session-body{display:none;padding:4px 18px 14px}
+.hist-session.open .hist-session-body{display:block}
+.hist-item-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(196,186,160,.3);font-size:12.5px}
+.hist-item-row:last-child{border-bottom:none}
+.hist-cat-label{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--caramel);margin:10px 0 4px}
+.hist-filter{display:flex;gap:8px;margin-bottom:14px}
+
+.btn-edit-list{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;border:1px solid var(--olive-mute);background:var(--cream);color:var(--olive);font-size:12px;font-weight:600;cursor:pointer;margin-left:auto}
+.btn-edit-list.active{background:var(--rogue);border-color:var(--rogue);color:var(--batter-lt)}
+.item-row.editing{grid-template-columns:1fr 90px 60px 60px}
+.item-actions{display:none;gap:4px;justify-self:end}
+.item-row.editmode .item-actions{display:flex}
+.item-row.editmode{grid-template-columns:1fr 90px 60px 56px}
+.item-name-input{width:100%;height:30px;border-radius:6px;border:1px solid var(--olive-mute);background:#fff;padding:0 8px;font-size:13px}
+.mini-icon-btn{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--olive-mute);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.mini-icon-btn:hover{color:var(--rogue);background:rgba(58,61,46,.08)}
+.mini-icon-btn.del:hover{color:var(--wine);background:rgba(116,48,20,.08)}
+.mini-icon-btn svg{width:13px;height:13px}
+.btn-add-ingredient{display:flex;align-items:center;gap:5px;padding:6px 0;font-size:11.5px;font-weight:600;color:var(--olive);background:none;border:none;cursor:pointer}
+.btn-add-ingredient:hover{color:var(--rogue)}
+.btn-add-ingredient svg{width:12px;height:12px}
+
+.section-box{background:var(--cream);border:1px solid rgba(196,186,160,.6);border-radius:var(--rl);padding:16px 18px}
+.section-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.section-hint{font-size:11px;color:var(--olive);margin-bottom:10px}
+.order-note{width:100%;min-height:70px;border-radius:8px;border:1px solid var(--olive-mute);background:#fff;padding:9px 11px;font-family:var(--ui);font-size:12.5px;resize:vertical}
+.msg-note{width:100%;min-height:50px;border-radius:8px;border:1px dashed var(--olive-mute);background:var(--batter-lt);padding:9px 11px;font-family:var(--ui);font-size:12px;font-style:italic;color:var(--cocoa);resize:vertical}
+
+.btn-save{width:100%;padding:12px;border-radius:10px;border:none;background:var(--rogue);color:var(--batter-lt);font-weight:700;font-size:13.5px;cursor:pointer}
+.btn-save:hover{background:var(--rogue-dk)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-name">BrewDesk</span><span class="brand-tag">Admin</span></div>
+  <div class="topbar-right">
+    <div class="tb-staff-chip">
+      <span class="tb-avatar">LA</span>
+      <div class="tb-staff-info"><span class="tb-staff-name">Lam</span><span class="tb-staff-role">Nhân viên</span></div>
+    </div>
+  </div>
+</header>
+<div class="app-wrap">
+  <nav class="sidebar">
+    <div class="sidebar-section">Vận hành</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>POS Bán hàng</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Checklist</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>Test cafe</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Bàn giao ca</button>
+    <div class="sidebar-section">Quản lý</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h18l-2 7H5L3 2z"/><path d="M5 9l-1 13h16l-1-13"/><path d="M10 13h4"/></svg>Menu</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Kho nguyên liệu</button>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Nhân viên</button>
+    <div class="sidebar-section">Báo cáo</div>
+    <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Thống kê</button>
+    <button class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Kiểm kê kho</button>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Kiểm kê kho</div>
+        <div class="page-subtitle">Weekly Inventory · Thứ Bảy, 25/7</div>
+      </div>
+    </div>
+
+    <div class="toolbar" style="padding:16px 28px 0;display:flex;align-items:center">
+      <div class="cat-tabs" id="mainTabs"></div>
+      <button class="btn-edit-list" id="btnEditList">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Sửa danh sách nguyên liệu
+      </button>
+    </div>
+
+    <div id="paneCurrent">
+    <div class="content-wrap">
+      <div class="left-col">
+        <div class="meta-bar">
+          <div class="meta-field"><span class="meta-label">Ngày kiểm kê</span><span class="meta-value" id="metaDate">25/7/2026</span></div>
+          <div class="meta-field"><span class="meta-label">Người kiểm kê</span><span class="meta-value">Lam</span></div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="searchBox" placeholder="Tìm nguyên liệu..."/>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+          <span class="progress-text" id="progText">0/0</span>
+        </div>
+
+        <div id="categoryList"></div>
+      </div>
+
+      <div class="right-col">
+        <div class="section-box">
+          <div class="section-title">Ghi chú đặt hàng</div>
+          <textarea class="order-note" id="orderNote" placeholder="vd: Matcha, giấy gói + rút...">Matcha, giấy gói + rút</textarea>
+        </div>
+        <div class="section-box">
+          <div class="section-title">Lời nhắn cho cả nhà 💛</div>
+          <textarea class="msg-note" id="teamMsg" placeholder="Lời nhắn nho nhỏ cho ca sau...">Cả nhà tuần mới năng động nhó!! Yêu anh em!</textarea>
+        </div>
+        <button class="btn-save" onclick="saveInventory()">Lưu kiểm kê</button>
+      </div>
+    </div>
+    </div>
+
+    <div id="paneHistory" style="display:none">
+      <div class="content-wrap" style="display:block">
+        <div class="hist-filter">
+          <select class="mini-select" id="fPerson" style="height:34px;border-radius:8px;border:1px solid var(--olive-mute);padding:0 10px;background:var(--cream);font-size:12.5px">
+            <option value="">Tất cả người kiểm kê</option>
+            <option>Lam</option><option>Choi</option><option>Uyên</option>
+          </select>
+        </div>
+        <div id="historyList"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const HISTORY=[
+  {date:'25/7/2026', by:'Lam', filled:38, total:40, order:'Matcha, giấy gói + rút', items:[
+    {cat:'Coffee',rows:[['Arabica (lô 26/6)','6 kg'],['Robusta','3 kg'],['Coldbrew','3 kg']]},
+    {cat:'Cleaning',rows:[['Giấy gói','0 bịch'],['Giấy rút','14 bịch']]}
+  ]},
+  {date:'18/7/2026', by:'Lam', filled:40, total:40, order:'Sữa đặc, syrup vani', items:[
+    {cat:'Sweet',rows:[['Đường vàng','7 kg'],['Sữa đặc','16 chai']]},
+    {cat:'Syrup',rows:[['Vani','1 chai'],['Caramel','1.5 chai']]}
+  ]},
+  {date:'11/7/2026', by:'Uyên', filled:36, total:40, order:'Không có', items:[
+    {cat:'Coffee',rows:[['Arabica','5.2 kg'],['Robusta','2.8 kg']]},
+    {cat:'Topping',rows:[['Vải lon','24 lon'],['Tonic','20 lon']]}
+  ]},
+  {date:'4/7/2026', by:'Choi', filled:39, total:40, order:'OAT, Bailey', items:[
+    {cat:'Milk & Rượu',rows:[['Sữa bò','10 hộp'],['OAT','2 hộp'],['Bailey','0.4 chai']]}
+  ]}
+];
+
+function renderHistory(filterPerson){
+  const wrap=document.getElementById('historyList');
+  wrap.innerHTML='';
+  HISTORY.filter(h=>!filterPerson||h.by===filterPerson).forEach((h,hi)=>{
+    const box=document.createElement('div');
+    box.className='hist-session';
+    let body='';
+    h.items.forEach(g=>{
+      body+='<div class="hist-cat-label">'+g.cat+'</div>';
+      g.rows.forEach(r=>{
+        body+='<div class="hist-item-row"><span>'+r[0]+'</span><span style="font-weight:600">'+r[1]+'</span></div>';
+      });
+    });
+    box.innerHTML='<div class="hist-session-head" data-h="'+hi+'">'+
+      '<span class="hist-date">'+h.date+'</span>'+
+      '<span class="hist-by">'+h.by+'</span>'+
+      '<span class="hist-count">'+h.filled+'/'+h.total+' mục</span>'+
+      '<span class="hist-order-preview">Cần đặt: '+h.order+'</span>'+
+      '<span class="hist-chevron">▶</span>'+
+      '</div>'+
+      '<div class="hist-session-body">'+body+'</div>';
+    box.querySelector('.hist-session-head').addEventListener('click',()=>{
+      box.classList.toggle('open');
+    });
+    wrap.appendChild(box);
+  });
+}
+document.getElementById('fPerson').addEventListener('change',e=>renderHistory(e.target.value));
+
+let mainTab='current';
+function renderMainTabs(){
+  const el=document.getElementById('mainTabs');
+  const tabs=[['current','Phiếu hiện tại'],['history','Lịch sử']];
+  el.innerHTML='';
+  tabs.forEach(([k,label])=>{
+    const b=document.createElement('button');
+    b.className='cat-tab'+(mainTab===k?' active':'');
+    b.textContent=label;
+    b.onclick=()=>{
+      mainTab=k; renderMainTabs();
+      document.getElementById('paneCurrent').style.display=k==='current'?'':'none';
+      document.getElementById('paneHistory').style.display=k==='history'?'':'none';
+      if(k==='history') renderHistory('');
+    };
+    el.appendChild(b);
+  });
+}
+renderMainTabs();
+</script>
+
+<script>
+const DATA=[
+  {cat:'Coffee',items:[
+    {name:'Arabica (lô 26/6)',unit:'kg',theory:6.5,actual:null},
+    {name:'Robusta',unit:'kg',theory:3.2,actual:null},
+    {name:'Coldbrew',unit:'kg',theory:3,actual:null}
+  ]},
+  {cat:'Powder',items:[
+    {name:'Matcha',unit:'kg',theory:0.4,actual:null},
+    {name:'Houjicha',unit:'kg',theory:0.15,actual:null},
+    {name:'Genmaicha',unit:'kg',theory:0.2,actual:null},
+    {name:'Cacao',unit:'kg',theory:0.4,actual:null}
+  ]},
+  {cat:'Tea',items:[
+    {name:'Jasmine',unit:'kg',theory:0.7,actual:null},
+    {name:'Oolong',unit:'kg',theory:0.4,actual:null},
+    {name:'Ginger lemon',unit:'hộp',theory:1,actual:null}
+  ]},
+  {cat:'Sweet',items:[
+    {name:'Đường vàng',unit:'kg',theory:7,actual:null},
+    {name:'Đường trắng',unit:'kg',theory:5,actual:null},
+    {name:'Sữa đặc',unit:'chai',theory:16,actual:null},
+    {name:'Mật ong',unit:'chai',theory:3,actual:null}
+  ]},
+  {cat:'Milk & Rượu',items:[
+    {name:'Sữa bò',unit:'hộp',theory:12,actual:null},
+    {name:'OAT',unit:'hộp',theory:8,actual:null},
+    {name:'Bailey',unit:'chai',theory:1.2,actual:null},
+    {name:'Rượu cam',unit:'chai',theory:0.3,actual:null}
+  ]},
+  {cat:'Syrup',items:[
+    {name:'Caramel',unit:'chai',theory:1.5,actual:null},
+    {name:'Hazelnut',unit:'chai',theory:2,actual:null},
+    {name:'Vani',unit:'chai',theory:2,actual:null},
+    {name:'Vải',unit:'chai',theory:1,actual:null},
+    {name:'Chocolate',unit:'chai',theory:1.2,actual:null},
+    {name:'Mơ muối (1 lít)',unit:'chai',theory:3,actual:null}
+  ]},
+  {cat:'Homemade',items:[
+    {name:'Sấu',unit:'bình',theory:1.5,actual:null},
+    {name:'Mơ',unit:'bình',theory:7,actual:null},
+    {name:'Dâu tằm',unit:'bình',theory:5,actual:null},
+    {name:'Mận',unit:'bình',theory:10,actual:null}
+  ]},
+  {cat:'Topping',items:[
+    {name:'Vải lon',unit:'lon',theory:29,actual:null},
+    {name:'Tonic',unit:'lon',theory:24,actual:null},
+    {name:'Lemon',unit:'lon',theory:9,actual:null},
+    {name:'Lime',unit:'lon',theory:1,actual:null}
+  ]},
+  {cat:'Cleaning',items:[
+    {name:'Giấy gói',unit:'bịch',theory:0,actual:null},
+    {name:'Giấy rút',unit:'bịch',theory:14,actual:null},
+    {name:'Nước lau sàn',unit:'bịch',theory:3,actual:null},
+    {name:'Lau kính',unit:'chai',theory:0.6,actual:null},
+    {name:'Lau gỗ',unit:'chai',theory:0.2,actual:null},
+    {name:'Vim',unit:'chai',theory:2,actual:null},
+    {name:'Amway',unit:'chai',theory:3,actual:null},
+    {name:'Rửa tay',unit:'chai',theory:1,actual:null},
+    {name:'Cafiza',unit:'chai',theory:0.5,actual:null}
+  ]},
+  {cat:'Pour <3',items:[
+    {name:'Filter bé',unit:'gói',theory:1,actual:null},
+    {name:'Filter to',unit:'gói',theory:2.5,actual:null}
+  ]}
+];
+
+let editMode=false;
+const DEL_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+const EDIT_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+const ADD_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+function renderCategories(filter){
+  const wrap=document.getElementById('categoryList');
+  wrap.innerHTML='';
+  let total=0, filled=0;
+  DATA.forEach((cat,ci)=>{
+    const items=cat.items.filter(it=>!filter||it.name.toLowerCase().includes(filter));
+    if(items.length===0 && !editMode) return;
+    total+=cat.items.length;
+    filled+=cat.items.filter(it=>it.actual!==null).length;
+    const box=document.createElement('div');
+    box.className='category-box';
+    let rows='';
+    cat.items.forEach((it,ii)=>{
+      if(filter && !it.name.toLowerCase().includes(filter)) return;
+      const nameCell=editMode
+        ? '<input class="item-name-input" value="'+it.name+'" data-rename-cat="'+ci+'" data-rename-idx="'+ii+'"/>'
+        : '<span class="item-name">'+it.name+'</span>';
+      const actionsCell=editMode
+        ? '<span class="item-actions"><button class="mini-icon-btn del" data-del-cat="'+ci+'" data-del-idx="'+ii+'" title="Xoá">'+DEL_ICON+'</button></span>'
+        : '';
+      rows+='<div class="item-row'+(editMode?' editmode':'')+'">'+
+        nameCell+
+        '<input class="item-input" type="number" step="0.1" placeholder="—" data-cat="'+ci+'" data-idx="'+ii+'" '+(editMode?'disabled':'')+'/>'+
+        '<span class="item-unit">'+it.unit+'</span>'+
+        actionsCell+
+      '</div>';
+    });
+    const addRow=editMode?'<button class="btn-add-ingredient" data-addcat="'+ci+'">'+ADD_ICON+' Thêm nguyên liệu vào '+cat.cat+'</button>':'';
+    box.innerHTML='<div class="category-head"><span class="category-name">'+cat.cat+'</span><span class="category-count">'+items.length+' mục</span></div>'+
+      '<div class="category-body">'+rows+addRow+'</div>';
+    wrap.appendChild(box);
+  });
+  document.getElementById('progText').textContent=filled+'/'+total;
+  document.getElementById('progFill').style.width=(total?filled/total*100:0)+'%';
+
+  wrap.querySelectorAll('.item-input').forEach(inp=>inp.addEventListener('input',e=>{
+    const ci=e.target.dataset.cat, ii=e.target.dataset.idx;
+    const val=e.target.value===''?null:parseFloat(e.target.value);
+    DATA[ci].items[ii].actual=val;
+    renderCategories(document.getElementById('searchBox').value.toLowerCase());
+    e.target.focus();
+  }));
+  wrap.querySelectorAll('[data-rename-cat]').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      DATA[e.target.dataset.renameCat].items[e.target.dataset.renameIdx].name=e.target.value;
+    });
+  });
+  wrap.querySelectorAll('[data-del-cat]').forEach(btn=>btn.addEventListener('click',e=>{
+    const ci=e.currentTarget.dataset.delCat, ii=e.currentTarget.dataset.delIdx;
+    if(confirm('Xoá "'+DATA[ci].items[ii].name+'" khỏi danh sách nguyên liệu?')){
+      DATA[ci].items.splice(ii,1);
+      renderCategories(document.getElementById('searchBox').value.toLowerCase());
+    }
+  }));
+  wrap.querySelectorAll('[data-addcat]').forEach(btn=>btn.addEventListener('click',e=>{
+    const ci=e.currentTarget.dataset.addcat;
+    const name=prompt('Tên nguyên liệu mới trong nhóm "'+DATA[ci].cat+'":');
+    if(!name) return;
+    const unit=prompt('Đơn vị (kg, chai, lon...):','kg')||'';
+    DATA[ci].items.push({name:name,unit:unit,theory:0,actual:null});
+    renderCategories(document.getElementById('searchBox').value.toLowerCase());
+  }));
+}
+renderCategories('');
+
+document.getElementById('btnEditList').addEventListener('click',()=>{
+  editMode=!editMode;
+  document.getElementById('btnEditList').classList.toggle('active',editMode);
+  renderCategories(document.getElementById('searchBox').value.toLowerCase());
+});
+
+document.getElementById('searchBox').addEventListener('input',e=>{
+  renderCategories(e.target.value.toLowerCase());
+});
+
+function saveInventory(){
+  alert('Đã lưu phiếu kiểm kê ngày '+document.getElementById('metaDate').textContent);
+}
+</script>
+</body>
+</html>

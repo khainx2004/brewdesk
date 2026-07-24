@@ -14,6 +14,7 @@ public record StockTakeSessionResponse(
         String performedByName,
         StockTakeStatus status,
         String note,
+        String teamMessage,
         OffsetDateTime createdAt,
         OffsetDateTime completedAt,
         List<StockTakeLineResponse> lines) {
@@ -27,6 +28,7 @@ public record StockTakeSessionResponse(
                 s.getPerformedBy().getFullName(),
                 s.getStatus(),
                 s.getNote(),
+                s.getTeamMessage(),
                 s.getCreatedAt(),
                 s.getCompletedAt(),
                 lines);
