@@ -62,9 +62,9 @@ cd source/backend && ./mvnw spring-boot:run
 
 Backend chạy ở `http://localhost:8080`, Swagger tại `/swagger-ui.html`.
 
-Flyway tự chạy migration lúc khởi động, tạo 24 bảng và nạp dữ liệu danh mục
-(3 ca làm việc, đơn vị tính, nhóm nguyên liệu, mức ngọt/đá) cùng tài khoản
-quản trị đầu tiên.
+Flyway tự chạy migration lúc khởi động (hiện ở V11): tạo ~24 bảng và nạp dữ liệu
+danh mục (3 ca làm việc, đơn vị tính, nhóm nguyên liệu, mức ngọt/đá) cùng tài
+khoản quản trị đầu tiên.
 
 > Nếu gặp lỗi `password authentication failed for user "brewdesk_user"` thì
 > nhiều khả năng bạn chưa export biến môi trường ở bước trên, chứ không phải
@@ -110,11 +110,13 @@ Service → Repository. Frontend cũng chia theo feature tương ứng trong
 
 ## Tình trạng hiện tại
 
-Đang trong giai đoạn dựng nền:
+Toàn bộ tính năng đã dựng xong; còn lại là đóng gói triển khai.
 
-- [x] Cấu hình project, kết nối database
-- [x] Schema 24 bảng + dữ liệu khởi tạo (Flyway V1–V3)
-- [x] Khung frontend, design token, HTTP client
-- [x] Bảo mật và xác thực (JWT, phân quyền)
-- [x] Menu: danh mục, món, mức ngọt/đá
-- [ ] Kho, POS, checklist, báo cáo
+- [x] Backend: auth, menu, kho, POS, checklist, QC, bàn giao ca, báo cáo, nhân viên
+- [x] Frontend desktop: đủ 10 màn (POS, menu, kho, kiểm kê, checklist, QC, bàn
+      giao ca, thống kê, nhân viên, đăng nhập)
+- [x] Frontend mobile: Home + 5 màn (`/m/*`) + điều hướng tự động theo thiết bị
+- [ ] Phase 8 — Dockerfile, Nginx, backup (chưa bắt đầu)
+
+Chi tiết tiến độ + quyết định thiết kế: `doc/0.backend-phase.md`,
+`doc/1.frontend-phase.md`. Đặc tả nghiệp vụ: `CLAUDE.md`.
