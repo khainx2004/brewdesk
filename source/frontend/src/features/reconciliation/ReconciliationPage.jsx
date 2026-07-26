@@ -1,150 +1,28 @@
-import { useMemo, useState } from 'react';
-import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RotateCw } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
-import { errorMessage } from '../../services/api';
-import { shiftApi } from '../../services/posApi';
-import { reconciliationApi } from '../../services/reconciliationApi';
-import { staffApi } from '../../services/checklistApi';
-import { useAuthStore } from '../../stores/authStore';
 import { formatVnd, formatDayMonth } from '../../utils/fmt';
 import ShiftCard from './ShiftCard';
-
-/** Hôm nay theo giờ máy, chỉ dùng làm giá trị mặc định cho ô chọn ngày. */
-function todayInput() {
-  const d = new Date();
-  const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
+import { useReconciliation } from './useReconciliation';
 
 export default function ReconciliationPage() {
-  const isAdmin = useAuthStore((s) => s.user?.role === 'ADMIN');
-  const queryClient = useQueryClient();
-
-  const [date, setDate] = useState(todayInput);
-  const [savingShift, setSavingShift] = useState(null);
-  const [error, setError] = useState(null);
-
-  const shiftsQuery = useQuery({ queryKey: ['shift-types'], queryFn: shiftApi.list });
-  const shifts = useMemo(() => shiftsQuery.data ?? [], [shiftsQuery.data]);
-
-  const staffQuery = useQuery({
-    queryKey: ['staff-list'],
-    queryFn: staffApi.list,
-    enabled: isAdmin,
-  });
-
-  // Phiếu đã lập trong ngày. Lấy cả ngày một lần rồi ghép theo ca ở client,
-  // thay vì gọi ba lần.
-  const listQuery = useQuery({
-    queryKey: ['reconciliations', date],
-    queryFn: () => reconciliationApi.list({ from: date, to: date, size: 10 }),
-  });
-
-  const savedByShift = useMemo(() => {
-    const map = {};
-    for (const item of listQuery.data?.items ?? []) {
-      map[item.shiftTypeId] = item;
-    }
-    return map;
-  }, [listQuery.data]);
-
-  // Phiếu đã chốt thì lấy thêm bản chi tiết, vì chỉ endpoint chi tiết mới tính
-  // lại POS theo đơn hiện tại (`posAmountNow`). Danh sách cố ý không tính lại —
-  // quá đắt cho màn xem lướt nhiều trang — nhưng ở đây tối đa 3 phiếu một ngày
-  // nên 3 lượt gọi là không đáng kể, mà đổi lại thấy được phiếu đã lệch so với
-  // đơn hiện tại hay chưa.
-  const detailQueries = useQueries({
-    queries: shifts.map((s) => {
-      const savedItem = savedByShift[s.id];
-      return {
-        queryKey: ['reconciliation-detail', savedItem?.id],
-        queryFn: () => reconciliationApi.get(savedItem.id),
-        enabled: Boolean(savedItem?.id),
-      };
-    }),
-  });
-
-  const detailByShift = {};
-  shifts.forEach((s, i) => {
-    detailByShift[s.id] = detailQueries[i]?.data;
-  });
-
-  // Ca chưa lập phiếu thì hỏi gợi ý: POS và tiền đầu ca hệ thống tính sẵn.
-  const suggestionQueries = useQueries({
-    queries: shifts.map((s) => ({
-      queryKey: ['reconciliation-suggest', date, s.id],
-      queryFn: () => reconciliationApi.suggest({ date, shiftTypeId: s.id }),
-      enabled: shifts.length > 0 && !savedByShift[s.id],
-    })),
-  });
-
-  const suggestionByShift = {};
-  shifts.forEach((s, i) => {
-    suggestionByShift[s.id] = suggestionQueries[i]?.data;
-  });
-
-  const save = async (shift, body) => {
-    setSavingShift(shift.id);
-    setError(null);
-    try {
-      const saved = savedByShift[shift.id];
-      if (saved) {
-        await reconciliationApi.update(saved.id, body);
-      } else {
-        await reconciliationApi.create({ ...body, date, shiftTypeId: shift.id });
-      }
-      queryClient.invalidateQueries({ queryKey: ['reconciliations'] });
-      queryClient.invalidateQueries({ queryKey: ['reconciliation-suggest'] });
-      queryClient.invalidateQueries({ queryKey: ['reconciliation-detail'] });
-      return true;
-    } catch (err) {
-      setError(errorMessage(err));
-      return false;
-    } finally {
-      setSavingShift(null);
-    }
-  };
-
-  /**
-   * Tải lại thủ công thay vì tự động theo chu kỳ.
-   *
-   * <p>Số POS và tiền đầu ca đổi khi có đơn mới hoặc đơn bị huỷ ở màn POS. Nhưng
-   * tự làm mới nền giữa lúc người dùng đang gõ số đếm tiền sẽ làm số nhảy dưới
-   * tay họ — với màn đối soát tiền thì đó là cách nhanh nhất để mất tin. Thẻ nào
-   * đang gõ dở cũng không bị nạp đè, xem `dirtyRef` trong ShiftCard.
-   */
-  const refresh = () => {
-    setError(null);
-    queryClient.invalidateQueries({ queryKey: ['reconciliations'] });
-    queryClient.invalidateQueries({ queryKey: ['reconciliation-suggest'] });
-    queryClient.invalidateQueries({ queryKey: ['reconciliation-detail'] });
-  };
-
-  const saved = Object.values(savedByShift);
-  // Ca chốt sau cùng trong ngày. Cả tiền mặt cuối ngày lẫn chuyển khoản đều lấy
-  // từ đây chứ không cộng ba ca: tiền mặt vì ca sau kế thừa két của ca trước,
-  // chuyển khoản vì POS chuyển khoản đã là số cộng dồn cả ngày — cộng lại đều
-  // là tính đôi.
-  const lastShift = saved.length
-    ? saved
-        .slice()
-        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
-        .at(-1)
-    : null;
-  const daily = {
-    cashLeft: lastShift?.actualAmount ?? 0,
-    bank: lastShift?.posBankAmount ?? 0,
-    spent: saved.reduce((sum, r) => sum + Number(r.spentAmount ?? 0), 0),
-    withdrawn: saved.reduce((sum, r) => sum + Number(r.withdrawnAmount ?? 0), 0),
-  };
-
-  const offCount = saved.filter((r) => Number(r.difference) !== 0).length;
-  const isRefreshing =
-    listQuery.isFetching ||
-    detailQueries.some((q) => q.isFetching) ||
-    suggestionQueries.some((q) => q.isFetching);
+  const {
+    date,
+    setDate,
+    shifts,
+    staff,
+    savedByShift,
+    suggestionByShift,
+    detailByShift,
+    save,
+    refresh,
+    savingShift,
+    error,
+    saved,
+    daily,
+    offCount,
+    isRefreshing,
+  } = useReconciliation();
 
   return (
     <AppShell>
@@ -199,7 +77,7 @@ export default function ReconciliationPage() {
               shift={shift}
               saved={detailByShift[shift.id] ?? savedByShift[shift.id]}
               suggestion={suggestionByShift[shift.id]}
-              staff={staffQuery.data}
+              staff={staff}
               saving={savingShift === shift.id}
               onSave={(body) => save(shift, body)}
             />

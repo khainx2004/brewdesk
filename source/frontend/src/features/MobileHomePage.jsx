@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Boxes, ClipboardCheck, Coffee, KeyRound, LogOut, Monitor } from 'lucide-react';
+import { Boxes, ClipboardCheck, Coffee, FileText, KeyRound, LogOut, Monitor } from 'lucide-react';
 import MobileTabBar from '../components/layout/MobileTabBar';
 import { useAuthStore } from '../stores/authStore';
 import { useShift } from '../hooks/useShift';
@@ -9,6 +9,7 @@ const TILES = [
   { to: '/m/checklist', label: 'Checklist', Icon: ClipboardCheck },
   { to: '/m/test-cafe', label: 'Test cafe', Icon: Coffee },
   { to: '/m/kho', label: 'Tồn kho', Icon: Boxes },
+  { to: '/m/ban-giao-ca', label: 'Bàn giao ca', Icon: FileText },
 ];
 
 /**

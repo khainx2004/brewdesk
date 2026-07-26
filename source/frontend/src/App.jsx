@@ -21,6 +21,7 @@ import MobileChecklistPage from './features/checklist/MobileChecklistPage';
 import MobileQcPage from './features/qc/MobileQcPage';
 import MobilePosPage from './features/pos/MobilePosPage';
 import MobileHomePage from './features/MobileHomePage';
+import MobileReconciliationPage from './features/reconciliation/MobileReconciliationPage';
 
 /**
  * Cặp route dùng chung desktop ↔ mobile. Có bản mobile riêng thì mới nằm ở đây;
@@ -33,6 +34,7 @@ const DESKTOP_TO_MOBILE = {
   '/checklist': '/m/checklist',
   '/qc': '/m/test-cafe',
   '/kho': '/m/kho',
+  '/ban-giao-ca': '/m/ban-giao-ca',
 };
 const MOBILE_TO_DESKTOP = Object.fromEntries(
   Object.entries(DESKTOP_TO_MOBILE).map(([d, m]) => [m, d]),
@@ -238,6 +240,16 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <MobileQcPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/ban-giao-ca"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileReconciliationPage />
             </ErrorBoundary>
           </RequireAuth>
         }

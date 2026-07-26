@@ -525,6 +525,7 @@ Chi tiết:
 | 2 | Test cafe (QC) | ✅ Đã dựng (route `/m/test-cafe`, suy ra từ màn desktop — chưa có mockup mobile riêng) |
 | 3 | Tra cứu tồn kho nhanh | ✅ Đã dựng (route `/m/kho`, file `design/kho_tra_cuu_mobile_mockup.html`) |
 | 4 | POS bán hàng | ✅ Đã dựng (route `/m/pos`, thêm theo yêu cầu — suy ra từ màn desktop, chưa có mockup riêng) |
+| 5 | Bàn giao ca | ✅ Đã dựng (route `/m/ban-giao-ca`, thêm theo yêu cầu — suy ra từ màn desktop, vào từ Home `/m`) |
 
 Bốn màn mobile dùng chung thanh nav dưới cùng (`MobileTabBar`). **Không làm bản tablet.**
 
@@ -533,10 +534,13 @@ Bốn màn mobile dùng chung thanh nav dưới cùng (`MobileTabBar`). **Không
 hướng **tự động theo bề rộng** (hook `useIsMobile`, ranh giới 880px, xử lý trong
 `RequireAuth`): màn hẹp → Home mobile `/m` (bảng 4 màn + đổi mật khẩu + đăng
 xuất); màn rộng → HomePage desktop. Các route có cả hai bản (`/`↔`/m`,
-`/pos`↔`/m/pos`, `/checklist`↔`/m/checklist`, `/qc`↔`/m/test-cafe`, `/kho`↔`/m/kho`)
-tự đẩy về đúng thiết bị. Màn chỉ có bản desktop (menu, kiểm kê, thống kê, nhân
-viên, bàn giao ca) mở trên điện thoại vẫn ra bản desktop. Đăng xuất trên mobile
-nằm ở Home `/m` — nút back của mỗi màn mobile trỏ về đây.
+`/pos`↔`/m/pos`, `/checklist`↔`/m/checklist`, `/qc`↔`/m/test-cafe`, `/kho`↔`/m/kho`,
+`/ban-giao-ca`↔`/m/ban-giao-ca`) tự đẩy về đúng thiết bị. Màn chỉ có bản desktop
+(menu, kiểm kê, thống kê, nhân viên) mở trên điện thoại vẫn ra bản desktop. Đăng
+xuất trên mobile nằm ở Home `/m` — nút back của mỗi màn mobile trỏ về đây.
+
+Tab bar mobile giữ 4 tab chính (POS/Checklist/Test cafe/Tồn kho); Bàn giao ca vào
+từ tile trên Home `/m` vì là việc cuối ca, không dùng liên tục như 4 màn kia.
 
 ### ⚠️ Ngoại lệ: màn hình Đăng nhập dùng ngôn ngữ thị giác riêng
 
