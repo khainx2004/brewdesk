@@ -551,17 +551,46 @@
   .login-shell .hero {
     grid-template-columns: 1fr;
     text-align: center;
-    padding-top: 8vh;
-    gap: 3.5rem;
+    align-content: center;
+    padding: 7vh 20px 5vh;
+    gap: 2.4rem;
   }
   .login-shell .brand p { margin-left: auto; margin-right: auto; }
   .login-shell .meta-line,
-  .login-shell .scroll-note { justify-content: center; }
+  .login-shell .scroll-note,
   .login-shell .handle { justify-content: center; }
-  /* Xếp dọc thì cái phin nhô lên 72px sẽ đụng chữ phía trên — chừa chỗ cho nó */
-  .login-shell .stage { padding-top: 78px; min-height: 600px; }
+  /* Bỏ min-height cứng: để trống 600px thì thẻ (~370px) trôi giữa khoảng thừa,
+     nhìn như lệch. Chỉ chừa khoảng trên cho cái phin nhô lên 72px.
+     Tắt 3D vì mobile không nghiêng theo chuột — 3D tĩnh dễ xê dịch vị trí phin. */
+  .login-shell .stage { min-height: auto; padding-top: 84px; perspective: none; }
+  .login-shell .phin { transform: translateX(-50%); }
+  /* Thẻ co giãn theo bề rộng, luôn nằm giữa, không tràn trên máy hẹp */
+  .login-shell .rig { width: 100%; max-width: 320px; margin: 0 auto; }
+  .login-shell .glow {
+    width: 340px;
+    height: 340px;
+    margin: -170px 0 0 -170px;
+  }
+  .login-shell .diary,
+  .login-shell footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
   .login-shell .mosaic { grid-template-columns: repeat(3, 1fr); }
   .login-shell .t-a,
   .login-shell .t-f,
   .login-shell .t-k { grid-column: span 2; }
+}
+
+/* Điện thoại nhỏ: hạ cỡ chữ editorial và padding thẻ cho vừa, đỡ chật */
+@media (max-width: 440px) {
+  .login-shell .hero { padding-top: 6vh; gap: 2rem; }
+  .login-shell .handle { font-size: 23px; margin-bottom: 1.1rem; }
+  .login-shell .brand p { font-size: 1.2rem; line-height: 1.45; }
+  .login-shell .meta-line { gap: 0.5rem 1.2rem; margin-top: 1.6rem; }
+  .login-shell .scroll-note { margin-top: 1.7rem; }
+  .login-shell .stage { padding-top: 80px; }
+  .login-shell .card { padding: 2rem 1.3rem 1.4rem; border-radius: 16px; }
+  .login-shell .card h2 { font-size: 1.4rem; }
+  .login-shell .diary-head { margin-bottom: 2rem; }
 }
