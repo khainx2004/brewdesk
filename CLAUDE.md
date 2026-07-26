@@ -528,6 +528,16 @@ Chi tiết:
 
 Bốn màn mobile dùng chung thanh nav dưới cùng (`MobileTabBar`). **Không làm bản tablet.**
 
+**Luồng mobile:** đăng nhập dùng chung màn `/dang-nhap` (đã responsive, `@media
+≤880px` gộp 1 cột — KHÔNG có màn đăng nhập mobile riêng). Sau đăng nhập, điều
+hướng **tự động theo bề rộng** (hook `useIsMobile`, ranh giới 880px, xử lý trong
+`RequireAuth`): màn hẹp → Home mobile `/m` (bảng 4 màn + đổi mật khẩu + đăng
+xuất); màn rộng → HomePage desktop. Các route có cả hai bản (`/`↔`/m`,
+`/pos`↔`/m/pos`, `/checklist`↔`/m/checklist`, `/qc`↔`/m/test-cafe`, `/kho`↔`/m/kho`)
+tự đẩy về đúng thiết bị. Màn chỉ có bản desktop (menu, kiểm kê, thống kê, nhân
+viên, bàn giao ca) mở trên điện thoại vẫn ra bản desktop. Đăng xuất trên mobile
+nằm ở Home `/m` — nút back của mỗi màn mobile trỏ về đây.
+
 ### ⚠️ Ngoại lệ: màn hình Đăng nhập dùng ngôn ngữ thị giác riêng
 
 Màn hình Đăng nhập **cố ý KHÔNG theo** bảng màu và typography ở trên. Đây là

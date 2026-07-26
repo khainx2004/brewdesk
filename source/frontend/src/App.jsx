@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { useAuthStore } from './stores/authStore';
 import { registerAuthHandlers } from './services/api';
 import { isAdminOnlyPath } from './components/layout/navigation';
+import { useIsMobile } from './hooks/useIsMobile';
 import LoginPage from './features/auth/LoginPage';
 import ChangePasswordPage from './features/auth/ChangePasswordPage';
 import ForbiddenPage from './features/ForbiddenPage';
@@ -19,6 +20,29 @@ import MobileStockLookupPage from './features/inventory/MobileStockLookupPage';
 import MobileChecklistPage from './features/checklist/MobileChecklistPage';
 import MobileQcPage from './features/qc/MobileQcPage';
 import MobilePosPage from './features/pos/MobilePosPage';
+import MobileHomePage from './features/MobileHomePage';
+
+/**
+ * Cặp route dùng chung desktop ↔ mobile. Có bản mobile riêng thì mới nằm ở đây;
+ * các màn chỉ có desktop (menu, kiểm kê, thống kê, nhân viên, bàn giao ca) không
+ * đổi theo thiết bị — mở trên điện thoại vẫn ra bản desktop.
+ */
+const DESKTOP_TO_MOBILE = {
+  '/': '/m',
+  '/pos': '/m/pos',
+  '/checklist': '/m/checklist',
+  '/qc': '/m/test-cafe',
+  '/kho': '/m/kho',
+};
+const MOBILE_TO_DESKTOP = Object.fromEntries(
+  Object.entries(DESKTOP_TO_MOBILE).map(([d, m]) => [m, d]),
+);
+
+/** Đường dẫn nên chuyển tới cho đúng thiết bị, hoặc null nếu đã đúng. */
+function deviceRoute(pathname, isMobile) {
+  const target = isMobile ? DESKTOP_TO_MOBILE[pathname] : MOBILE_TO_DESKTOP[pathname];
+  return target && target !== pathname ? target : null;
+}
 import StaffPage from './features/staff/StaffPage';
 import PosPage from './features/pos/PosPage';
 
@@ -40,12 +64,18 @@ function RequireAuth({ children }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const { pathname } = useLocation();
+  const isMobile = useIsMobile();
 
   if (!isAuthenticated) {
     return <Navigate to="/dang-nhap" replace />;
   }
   if (user?.mustChangePassword) {
     return <Navigate to="/doi-mat-khau" replace />;
+  }
+  // Đưa về đúng luồng thiết bị: điện thoại vào bản /m, màn rộng vào bản desktop.
+  const redirect = deviceRoute(pathname, isMobile);
+  if (redirect) {
+    return <Navigate to={redirect} replace />;
   }
   if (isAdminOnlyPath(pathname) && user?.role !== 'ADMIN') {
     return <ForbiddenPage />;
@@ -172,6 +202,16 @@ export default function App() {
         }
       />
       {/* Màn mobile riêng cho nhân viên — ngoài AppShell, có thanh nav dưới cùng. */}
+      <Route
+        path="/m"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileHomePage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
       <Route
         path="/m/pos"
         element={

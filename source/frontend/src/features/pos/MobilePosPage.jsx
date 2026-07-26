@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
+  ChevronLeft,
   Coffee,
   Cookie,
   CupSoda,
@@ -38,6 +40,7 @@ function iconFor(categoryName = '') {
  * (đều đã co giãn được) và `cartStore` chung.
  */
 export default function MobilePosPage() {
+  const navigate = useNavigate();
   const { shift, label: shiftLabel } = useShift();
 
   const [activeCategory, setActiveCategory] = useState(null);
@@ -157,9 +160,14 @@ export default function MobilePosPage() {
     <div className="mpos">
       <header className="mpos-top">
         <div className="mpos-toprow">
-          <div>
-            <div className="mpos-title">POS bán hàng</div>
-            <div className="mpos-sub">{shift ? `${shift.name} · ${shift.code}` : shiftLabel || '…'}</div>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <button type="button" className="mpos-home" onClick={() => navigate('/m')} aria-label="Về trang chính">
+              <ChevronLeft size={18} strokeWidth={2} />
+            </button>
+            <div className="min-w-0">
+              <div className="mpos-title">POS bán hàng</div>
+              <div className="mpos-sub">{shift ? `${shift.name} · ${shift.code}` : shiftLabel || '…'}</div>
+            </div>
           </div>
           <button type="button" className="mpos-orders" onClick={() => setOrdersOpen(true)}>
             <FileText size={14} strokeWidth={1.8} />

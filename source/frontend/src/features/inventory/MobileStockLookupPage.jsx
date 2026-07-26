@@ -97,7 +97,7 @@ export default function MobileStockLookupPage() {
       .map(([name, items]) => ({ name, label: catLabel(name), Icon: catIcon(name), items }));
   }, [ingredients, curCat, search]);
 
-  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
+  const goBack = () => navigate('/m');
 
   return (
     <div className="mstock">

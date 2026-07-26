@@ -154,7 +154,7 @@ export default function MobileQcPage() {
     [sessions],
   );
 
-  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
+  const goBack = () => navigate('/m');
 
   return (
     <div className="mqc">

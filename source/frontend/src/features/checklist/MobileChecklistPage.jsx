@@ -98,7 +98,7 @@ export default function MobileChecklistPage() {
     run(task.templateId, () => checklistApi.updateNote(task.completion.id, noteDraft));
   };
 
-  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
+  const goBack = () => navigate('/m');
 
   const shifts = shiftsQuery.data ?? [];
   const subtitle =
