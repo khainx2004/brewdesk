@@ -523,7 +523,7 @@ Chi tiết:
 |---|---|---|
 | 1 | Checklist theo ca | ⬜ Chưa làm |
 | 2 | Test cafe (QC) | ⬜ Chưa làm |
-| 3 | Tra cứu tồn kho nhanh | ⬜ Chưa làm |
+| 3 | Tra cứu tồn kho nhanh | ✅ Đã dựng (route `/m/kho`, file `design/kho_tra_cuu_mobile_mockup.html`) |
 
 **Không làm bản tablet.**
 

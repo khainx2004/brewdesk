@@ -15,6 +15,7 @@ import QcPage from './features/qc/QcPage';
 import StatsPage from './features/reports/StatsPage';
 import StockTakePage from './features/inventory/StockTakePage';
 import WarehousePage from './features/inventory/WarehousePage';
+import MobileStockLookupPage from './features/inventory/MobileStockLookupPage';
 import StaffPage from './features/staff/StaffPage';
 import PosPage from './features/pos/PosPage';
 
@@ -163,6 +164,17 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <WarehousePage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      {/* Màn mobile riêng cho nhân viên — ngoài AppShell, có thanh nav dưới cùng. */}
+      <Route
+        path="/m/kho"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileStockLookupPage />
             </ErrorBoundary>
           </RequireAuth>
         }
