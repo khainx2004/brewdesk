@@ -16,6 +16,7 @@ import StatsPage from './features/reports/StatsPage';
 import StockTakePage from './features/inventory/StockTakePage';
 import WarehousePage from './features/inventory/WarehousePage';
 import MobileStockLookupPage from './features/inventory/MobileStockLookupPage';
+import MobileChecklistPage from './features/checklist/MobileChecklistPage';
 import StaffPage from './features/staff/StaffPage';
 import PosPage from './features/pos/PosPage';
 
@@ -169,6 +170,16 @@ export default function App() {
         }
       />
       {/* Màn mobile riêng cho nhân viên — ngoài AppShell, có thanh nav dưới cùng. */}
+      <Route
+        path="/m/checklist"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileChecklistPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
       <Route
         path="/m/kho"
         element={
