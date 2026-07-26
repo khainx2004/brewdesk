@@ -522,7 +522,7 @@ Chi tiết:
 | # | Màn hình | Trạng thái |
 |---|---|---|
 | 1 | Checklist theo ca | ✅ Đã dựng (route `/m/checklist`, suy ra từ màn desktop — chưa có mockup mobile riêng) |
-| 2 | Test cafe (QC) | ⬜ Chưa làm |
+| 2 | Test cafe (QC) | ✅ Đã dựng (route `/m/test-cafe`, suy ra từ màn desktop — chưa có mockup mobile riêng) |
 | 3 | Tra cứu tồn kho nhanh | ✅ Đã dựng (route `/m/kho`, file `design/kho_tra_cuu_mobile_mockup.html`) |
 
 **Không làm bản tablet.**

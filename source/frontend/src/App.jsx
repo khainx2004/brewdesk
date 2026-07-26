@@ -17,6 +17,7 @@ import StockTakePage from './features/inventory/StockTakePage';
 import WarehousePage from './features/inventory/WarehousePage';
 import MobileStockLookupPage from './features/inventory/MobileStockLookupPage';
 import MobileChecklistPage from './features/checklist/MobileChecklistPage';
+import MobileQcPage from './features/qc/MobileQcPage';
 import StaffPage from './features/staff/StaffPage';
 import PosPage from './features/pos/PosPage';
 
@@ -176,6 +177,16 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <MobileChecklistPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/test-cafe"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileQcPage />
             </ErrorBoundary>
           </RequireAuth>
         }

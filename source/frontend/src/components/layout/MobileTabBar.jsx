@@ -6,13 +6,13 @@ import { Boxes, ClipboardCheck, Coffee, Monitor } from 'lucide-react';
  * `design/kho_tra_cuu_mobile_mockup`. Dùng chung cho cả ba màn mobile
  * (Checklist, Test cafe, Tra cứu tồn kho) nên khai một chỗ.
  *
- * `active` chọn tab đang sáng. Tab Test cafe hiện trỏ tạm về màn desktop `/qc`;
- * khi dựng bản mobile của màn đó thì đổi `to` sang route mobile tương ứng.
+ * `active` chọn tab đang sáng. Tab POS trỏ về màn POS desktop (dùng chung, đã co
+ * giãn được); ba tab còn lại là các màn mobile riêng.
  */
 const TABS = [
   { key: 'pos', label: 'POS', to: '/pos', Icon: Monitor },
   { key: 'checklist', label: 'Checklist', to: '/m/checklist', Icon: ClipboardCheck },
-  { key: 'qc', label: 'Test cafe', to: '/qc', Icon: Coffee },
+  { key: 'qc', label: 'Test cafe', to: '/m/test-cafe', Icon: Coffee },
   { key: 'kho', label: 'Kho', to: '/m/kho', Icon: Boxes },
 ];
 
