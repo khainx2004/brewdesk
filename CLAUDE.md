@@ -524,8 +524,9 @@ Chi tiết:
 | 1 | Checklist theo ca | ✅ Đã dựng (route `/m/checklist`, suy ra từ màn desktop — chưa có mockup mobile riêng) |
 | 2 | Test cafe (QC) | ✅ Đã dựng (route `/m/test-cafe`, suy ra từ màn desktop — chưa có mockup mobile riêng) |
 | 3 | Tra cứu tồn kho nhanh | ✅ Đã dựng (route `/m/kho`, file `design/kho_tra_cuu_mobile_mockup.html`) |
+| 4 | POS bán hàng | ✅ Đã dựng (route `/m/pos`, thêm theo yêu cầu — suy ra từ màn desktop, chưa có mockup riêng) |
 
-**Không làm bản tablet.**
+Bốn màn mobile dùng chung thanh nav dưới cùng (`MobileTabBar`). **Không làm bản tablet.**
 
 ### ⚠️ Ngoại lệ: màn hình Đăng nhập dùng ngôn ngữ thị giác riêng
 

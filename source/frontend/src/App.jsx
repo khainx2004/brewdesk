@@ -18,6 +18,7 @@ import WarehousePage from './features/inventory/WarehousePage';
 import MobileStockLookupPage from './features/inventory/MobileStockLookupPage';
 import MobileChecklistPage from './features/checklist/MobileChecklistPage';
 import MobileQcPage from './features/qc/MobileQcPage';
+import MobilePosPage from './features/pos/MobilePosPage';
 import StaffPage from './features/staff/StaffPage';
 import PosPage from './features/pos/PosPage';
 
@@ -171,6 +172,16 @@ export default function App() {
         }
       />
       {/* Màn mobile riêng cho nhân viên — ngoài AppShell, có thanh nav dưới cùng. */}
+      <Route
+        path="/m/pos"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobilePosPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
       <Route
         path="/m/checklist"
         element={
