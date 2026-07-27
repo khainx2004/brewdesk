@@ -14,6 +14,12 @@ import gocLamViec from '../../assets/quan/goc-lam-viec.jpg';
 import sauQuayPhaChe from '../../assets/quan/sau-quay-pha-che.jpg';
 import hoaMoiCam from '../../assets/quan/hoa-moi-cam.jpg';
 import gocCayTrongQuan from '../../assets/quan/goc-cay-trong-quan.jpg';
+import latteArt from '../../assets/quan/latte-art.jpg';
+import moominSen from '../../assets/quan/moomin-sen.jpg';
+import chuyenTro from '../../assets/quan/chuyen-tro.jpg';
+import gheGoViaHe from '../../assets/quan/ghe-go-via-he.jpg';
+import banNho from '../../assets/quan/ban-nho.jpg';
+import meoHayGhe from '../../assets/quan/meo-hay-ghe.jpg';
 
 const SHIFTS = [
   ['ca sáng', '7:30', '13:00'],
@@ -23,21 +29,17 @@ const SHIFTS = [
 
 const TILES = [
   { cls: 't-a', photo: phinSuaDa, cap: 'phin sữa đá' },
-  { cls: 't-b', cap: 'góc cây', icon: 'M12 3v6M8 9c0 4 1 6 4 6s4-2 4-6M6 21h12' },
+  { cls: 't-b', photo: chuyenTro, cap: 'chuyện trò' },
   { cls: 't-c', photo: gocPhoQuen, cap: 'góc phố quen' },
   { cls: 't-d', photo: gocLamViec, cap: 'góc làm việc' },
-  { cls: 't-e', cap: 'xe quen', rect: true },
+  { cls: 't-e', photo: gheGoViaHe, cap: 'ghế gỗ vỉa hè' },
   { cls: 't-f', photo: sauQuayPhaChe, cap: 'sau quầy pha chế' },
-  {
-    cls: 't-g',
-    cap: 'mèo hay ghé',
-    icon: 'M12 21s-7-4.35-9.5-8.5C.8 9 2 5 6 4.5c2-.25 3.5.75 6 3 2.5-2.25 4-3.25 6-3 4 .5 5.2 4.5 3.5 8C19 16.65 12 21 12 21z',
-  },
-  { cls: 't-h', cap: 'tối đông khách', icon: 'M12 3l1.5 5H19l-4 3.5L16.5 17 12 13.5 7.5 17 9 11.5 5 8h5.5z' },
+  { cls: 't-g', photo: meoHayGhe, cap: 'mèo hay ghé' },
+  { cls: 't-h', photo: banNho, cap: 'bàn nhỏ, chiều muộn' },
   { cls: 't-i', photo: hoaMoiCam, cap: 'hoa mới cắm' },
-  { cls: 't-j', cap: 'bàn quen thuộc', icon: 'M6 3v18M18 3v18M3 9h18M3 15h18' },
+  { cls: 't-j', photo: moominSen, cap: 'moomin ghé chơi' },
   { cls: 't-k', photo: gocCayTrongQuan, cap: 'góc cây trong quán' },
-  { cls: 't-l', cap: 'một tách, một sáng', circle: true },
+  { cls: 't-l', photo: latteArt, cap: 'một tách, một sáng' },
 ];
 
 /** Khung trang dùng chung cho màn đăng nhập và màn đổi mật khẩu lần đầu. */
@@ -164,26 +166,8 @@ export default function LoginShell({ children }) {
 
         <div className="mosaic" ref={mosaicRef}>
           {TILES.map((tile) => (
-            <div key={tile.cls} className={`tile ${tile.cls} ${tile.photo ? 'has-photo' : ''}`}>
-              {tile.photo ? (
-                <img src={tile.photo} alt={tile.cap} loading="lazy" />
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="#E9E0CF" strokeWidth="1.4" aria-hidden="true">
-                  {tile.rect && (
-                    <>
-                      <rect x="3" y="5" width="14" height="14" rx="1" />
-                      <circle cx="17" cy="7" r="2" />
-                    </>
-                  )}
-                  {tile.circle && (
-                    <>
-                      <path d="M12 2v20M2 12h20" strokeOpacity="0.5" />
-                      <circle cx="12" cy="12" r="4" />
-                    </>
-                  )}
-                  {tile.icon && <path d={tile.icon} />}
-                </svg>
-              )}
+            <div key={tile.cls} className={`tile ${tile.cls} has-photo`}>
+              <img src={tile.photo} alt={tile.cap} loading="lazy" />
               <div className="cap">{tile.cap}</div>
             </div>
           ))}
