@@ -1,0 +1,62 @@
+# Stack production đầy đủ: PostgreSQL + backend (Spring Boot) + web (Nginx serve FE
+# + proxy /api). Chạy:  docker compose -f docker-compose.prod.yml up -d --build
+#
+# Khác docker-compose.yml (chỉ DB, dùng lúc dev với backend chạy ngoài): file này
+# dựng cả 3 dịch vụ và KHÔNG mở cổng 5432 ra host.
+name: brewdesk
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: brewdesk_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-brewdesk}
+      POSTGRES_USER: ${POSTGRES_USER:-brewdesk_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?can dat POSTGRES_PASSWORD trong .env}
+    volumes:
+      - brewdesk_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-brewdesk_user} -d ${POSTGRES_DB:-brewdesk}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Cố ý KHÔNG mở cổng 5432 ra host ở prod — chỉ backend trong mạng nội bộ truy cập.
+
+  backend:
+    build:
+      context: ./source/backend
+    image: brewdesk-backend
+    container_name: brewdesk_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      # Trỏ tới service postgres trong mạng compose, không phải localhost.
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-brewdesk}
+      DB_USER: ${POSTGRES_USER:-brewdesk_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?can dat POSTGRES_PASSWORD trong .env}
+      JWT_SECRET: ${JWT_SECRET:?can dat JWT_SECRET trong .env}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/v3/api-docs"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s   # Spring Boot + Flyway cần thời gian khởi động
+
+  web:
+    build:
+      context: ./source/frontend
+    image: brewdesk-web
+    container_name: brewdesk_web
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-80}:80"
+
+volumes:
+  brewdesk_data:
