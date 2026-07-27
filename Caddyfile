@@ -1,0 +1,11 @@
+# Lớp TLS ngoài cùng cho bản VPS. Caddy tự xin + gia hạn chứng chỉ Let's Encrypt
+# cho $DOMAIN (cần DNS A record trỏ về IP VPS và mở cổng 80+443).
+# Nó chỉ chuyển tiếp sang nginx (service "web") — nginx lo phần serve tĩnh + /api.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	reverse_proxy web:80
+}

@@ -1,24 +1,32 @@
-# Triển khai (Phase 8)
+# Triển khai (Phase 8) — VPS
 
-Stack production chạy bằng `docker-compose.prod.yml`: **postgres + backend
-(Spring Boot) + web (Nginx serve frontend + proxy `/api`)**. Frontend và API cùng
-một origin qua Nginx nên không có CORS.
+Stack chạy bằng `docker-compose.prod.yml`:
+**caddy (TLS) → web (Nginx serve frontend + proxy `/api`) → backend (Spring Boot) → postgres.**
+Chỉ **Caddy** mở ra Internet (80/443); ba service còn lại nội bộ. Caddy tự xin +
+gia hạn chứng chỉ HTTPS (Let's Encrypt). Frontend và API cùng một origin nên không có CORS.
 
-## Lần đầu trên server
+## Chuẩn bị (một lần)
+1. **Thuê VPS** (CLAUDE ghi: VN hoặc Singapore), cài Docker + Docker Compose.
+2. **Domain:** tạo bản ghi **DNS A** trỏ `quan.example.com` → **IP của VPS**.
+3. **Firewall VPS:** mở cổng **80** và **443** (Caddy cần cổng 80 để xác thực ACME).
+   KHÔNG cần mở 8080/5432.
 
+## Lần đầu triển khai
 ```bash
 git clone https://github.com/khainx2004/brewdesk.git
 cd brewdesk
 cp .env.example .env
-# Sửa .env: POSTGRES_PASSWORD mạnh, JWT_SECRET = openssl rand -base64 48
+# Sửa .env:
+#   DOMAIN=quan.example.com   ACME_EMAIL=ban@example.com
+#   POSTGRES_PASSWORD=<mạnh>  JWT_SECRET=$(openssl rand -base64 48)
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-- Web: `http://<server>:${WEB_PORT:-80}` · Backend chỉ trong mạng nội bộ (không mở cổng).
-- Backend tự chạy Flyway migration lúc khởi động (V1→V11), tạo tài khoản `admin`/`admin123`.
+- Vài chục giây sau Caddy cấp xong chứng chỉ → mở `https://quan.example.com`.
+- Backend tự chạy Flyway (V1→V11) lúc khởi động, tạo tài khoản `admin`/`admin123`.
 
-⚠️ **Ngay sau lần chạy đầu:** đăng nhập `admin`/`admin123` và **đổi mật khẩu**.
-Đừng mở web ra Internet trước khi đổi (mật khẩu này công khai trong source).
+⚠️ **Ngay sau lần chạy đầu:** đăng nhập `admin`/`admin123` và **đổi mật khẩu** (mật
+khẩu này công khai trong source). Nên làm trước khi phát địa chỉ cho nhân viên.
 
 ## Vận hành
 
@@ -28,8 +36,9 @@ docker compose -f docker-compose.prod.yml logs -f backend
 docker compose -f docker-compose.prod.yml up -d --build   # deploy bản mới (sau git pull)
 docker compose -f docker-compose.prod.yml down            # dừng (giữ volume DB)
 ```
-Cả 3 service `restart: unless-stopped` → tự lên lại sau reboot. Thứ tự khởi động:
-postgres (healthy) → backend (healthy) → web.
+Cả 4 service `restart: unless-stopped` → tự lên lại sau reboot. Thứ tự khởi động:
+postgres (healthy) → backend (healthy) → web → caddy. Chứng chỉ TLS nằm trong
+volume `caddy_data` nên KHÔNG bị xin lại mỗi lần restart (tránh chạm rate-limit Let's Encrypt).
 
 ## Backup
 
@@ -43,12 +52,16 @@ Cron hàng ngày 2h sáng (`crontab -e`):
 **Restore:** `gunzip -c BACKUP_DIR/brewdesk-YYYYMMDD-HHMMSS.sql.gz | docker exec -i brewdesk_db psql -U brewdesk_user -d brewdesk`
 → **test thử restore một lần** để chắc backup dùng được.
 
-## HTTPS (khuyến nghị trước khi mở ra Internet)
+## Chạy LAN thay vì VPS (nếu đổi ý)
+Bỏ service `caddy` trong compose và mở cổng cho `web`:
+```yaml
+  web:
+    ports: ["${WEB_PORT:-80}:80"]
+```
+Truy cập `http://<IP-máy>` trong wifi quán (không TLS, không cần domain).
 
-Đặt một reverse proxy TLS trước `web` (Caddy tự cấp Let's Encrypt là gọn nhất, hoặc
-Nginx host + certbot), forward 443 → `web:80`. Không bắt buộc nếu chỉ chạy trong LAN quán.
-
-## Còn thiếu (hardening, không thuộc Phase 8)
-- Bundle font local, bỏ Google Fonts CDN (CLAUDE mục 9) — hiện `index.html` còn `<link>` CDN.
+## Còn thiếu (hardening)
+- **Bundle font local, bỏ Google Fonts CDN** (CLAUDE mục 9) — hiện `index.html` còn
+  `<link>` CDN nên cần Internet để tải font.
 - CORS trong `SecurityConfig` vẫn ghim `localhost:5173` (dev) — không ảnh hưởng prod vì
-  same-origin qua Nginx; chỉ cần đổi nếu sau này tách domain FE/BE.
+  same-origin; chỉ cần đổi nếu sau này tách domain FE/BE.

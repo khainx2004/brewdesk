@@ -1,8 +1,13 @@
-# Stack production đầy đủ: PostgreSQL + backend (Spring Boot) + web (Nginx serve FE
-# + proxy /api). Chạy:  docker compose -f docker-compose.prod.yml up -d --build
+# Stack production cho VPS: caddy (TLS) → web (Nginx serve FE + proxy /api) →
+# backend (Spring Boot) → postgres. Chỉ Caddy mở cổng ra Internet (80/443); ba
+# service còn lại chạy trong mạng nội bộ của compose.
 #
-# Khác docker-compose.yml (chỉ DB, dùng lúc dev với backend chạy ngoài): file này
-# dựng cả 3 dịch vụ và KHÔNG mở cổng 5432 ra host.
+# Chạy:  docker compose -f docker-compose.prod.yml up -d --build
+# Yêu cầu trong .env: DOMAIN, ACME_EMAIL, POSTGRES_PASSWORD, JWT_SECRET.
+#
+# Chạy LAN (không domain, không TLS) thì bỏ service "caddy" và mở cổng cho "web":
+#   web:
+#     ports: ["${WEB_PORT:-80}:80"]
 name: brewdesk
 
 services:
@@ -55,8 +60,29 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    # Không mở cổng ra host — Caddy proxy tới web:80 trong mạng nội bộ.
+    expose:
+      - "80"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: brewdesk_caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      DOMAIN: ${DOMAIN:?can dat DOMAIN trong .env (vd quan.example.com)}
+      ACME_EMAIL: ${ACME_EMAIL:?can dat ACME_EMAIL trong .env}
     ports:
-      - "${WEB_PORT:-80}:80"
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # chứng chỉ TLS — PHẢI giữ để khỏi xin lại mỗi lần restart
+      - caddy_config:/config
 
 volumes:
   brewdesk_data:
+  caddy_data:
+  caddy_config:
