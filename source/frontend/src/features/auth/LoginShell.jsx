@@ -1,4 +1,11 @@
 import { useEffect, useRef } from 'react';
+// Font riêng của màn Đăng nhập (CLAUDE.md mục 9) — bundle local, không CDN.
+import '@fontsource/newsreader/400.css';
+import '@fontsource/newsreader/500.css';
+import '@fontsource/newsreader/400-italic.css';
+import '@fontsource/newsreader/500-italic.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
 import './login.css';
 
 import phinSuaDa from '../../assets/quan/phin-sua-da.jpg';

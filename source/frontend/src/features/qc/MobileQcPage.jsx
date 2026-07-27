@@ -6,6 +6,7 @@ import MobileTabBar from '../../components/layout/MobileTabBar';
 import Button from '../../components/ui/Button';
 import { errorMessage } from '../../services/api';
 import { qcApi } from '../../services/qcApi';
+import { ingredientApi } from '../../services/inventoryApi';
 import { useShift } from '../../hooks/useShift';
 import { formatDayMonth } from '../../utils/fmt';
 import TestEntry from './TestEntry';
@@ -113,7 +114,19 @@ export default function MobileQcPage() {
   const [expanded, setExpanded] = useState(null);
 
   const stockQuery = useQuery({ queryKey: ['stock-imports'], queryFn: qcApi.stockImports });
-  const stockImports = stockQuery.data?.items ?? [];
+  const ingredientsQuery = useQuery({
+    queryKey: ['ingredients', 'qc-coffee'],
+    queryFn: () => ingredientApi.list({ size: 500 }),
+  });
+  // "Lô cà phê" chỉ liệt kê lô của nguyên liệu nhóm Cà phê (xem QcPage).
+  const stockImports = useMemo(() => {
+    const coffeeIds = new Set(
+      (ingredientsQuery.data?.items ?? [])
+        .filter((i) => i.categoryName === 'Cà phê')
+        .map((i) => i.id),
+    );
+    return (stockQuery.data?.items ?? []).filter((s) => coffeeIds.has(s.ingredientId));
+  }, [stockQuery.data, ingredientsQuery.data]);
   const profileQuery = useQuery({ queryKey: ['qc-profile'], queryFn: qcApi.profile });
   const historyQuery = useQuery({ queryKey: ['qc-history-recent'], queryFn: qcApi.recent });
   const sessions = useMemo(() => historyQuery.data ?? [], [historyQuery.data]);

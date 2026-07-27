@@ -61,7 +61,7 @@ Bỏ service `caddy` trong compose và mở cổng cho `web`:
 Truy cập `http://<IP-máy>` trong wifi quán (không TLS, không cần domain).
 
 ## Còn thiếu (hardening)
-- **Bundle font local, bỏ Google Fonts CDN** (CLAUDE mục 9) — hiện `index.html` còn
-  `<link>` CDN nên cần Internet để tải font.
+- ✅ Font đã bundle local qua `@fontsource` (bỏ Google Fonts CDN) — không còn phụ
+  thuộc Internet để tải font.
 - CORS trong `SecurityConfig` vẫn ghim `localhost:5173` (dev) — không ảnh hưởng prod vì
   same-origin; chỉ cần đổi nếu sau này tách domain FE/BE.
