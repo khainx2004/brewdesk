@@ -179,6 +179,15 @@ function RevenuePane({ from, to, prev, ready }) {
 
   const d = revQuery.data;
   const p = prevQuery.data;
+  // Tuỳ chỉnh nhưng chưa nhập đủ ngày: query bị tắt (enabled:false) nên không có
+  // dữ liệu — nhắc chọn ngày thay vì hiện "Đang tải…" mãi.
+  if (!ready) {
+    return (
+      <p className="px-1 py-8 text-center text-sm text-olive">
+        Chọn ngày “Từ” và “đến” để xem báo cáo doanh thu.
+      </p>
+    );
+  }
   if (!d) return <Loading />;
 
   const cancelTotal = d.orderCount + d.cancelledCount;
