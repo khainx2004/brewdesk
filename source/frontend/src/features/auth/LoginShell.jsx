@@ -28,7 +28,7 @@ const SHIFTS = [
 ];
 
 const TILES = [
-  { cls: 't-a', photo: phinSuaDa, cap: 'phin sữa đá' },
+  { cls: 't-a', photo: phinSuaDa, cap: 'ame đá' },
   { cls: 't-b', photo: chuyenTro, cap: 'chuyện trò' },
   { cls: 't-c', photo: gocPhoQuen, cap: 'góc phố quen' },
   { cls: 't-d', photo: gocLamViec, cap: 'góc làm việc' },
