@@ -4,65 +4,7 @@ import AppShell from '../../components/layout/AppShell';
 import { reportApi } from '../../services/reportApi';
 import { qcApi } from '../../services/qcApi';
 import { formatVnd, formatDayMonth, formatQty } from '../../utils/fmt';
-
-const TABS = [
-  ['revenue', 'Doanh thu'],
-  ['inventory', 'Kho & Hao hụt'],
-  ['qc', 'Test cafe'],
-];
-const RANGES = [
-  ['today', 'Hôm nay'],
-  ['7d', '7 ngày'],
-  ['month', 'Tháng này'],
-  ['custom', 'Tuỳ chỉnh'],
-];
-
-const pad = (n) => String(n).padStart(2, '0');
-const iso = (dt) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
-
-/** Số tiền gọn cho KPI/biểu đồ: 18,4tr · 100k. Bảng thì dùng formatVnd đầy đủ. */
-function compactVnd(n) {
-  const v = Number(n) || 0;
-  if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(1).replace('.', ',') + 'tr';
-  if (Math.abs(v) >= 1e3) return Math.round(v / 1e3) + 'k';
-  return String(Math.round(v));
-}
-
-function rangeFor(key, customFrom, customTo) {
-  const d = new Date();
-  const today = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  if (key === 'today') return { from: iso(today), to: iso(today) };
-  if (key === '7d') {
-    const f = new Date(today);
-    f.setDate(f.getDate() - 6);
-    return { from: iso(f), to: iso(today) };
-  }
-  if (key === 'month') {
-    const f = new Date(today.getFullYear(), today.getMonth(), 1);
-    return { from: iso(f), to: iso(today) };
-  }
-  return { from: customFrom, to: customTo };
-}
-
-/** Kỳ liền trước cùng độ dài, để tính delta ▲▼. */
-function prevRange(from, to) {
-  if (!from || !to) return null;
-  const f = new Date(from);
-  const t = new Date(to);
-  const len = Math.round((t - f) / 86400000) + 1;
-  const pt = new Date(f);
-  pt.setDate(pt.getDate() - 1);
-  const pf = new Date(pt);
-  pf.setDate(pf.getDate() - (len - 1));
-  return { from: iso(pf), to: iso(pt) };
-}
-
-function pctDelta(cur, prev) {
-  const c = Number(cur) || 0;
-  const p = Number(prev) || 0;
-  if (p === 0) return null;
-  return Math.round(((c - p) / p) * 100);
-}
+import { TABS, RANGES, iso, compactVnd, rangeFor, prevRange, pctDelta } from './statsHelpers';
 
 export default function StatsPage() {
   const [tab, setTab] = useState('revenue');
@@ -145,7 +87,7 @@ export default function StatsPage() {
   );
 }
 
-function Kpi({ label, value, delta, warn, sub }) {
+export function Kpi({ label, value, delta, warn, sub }) {
   return (
     <div className={`kpi-card${warn ? ' warn' : ''}`}>
       <div className="kpi-label">{label}</div>
@@ -160,7 +102,7 @@ function Kpi({ label, value, delta, warn, sub }) {
   );
 }
 
-function RevenuePane({ from, to, prev, ready }) {
+export function RevenuePane({ from, to, prev, ready }) {
   const revQuery = useQuery({
     queryKey: ['report-revenue', from, to],
     queryFn: () => reportApi.revenue({ from, to }),
@@ -223,7 +165,7 @@ function RevenuePane({ from, to, prev, ready }) {
         />
       </div>
 
-      <div className="stats-box">
+      <div className="stats-box stats-box-daily">
         <div className="stats-title">Doanh thu theo ngày</div>
         <div className="stats-hint">
           {formatDayMonth(from)} – {formatDayMonth(to)}
@@ -237,7 +179,11 @@ function RevenuePane({ from, to, prev, ready }) {
                 <div className="bar-value">{compactVnd(x.revenue)}</div>
                 <div
                   className="bar"
-                  style={{ height: `${Math.round((Number(x.revenue) / maxDay) * 140)}px` }}
+                  // Chiều cao cột tối đa đọc từ --bar-max (desktop mặc định 140px, bám
+                  // mockup); bản mobile ghi đè cho cao hơn để thấy rõ biểu đồ.
+                  style={{
+                    height: `calc(var(--bar-max, 140px) * ${(Number(x.revenue) / maxDay).toFixed(3)})`,
+                  }}
                 />
                 <div className="bar-label">{formatDayMonth(x.date)}</div>
               </div>
@@ -298,7 +244,7 @@ function RevenuePane({ from, to, prev, ready }) {
   );
 }
 
-function InventoryPane() {
+export function InventoryPane() {
   const invQuery = useQuery({ queryKey: ['report-inventory'], queryFn: reportApi.inventory });
 
   const d = new Date();
@@ -413,7 +359,7 @@ function InventoryPane() {
   );
 }
 
-function QcPane() {
+export function QcPane() {
   const d = new Date();
   const from = iso(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 29));
   const to = iso(new Date(d.getFullYear(), d.getMonth(), d.getDate()));

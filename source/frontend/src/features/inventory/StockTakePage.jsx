@@ -7,51 +7,12 @@ import { useShift } from '../../hooks/useShift';
 import { useAuthStore } from '../../stores/authStore';
 import { errorMessage } from '../../services/api';
 import { formatDayMonth, formatDate, formatQty } from '../../utils/fmt';
+import { groupByCategory } from './stockTakeHelpers';
 
 const MAIN_TABS = [
   ['current', 'Phiếu hiện tại'],
   ['history', 'Lịch sử'],
 ];
-
-/**
- * Thứ tự và nhãn nhóm lấy y hệt mockup Kiểm kê kho: [tên nhóm trong DB, nhãn hiển
- * thị đúng mockup]. Nhóm nào không nằm trong mockup (vd Bánh) đẩy xuống cuối và
- * giữ tên DB.
- */
-const CATEGORY_ORDER = [
-  ['Cà phê', 'Coffee'],
-  ['Bột', 'Powder'],
-  ['Trà', 'Tea'],
-  ['Chất tạo ngọt', 'Sweet'],
-  ['Sữa', 'Milk & Rượu'],
-  ['Siro', 'Syrup'],
-  ['Tự làm tại quán', 'Homemade'],
-  ['Topping', 'Topping'],
-  ['Vệ sinh', 'Cleaning'],
-  ['Đồ rót / pha chế', 'Pour <3'],
-];
-
-/** Gom nguyên liệu theo nhóm, xếp đúng thứ tự và tên nhóm của mockup. */
-function groupByCategory(items) {
-  const byName = new Map();
-  for (const it of items) {
-    const key = it.categoryName || 'Khác';
-    if (!byName.has(key)) byName.set(key, []);
-    byName.get(key).push(it);
-  }
-  const result = [];
-  const used = new Set();
-  for (const [dbName, label] of CATEGORY_ORDER) {
-    if (byName.has(dbName)) {
-      result.push({ name: label, items: byName.get(dbName) });
-      used.add(dbName);
-    }
-  }
-  for (const [dbName, list] of byName) {
-    if (!used.has(dbName)) result.push({ name: dbName, items: list });
-  }
-  return result;
-}
 
 /**
  * Kiểm kê kho hàng tuần. Bám `design/kiem_ke_kho_mockup_desktop(3).html`.

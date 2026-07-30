@@ -22,19 +22,31 @@ import MobileQcPage from './features/qc/MobileQcPage';
 import MobilePosPage from './features/pos/MobilePosPage';
 import MobileHomePage from './features/MobileHomePage';
 import MobileReconciliationPage from './features/reconciliation/MobileReconciliationPage';
+import MobileMenuPage from './features/menu/MobileMenuPage';
+import MobileStockTakePage from './features/inventory/MobileStockTakePage';
+import MobileWarehousePage from './features/inventory/MobileWarehousePage';
+import MobileStaffPage from './features/staff/MobileStaffPage';
+import MobileStatsPage from './features/reports/MobileStatsPage';
 
 /**
- * Cặp route dùng chung desktop ↔ mobile. Có bản mobile riêng thì mới nằm ở đây;
- * các màn chỉ có desktop (menu, kiểm kê, thống kê, nhân viên, bàn giao ca) không
- * đổi theo thiết bị — mở trên điện thoại vẫn ra bản desktop.
+ * Cặp route dùng chung desktop ↔ mobile: mọi màn đều có bản mobile riêng nên đều
+ * nằm ở đây — mở trên điện thoại tự đẩy sang bản `/m`, mở màn rộng tự về desktop.
+ *
+ * Lưu ý `/kho` (bản quản lý đầy đủ) map sang `/m/kho-quan-ly`; còn `/m/kho` là màn
+ * "Tra cứu tồn kho nhanh" ở tab bar (có mockup riêng), cố ý không nằm trong bảng
+ * này để tab bar trỏ tới nó không bị điều hướng đi chỗ khác.
  */
 const DESKTOP_TO_MOBILE = {
   '/': '/m',
   '/pos': '/m/pos',
   '/checklist': '/m/checklist',
   '/qc': '/m/test-cafe',
-  '/kho': '/m/kho',
+  '/kho': '/m/kho-quan-ly',
   '/ban-giao-ca': '/m/ban-giao-ca',
+  '/menu': '/m/menu',
+  '/kiem-ke': '/m/kiem-ke',
+  '/nhan-vien': '/m/nhan-vien',
+  '/thong-ke': '/m/thong-ke',
 };
 const MOBILE_TO_DESKTOP = Object.fromEntries(
   Object.entries(DESKTOP_TO_MOBILE).map(([d, m]) => [m, d]),
@@ -79,7 +91,11 @@ function RequireAuth({ children }) {
   if (redirect) {
     return <Navigate to={redirect} replace />;
   }
-  if (isAdminOnlyPath(pathname) && user?.role !== 'ADMIN') {
+  // Quy path mobile về path desktop chuẩn rồi mới tra quyền: `NAV_SECTIONS` (nguồn
+  // duy nhất) chỉ khai path desktop, nhờ vậy `/m/nhan-vien` & `/m/thong-ke` được
+  // chặn STAFF y như bản desktop mà không phải khai cờ adminOnly ở hai nơi.
+  const canonical = MOBILE_TO_DESKTOP[pathname] ?? pathname;
+  if (isAdminOnlyPath(canonical) && user?.role !== 'ADMIN') {
     return <ForbiddenPage />;
   }
   return children;
@@ -260,6 +276,56 @@ export default function App() {
           <RequireAuth>
             <ErrorBoundary>
               <MobileStockLookupPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/menu"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileMenuPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/kiem-ke"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileStockTakePage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/kho-quan-ly"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileWarehousePage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/nhan-vien"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileStaffPage />
+            </ErrorBoundary>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/m/thong-ke"
+        element={
+          <RequireAuth>
+            <ErrorBoundary>
+              <MobileStatsPage />
             </ErrorBoundary>
           </RequireAuth>
         }
